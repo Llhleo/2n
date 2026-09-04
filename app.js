@@ -63,6 +63,8 @@
       // World wakes up first, then 2n rises through the horizon.
       opening
         .to('.hero-bg',{filter:'saturate(1) contrast(1) brightness(1)',scale:1.1,duration:1.45,ease:'power2.out'},3.18)
+        .to('.world-fog-a',{opacity:.66,x:'20vw',duration:1.9,ease:'power2.out'},3.18)
+        .to('.world-fog-b',{opacity:.52,x:'-16vw',duration:2.15,ease:'power2.out'},3.32)
         .to('.hero-horizon-glow',{opacity:1,duration:.55},3.30)
         .to('.hero-beam',{opacity:.75,duration:.75},3.35)
         .fromTo('.ridge',{yPercent:112},{yPercent:0,stagger:.08,duration:1.25,ease:'power4.out'},3.38)
@@ -73,6 +75,8 @@
         .to(sheen,{opacity:.95,left:'120%',duration:1.05,ease:'power2.inOut'},5.18)
         .to('.hero-horizon-glow',{opacity:.22,duration:1.0},5.30)
         .to('.hero-beam',{opacity:.12,duration:1.0},5.30)
+        .to('.world-fog-a',{opacity:.24,duration:1.35},5.35)
+        .to('.world-fog-b',{opacity:.18,duration:1.35},5.42)
         .to('.eyebrow',{opacity:1,y:0,duration:.55},5.50)
         .fromTo('.tagline',{opacity:0,y:32},{opacity:1,y:0,duration:.85},5.72)
         .fromTo('.hero-sub',{opacity:0,y:16},{opacity:1,y:0,duration:.65},5.98)
@@ -84,6 +88,8 @@
       gsap.to('.mark-two',{y:-5,duration:3.2,repeat:-1,yoyo:true,ease:'sine.inOut',delay:6.2});
       gsap.to('.mark-exp',{y:5,rotation:3,duration:2.8,repeat:-1,yoyo:true,ease:'sine.inOut',delay:6.2});
       gsap.to('.hero-haze',{opacity:.55,duration:4.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
+      gsap.to('.world-fog-a',{x:'+=5vw',y:'-=1.5vh',duration:8.5,repeat:-1,yoyo:true,ease:'sine.inOut',delay:6.3});
+      gsap.to('.world-fog-b',{x:'-=4vw',y:'+=1.2vh',duration:10,repeat:-1,yoyo:true,ease:'sine.inOut',delay:6.3});
     }
 
     // Scroll transition after the opening.

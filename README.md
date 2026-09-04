@@ -1,19 +1,16 @@
-# 2n website v5
+# 2n Website v7
 
-Cinematic static guild website for Florr.io guild **2n**.
+Static HTML/CSS/JS prototype for the 2ⁿ Florr guild website.
 
-## v5 hero sequence
-- Grey atmospheric opening, blinking light points and scan beam
-- No 2n logo during the first opening beat
-- Horizon glow establishes the scene first
-- Foreground terrain rises and masks the logo
-- 2ⁿ emerges slowly from behind the horizon
-- Light sweep reveals the mark
-- Chinese slogan appears only after the logo reveal
-- Mouse parallax + scroll depth remain enabled
+## v7 changes
+- Stronger cinematic fog in the opening sequence.
+- Three independently moving fog banks before the 2ⁿ reveal.
+- Dense low fog sits on the horizon so the world feels hidden before it opens.
+- Residual foreground fog remains after the reveal, then slowly thins while 2ⁿ rises.
+- Mobile fog density and coverage tuned separately.
 
-## Deploy
-Static files only. For Cloudflare Pages, no build command is required. Publish the repository root.
+## Run
+Open `index.html` in a browser, or serve the folder with any static web server.
 
-## v6 opening
-Rebuilt as a single continuous cinematic shot. 2n is intentionally absent for the first ~4 seconds; the world appears first, then the mark rises through the horizon mask.
+## Cloudflare Pages
+No build step is required. Publish the project root.
