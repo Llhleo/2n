@@ -302,3 +302,41 @@ body.is-opening{overflow:hidden}
 }
 /* v11 correction: old v10 mobile transform must not offset the new horizon-rising logo. */
 .logo-rise .mark{transform:none}
+
+/* v12 — lock the opening shot + cinematic continuous biome chapter */
+html.scroll-locked,body.scroll-locked{overflow:hidden!important;overscroll-behavior:none!important;height:100%}
+body.scroll-locked{touch-action:none!important}
+
+.world-pin{position:relative;background:#101311}
+.world-ui{position:absolute;z-index:20;left:3.2vw;right:3.2vw;top:3.5vh;display:grid;grid-template-columns:auto 1fr auto;gap:2vw;align-items:center;color:#fff;pointer-events:none;mix-blend-mode:difference}
+.world-ui-title{display:flex;align-items:baseline;gap:14px;white-space:nowrap}.world-ui-title span{font-size:9px;letter-spacing:.28em}.world-ui-title strong{font-size:11px;font-weight:500;letter-spacing:.08em}
+.world-ui-progress{height:1px;background:rgba(255,255,255,.28);overflow:hidden}.world-ui-progress i{display:block;width:100%;height:100%;background:#fff;transform:scaleX(.02);transform-origin:left center;will-change:transform}
+.world-ui-count{display:flex;align-items:baseline;gap:7px;font-family:'Cormorant Garamond',Georgia,serif}.world-ui-count b{font-size:28px;font-weight:600}.world-ui-count span{font-size:11px;opacity:.7}
+
+.world-track{background:#111}
+.biome{isolation:isolate;overflow:hidden;background-image:linear-gradient(180deg,rgba(4,8,6,.04),rgba(2,4,3,.54)),url('./assets/world-panorama.svg');background-size:500% 100%;background-repeat:no-repeat;background-color:#50645a;color:#fff}
+.biome.garden{background-position:0% center}.biome.desert{background-position:25% center}.biome.ocean{background-position:50% center}.biome.jungle{background-position:75% center}.biome.hel{background-position:100% center}
+.biome:before{background:linear-gradient(180deg,rgba(0,0,0,.02) 0%,rgba(0,0,0,.08) 46%,rgba(0,0,0,.68) 100%);z-index:1}
+.biome:after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(circle at 70% 32%,rgba(255,255,255,.13),transparent 24%),linear-gradient(90deg,rgba(0,0,0,.18),transparent 36%,transparent 75%,rgba(0,0,0,.08));pointer-events:none}
+.biome-copy{position:relative;z-index:5;max-width:min(760px,75vw);will-change:transform,opacity}
+.biome-no{display:block;font-size:10px!important;letter-spacing:.27em!important;margin-bottom:2.2vh;color:rgba(255,255,255,.72)}
+.biome h3{display:flex;align-items:flex-end;gap:22px;font-size:clamp(86px,13.5vw,220px);margin:0 0 3vh;line-height:.72;text-shadow:0 12px 50px rgba(0,0,0,.18)}
+.biome h3 em{font-family:Inter,Arial,sans-serif;font-size:10px;font-style:normal;font-weight:500;letter-spacing:.28em;margin-bottom:1.3em;opacity:.76}
+.biome p{max-width:480px;font-size:clamp(13px,1.05vw,16px);line-height:1.75;letter-spacing:.05em;color:rgba(255,255,255,.82);margin:0}
+.biome-atmosphere{position:absolute;inset:-8%;z-index:3;pointer-events:none;will-change:transform}
+.biome-atmosphere i{position:absolute;display:block;opacity:.55;animation:biomeFloat 6s ease-in-out infinite alternate}
+.biome-atmosphere i:nth-child(1){left:14%;top:24%;animation-delay:-1s}.biome-atmosphere i:nth-child(2){left:38%;top:16%;animation-delay:-3.2s}.biome-atmosphere i:nth-child(3){left:63%;top:31%;animation-delay:-2s}.biome-atmosphere i:nth-child(4){left:78%;top:18%;animation-delay:-4.4s}.biome-atmosphere i:nth-child(5){left:54%;top:54%;animation-delay:-.3s}
+.garden .biome-atmosphere i{width:12px;height:6px;border-radius:100% 0 100% 0;background:#efb5c4;transform:rotate(35deg);box-shadow:0 0 16px rgba(255,204,218,.18)}
+.desert .biome-atmosphere i{width:5px;height:5px;border-radius:50%;background:#f0cf91;filter:blur(.2px);box-shadow:24px 12px 0 rgba(239,201,134,.42),-18px 32px 0 rgba(239,201,134,.34)}
+.ocean .biome-atmosphere i{width:18px;height:18px;border:1px solid rgba(218,248,250,.7);border-radius:50%;background:rgba(255,255,255,.03);box-shadow:22px 28px 0 -5px rgba(205,243,247,.35)}
+.jungle .biome-atmosphere i{width:20px;height:8px;border-radius:90% 0 90% 0;background:#9fc796;transform:rotate(-24deg)}
+.hel .biome-atmosphere i{width:5px;height:5px;border-radius:50%;background:#ff9a4e;box-shadow:0 0 14px #f7642d,18px 26px 0 -1px rgba(255,116,53,.55);animation-duration:3.5s}
+@keyframes biomeFloat{0%{translate:0 0;rotate:-5deg}100%{translate:18px -24px;rotate:13deg}}
+
+@media(max-width:800px){
+  .world-ui{left:5vw;right:5vw;top:max(2.4svh,16px);grid-template-columns:auto 1fr auto;gap:12px}.world-ui-title strong{display:none}.world-ui-title span{font-size:8px;letter-spacing:.22em}.world-ui-count b{font-size:24px}.world-ui-count span{font-size:9px}
+  .biome{padding:10svh 6vw 8svh;background-image:linear-gradient(180deg,rgba(4,8,6,.03),rgba(2,4,3,.62)),url('./assets/world-panorama.svg');background-size:500% 100%;background-position-y:center}
+  .biome-copy{max-width:88vw}.biome-no{font-size:9px!important;margin-bottom:2svh}.biome h3{display:block;font-size:clamp(76px,22vw,106px);line-height:.76;margin-bottom:2.4svh}.biome h3 em{display:block;font-size:8px;margin:2.2svh 0 0;letter-spacing:.25em}.biome p{max-width:78vw;font-size:12px;line-height:1.7}
+  .biome-atmosphere i:nth-child(4),.biome-atmosphere i:nth-child(5){display:none}
+}
+@media(prefers-reduced-motion:reduce){.biome-atmosphere i{animation:none}}

@@ -12,7 +12,37 @@
   const canvas = document.querySelector('.hero-particles');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isMobile = window.matchMedia('(max-width: 800px)').matches;
-  if (!reduceMotion) document.body.classList.add('is-opening');
+  let openingScrollLocked = false;
+
+  const stopOpeningScroll = (event) => {
+    if (!openingScrollLocked) return;
+    event.preventDefault();
+  };
+  const stopOpeningKeys = (event) => {
+    if (!openingScrollLocked) return;
+    if (['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(event.key)) event.preventDefault();
+  };
+  function lockOpeningScroll(){
+    if (openingScrollLocked) return;
+    openingScrollLocked = true;
+    window.scrollTo(0,0);
+    document.documentElement.classList.add('scroll-locked');
+    document.body.classList.add('scroll-locked','is-opening');
+    window.addEventListener('wheel',stopOpeningScroll,{passive:false});
+    window.addEventListener('touchmove',stopOpeningScroll,{passive:false});
+    document.addEventListener('keydown',stopOpeningKeys,{passive:false});
+  }
+  function unlockOpeningScroll(){
+    if (!openingScrollLocked) return;
+    openingScrollLocked = false;
+    document.documentElement.classList.remove('scroll-locked');
+    document.body.classList.remove('scroll-locked','is-opening');
+    window.removeEventListener('wheel',stopOpeningScroll);
+    window.removeEventListener('touchmove',stopOpeningScroll);
+    document.removeEventListener('keydown',stopOpeningKeys);
+    window.scrollTo(0,0);
+    window.ScrollTrigger?.refresh();
+  }
 
   function initParticles(){
     if (!canvas || reduceMotion) return;
@@ -68,6 +98,7 @@
       gsap.set('.hero-color-wash',{opacity:.72});
       gsap.set('.hero-world-front',{y:'0%',opacity:1});
     } else {
+      lockOpeningScroll();
       const opening = gsap.timeline({defaults:{ease:'power3.out'}});
 
       // 0–3.3 s: atmosphere only. No 2n anywhere.
@@ -80,7 +111,6 @@
         .to('.prelude-caption',{opacity:0,duration:.45},2.35)
         .to('.prelude-flash',{opacity:.9,duration:.18,ease:'power4.in'},2.92)
         .to('.prelude-flash',{opacity:0,duration:.58,ease:'power2.out'},3.10)
-        .call(()=>document.body.classList.remove('is-opening'),[],3.12)
         .to('.hero-prelude',{opacity:0,duration:.85,ease:'power2.inOut'},3.15)
         .set('.hero-prelude',{display:'none'},4.0);
 
@@ -110,7 +140,8 @@
         .fromTo('.tagline',{opacity:0,y:32},{opacity:1,y:0,duration:.85},5.72)
         .fromTo('.hero-sub',{opacity:0,y:16},{opacity:1,y:0,duration:.65},5.98)
         .to('.nav',{opacity:1,y:0,duration:.65},6.05)
-        .to('.scroll-hint',{opacity:1,y:0,duration:.55},6.18);
+        .to('.scroll-hint',{opacity:1,y:0,duration:.55},6.18)
+        .call(unlockOpeningScroll,[],6.42);
 
       gsap.to('.mark-echo-a',{y:12,x:-12,duration:4.2,repeat:-1,yoyo:true,ease:'sine.inOut',delay:6.2});
       gsap.to('.mark-echo-b',{y:-12,x:12,duration:4.8,repeat:-1,yoyo:true,ease:'sine.inOut',delay:6.2});
@@ -132,7 +163,24 @@
 
     const track=document.querySelector('.world-track');
     const wrap=document.querySelector('.world-wrap');
-    gsap.to(track,{xPercent:-80,ease:'none',scrollTrigger:{trigger:wrap,start:'top top',end:'bottom bottom',scrub:1,pin:'.world-pin'}});
+    const worldProgress=document.querySelector('#worldProgress');
+    const worldIndex=document.querySelector('#worldIndex');
+    const worldTween=gsap.to(track,{
+      xPercent:-80,ease:'none',
+      scrollTrigger:{
+        trigger:wrap,start:'top top',end:'bottom bottom',scrub:1,pin:'.world-pin',
+        onUpdate:self=>{
+          if(worldProgress) worldProgress.style.transform=`scaleX(${Math.max(.02,self.progress)})`;
+          if(worldIndex) worldIndex.textContent=String(Math.min(5,Math.floor(self.progress*5)+1)).padStart(2,'0');
+        }
+      }
+    });
+    gsap.utils.toArray('.biome-copy').forEach((copy)=>{
+      gsap.fromTo(copy,{y:44,opacity:.16},{y:0,opacity:1,duration:.7,ease:'power3.out',scrollTrigger:{trigger:copy,containerAnimation:worldTween,start:'left 82%',toggleActions:'play none none reverse'}});
+    });
+    gsap.utils.toArray('.biome-atmosphere').forEach((atmosphere)=>{
+      gsap.to(atmosphere,{xPercent:14,ease:'none',scrollTrigger:{trigger:atmosphere,containerAnimation:worldTween,start:'left right',end:'right left',scrub:true}});
+    });
     gsap.utils.toArray('.leader-card').forEach((card,i)=>gsap.from(card,{y:60,opacity:0,duration:.8,delay:i*.04,scrollTrigger:{trigger:card,start:'top 88%'}}));
     gsap.from('.timeline-list article',{y:40,opacity:0,stagger:.12,scrollTrigger:{trigger:'.timeline-list',start:'top 80%'}});
 
@@ -162,5 +210,8 @@
   }
 
   playBtn?.addEventListener('click',async()=>{if(!video)return;video.muted=false;if(video.paused)await video.play().catch(()=>{});playBtn.textContent='SOUND ON'});
+  // Never leave the page locked if the tab is restored or the animation is interrupted.
+  window.addEventListener('pageshow',(event)=>{ if(event.persisted && openingScrollLocked) unlockOpeningScroll(); });
+  setTimeout(()=>{ if(openingScrollLocked) unlockOpeningScroll(); },9000);
   initParticles();
 })();

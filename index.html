@@ -88,12 +88,32 @@
 
     <section class="world-wrap" id="world">
       <div class="world-pin">
+        <div class="world-ui" aria-hidden="true">
+          <div class="world-ui-title"><span>OUR WORLD</span><strong>五个生态 · 一个世界</strong></div>
+          <div class="world-ui-progress"><i id="worldProgress"></i></div>
+          <div class="world-ui-count"><b id="worldIndex">01</b><span>/ 05</span></div>
+        </div>
         <div class="world-track">
-          <article class="biome garden"><span>01</span><h3>GARDEN</h3><p>Where the journey begins.</p></article>
-          <article class="biome desert"><span>02</span><h3>DESERT</h3><p>Survive the heat.</p></article>
-          <article class="biome ocean"><span>03</span><h3>OCEAN</h3><p>Go deeper.</p></article>
-          <article class="biome jungle"><span>04</span><h3>JUNGLE</h3><p>Stay together.</p></article>
-          <article class="biome hel"><span>05</span><h3>HEL</h3><p>Push beyond.</p></article>
+          <article class="biome garden" data-index="01">
+            <div class="biome-atmosphere"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="biome-copy"><span class="biome-no">01 · 起点</span><h3>花园<em>GARDEN</em></h3><p>故事从这里开始。第一次组队、第一次并肩向前。</p></div>
+          </article>
+          <article class="biome desert" data-index="02">
+            <div class="biome-atmosphere"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="biome-copy"><span class="biome-no">02 · 炙热</span><h3>沙漠<em>DESERT</em></h3><p>环境越严苛，越需要彼此照应。</p></div>
+          </article>
+          <article class="biome ocean" data-index="03">
+            <div class="biome-atmosphere"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="biome-copy"><span class="biome-no">03 · 深入</span><h3>海洋<em>OCEAN</em></h3><p>向更深处探索，也把默契带得更远。</p></div>
+          </article>
+          <article class="biome jungle" data-index="04">
+            <div class="biome-atmosphere"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="biome-copy"><span class="biome-no">04 · 同行</span><h3>丛林<em>JUNGLE</em></h3><p>复杂的路，不必一个人走。</p></div>
+          </article>
+          <article class="biome hel" data-index="05">
+            <div class="biome-atmosphere"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="biome-copy"><span class="biome-no">05 · 极限</span><h3>地狱<em>HEL</em></h3><p>走到最危险的地方，仍然看得到 2n。</p></div>
+          </article>
         </div>
       </div>
     </section>
