@@ -4,6 +4,7 @@
   const hero = document.querySelector('.hero');
   const heroMark = document.querySelector('#heroMark');
   const heroCopy = document.querySelector('.hero-copy');
+  const logoRise = document.querySelector('.logo-rise');
   const orbA = document.querySelector('.orb-a');
   const orbB = document.querySelector('.orb-b');
   const sheen = document.querySelector('.mark-sheen');
@@ -61,7 +62,7 @@
       document.body.classList.remove('is-opening');
       gsap.set('.hero-prelude',{display:'none'});
       gsap.set(['.nav','.eyebrow','.tagline','.hero-sub','.scroll-hint'],{opacity:1});
-      gsap.set('.mark-horizon-mask',{clipPath:'inset(0% 0 0 0)'});
+      gsap.set(logoRise,{xPercent:-50,y:0,scale:1,opacity:1,filter:'blur(0px)'});
       gsap.set(heroMark,{y:0,scale:1});
       gsap.set('.hero-bg',{filter:'saturate(1.06) contrast(1.02) brightness(1) blur(0px)',opacity:1});
       gsap.set('.hero-color-wash',{opacity:.72});
@@ -95,11 +96,12 @@
         .to('.hero-horizon-glow',{opacity:1,duration:.55},3.30)
         .to('.hero-beam',{opacity:.75,duration:.75},3.35)
         .fromTo('.ridge',{yPercent:112},{yPercent:0,stagger:.08,duration:1.25,ease:'power4.out'},3.38)
-        .to('.mark-horizon-mask',{clipPath:'inset(0% 0 0 0)',duration:1.7,ease:'power4.inOut'},4.05)
-        .to(heroMark,{y:0,scale:1,duration:1.65,ease:'power4.out'},4.08)
-        .to('.mark-echo-a',{opacity:.65,x:-10,y:8,duration:.8},4.62)
-        .to('.mark-echo-b',{opacity:.5,x:10,y:-8,duration:.8},4.68)
-        .to(sheen,{opacity:.95,left:'120%',duration:1.05,ease:'power2.inOut'},5.18)
+        .set(logoRise,{xPercent:-50,y:isMobile ? window.innerHeight*.50 : window.innerHeight*.46,scale:.93,opacity:1,filter:'blur(7px)'},3.86)
+        .to(logoRise,{y:0,scale:1,filter:'blur(0px)',duration:2.05,ease:'power4.inOut'},4.05)
+        .to('.hero-horizon-glow',{scaleX:1.12,filter:'brightness(1.7)',duration:.42,yoyo:true,repeat:1,ease:'power2.inOut'},4.62)
+        .to('.mark-echo-a',{opacity:.65,x:-10,y:8,duration:.8},4.76)
+        .to('.mark-echo-b',{opacity:.5,x:10,y:-8,duration:.8},4.82)
+        .to(sheen,{opacity:.95,left:'120%',duration:1.05,ease:'power2.inOut'},5.30)
         .to('.hero-horizon-glow',{opacity:.22,duration:1.0},5.30)
         .to('.hero-beam',{opacity:.12,duration:1.0},5.30)
         .to('.world-fog-a',{opacity:.24,duration:1.35},5.35)
@@ -122,7 +124,8 @@
     // Scroll transition after the opening.
     gsap.to('.hero-bg',{scale:1.32,yPercent:8,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
     gsap.to(heroCopy,{yPercent:-34,opacity:.12,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
-    gsap.to(heroMark,{scale:1.30,rotation:-3,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
+    gsap.to(logoRise,{scale:1.24,yPercent:-6,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
+    gsap.to(heroMark,{rotation:-3,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
     gsap.to(ridges,{yPercent:-16,stagger:.05,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
     gsap.to('.hero-world-front',{yPercent:-8,scale:1.025,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
     gsap.to('.hero-color-wash',{opacity:.35,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
@@ -132,6 +135,13 @@
     gsap.to(track,{xPercent:-80,ease:'none',scrollTrigger:{trigger:wrap,start:'top top',end:'bottom bottom',scrub:1,pin:'.world-pin'}});
     gsap.utils.toArray('.leader-card').forEach((card,i)=>gsap.from(card,{y:60,opacity:0,duration:.8,delay:i*.04,scrollTrigger:{trigger:card,start:'top 88%'}}));
     gsap.from('.timeline-list article',{y:40,opacity:0,stagger:.12,scrollTrigger:{trigger:'.timeline-list',start:'top 80%'}});
+
+    // The second screen should feel like the same film, not a separate template.
+    gsap.from('.statement-ghost',{scale:.72,rotation:8,opacity:0,duration:1.5,ease:'power3.out',scrollTrigger:{trigger:'.statement',start:'top 82%'}});
+    gsap.from('.statement-line',{yPercent:105,opacity:0,stagger:.14,duration:1.0,ease:'power4.out',scrollTrigger:{trigger:'.statement h2',start:'top 84%'}});
+    gsap.from('.statement-lead',{y:24,opacity:0,duration:.85,ease:'power3.out',scrollTrigger:{trigger:'.statement-lead',start:'top 90%'}});
+    gsap.from('.stats article',{y:35,opacity:0,stagger:.10,duration:.8,ease:'power3.out',scrollTrigger:{trigger:'.stats',start:'top 88%'}});
+
     ScrollTrigger.create({trigger:'.film',start:'top 65%',end:'bottom 35%',onEnter:()=>video?.play().catch(()=>{}),onEnterBack:()=>video?.play().catch(()=>{}),onLeave:()=>video?.pause(),onLeaveBack:()=>video?.pause()});
   }
 
