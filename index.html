@@ -12,20 +12,6 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <div class="intro-screen" aria-hidden="true">
-    <div class="intro-fog"></div>
-    <div class="intro-grid"></div>
-    <div class="intro-pulse pulse-1"></div>
-    <div class="intro-pulse pulse-2"></div>
-    <div class="intro-pulse pulse-3"></div>
-    <div class="intro-stars">
-      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-    </div>
-    <div class="intro-outline">2<sup>n</sup></div>
-    <div class="intro-scan"></div>
-    <div class="intro-caption">正在进入 2n</div>
-  </div>
-
   <div class="noise"></div>
   <header class="nav">
     <a class="brand" href="#top" aria-label="2n home">2<sup>n</sup></a>
@@ -37,17 +23,31 @@
 
   <main id="top">
     <section class="hero">
+      <div class="hero-prelude" aria-hidden="true">
+        <div class="prelude-fog"></div>
+        <div class="prelude-noise"></div>
+        <div class="prelude-beacons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="prelude-ring ring-a"></div>
+        <div class="prelude-ring ring-b"></div>
+        <div class="prelude-horizon"><span></span></div>
+        <div class="prelude-flash"></div>
+        <p class="prelude-caption">SIGNAL / 02.24</p>
+      </div>
       <canvas class="hero-particles" aria-hidden="true"></canvas>
       <div class="hero-bg"></div>
       <div class="hero-haze"></div>
+      <div class="hero-horizon-glow"></div>
+      <div class="hero-beam"></div>
       <div class="orb orb-a" data-depth="14"></div>
       <div class="orb orb-b" data-depth="-10"></div>
       <div class="hero-copy">
         <p class="eyebrow">FLORR.IO GUILD · EST. FEB 24</p>
         <div class="mark-stage" aria-hidden="true">
-          <div class="mark-echo mark-echo-a">2<sup>n</sup></div>
-          <div class="mark-echo mark-echo-b">2<sup>n</sup></div>
-          <h1 class="mark" id="heroMark"><span class="mark-two">2</span><span class="mark-exp">n</span></h1>
+          <div class="mark-horizon-mask">
+            <div class="mark-echo mark-echo-a">2<sup>n</sup></div>
+            <div class="mark-echo mark-echo-b">2<sup>n</sup></div>
+            <h1 class="mark" id="heroMark"><span class="mark-two">2</span><span class="mark-exp">n</span></h1>
+          </div>
           <div class="mark-sheen"></div>
         </div>
         <p class="tagline">不是所有工会，<br/>都叫 <strong>2n</strong>。</p>

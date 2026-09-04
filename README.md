@@ -14,3 +14,6 @@ Cinematic static guild website for Florr.io guild **2n**.
 
 ## Deploy
 Static files only. For Cloudflare Pages, no build command is required. Publish the repository root.
+
+## v6 opening
+Rebuilt as a single continuous cinematic shot. 2n is intentionally absent for the first ~4 seconds; the world appears first, then the mark rises through the horizon mask.
