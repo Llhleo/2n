@@ -1,40 +1,25 @@
-# 2n-site-v16
+# 2n-site-v17
 
-- 修正五生态章节：不再显示带 ID / Ready / florr.io 等 UI 的截图，也不再显示小卡片缩略图
-- 五生态现在全部使用你提供的“纯背景实图”作为全屏背景
-- 首屏与管理层背景也进一步换成真实游戏背景的干净版本，保持统一
+这版是重新整理后的“完善版”：
 
-# 2n-site-v15
+- **首屏背景重画**：不再只剩海洋，底部一整条世界前景会同时出现 Garden / Desert / Ocean / Jungle / Hel 五个生态。
+- **五生态章节重画**：5 个生态全部改成自绘 SVG 场景，不再使用之前那些会拉伸、会裁错的图片。
+- **管理层章节保留横向滚动**：并继续沿用横向展示。
+- **资源目录已清理**：只保留当前版本真正用到的资源文件，删除了上一版中没用的截图与重复图片。
 
-- 修正五生态“看起来没有放入原图”的问题：改为每个生态都直接展示你给的原始游戏截图，而不是仅作为背景裁切
-- 五生态章节仍保留横向滚动，但现在是“左侧大图 / 右侧说明”的宣传页结构
-- 保留并延续横向管理层章节
+## 当前使用的资源
 
-# 2n-site-v14
+- `assets/hero-panorama.svg`
+- `assets/biome-garden.svg`
+- `assets/biome-desert.svg`
+- `assets/biome-ocean.svg`
+- `assets/biome-jungle.svg`
+- `assets/biome-hel.svg`
+- `assets/petal-emblem.svg`
+- `assets/half-year.mp4`
 
-- 五生态横向章节已切换为你提供的 5 张原始游戏截图（旋转为横屏后使用）
-- 管理层章节改为像生态一样的横向滚动章节
-- 新增管理层详情：awdc / flowerwsr / cnflydream / sschara
+## 入口文件
 
-# 2n-site-v13
-
-- 五生态章节已改为使用你提供的游戏原图（由合成长图切成 5 个生态面板）
-- 新增 Members 章节，展示公会规模和部分成员
-- 保留 v12 的首屏锁滚动与开场逻辑
-
-# 2n Website v12
-
-Static HTML/CSS/JS version for GitHub / Cloudflare Pages.
-
-## v12 changes
-- Opening scroll is now hard-locked until the complete `2ⁿ` horizon-rise and slogan reveal finishes (~6.4 s).
-- Locks wheel, touchmove and keyboard scrolling; includes a 9 s safety unlock.
-- Reworked the World section into one continuous five-biome panorama rather than flat color cards.
-- Added pinned world chapter UI, progress rail and current biome counter.
-- Added biome-specific atmosphere: petals, sand dust, bubbles, leaves and embers.
-- Chinese-first biome copy with small English labels.
-- Mobile layout keeps the same horizontal chapter but with simplified atmosphere for performance.
-
-## Deploy
-Upload the contents of this folder to the repository root. `index.html` must stay at the root.
-No build step is required for Cloudflare Pages.
+- `index.html`
+- `style.css`
+- `app.js`

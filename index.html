@@ -8,15 +8,19 @@
   <meta name="description" content="2ⁿ — Florr.io guild. Founded Feb 24." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <div class="noise"></div>
   <header class="nav">
-    <a class="brand" href="#top" aria-label="2n home">2<sup>n</sup></a>
+    <a class="brand" href="#top">2<sup>n</sup></a>
     <nav>
-      <a href="#about">About</a><a href="#world">World</a><a href="#leaders">Leaders</a><a href="#members">Members</a><a href="#history">History</a>
+      <a href="#about">About</a>
+      <a href="#world">World</a>
+      <a href="#leaders">Leaders</a>
+      <a href="#members">Members</a>
+      <a href="#history">History</a>
     </nav>
     <a class="join" href="#join">Join</a>
   </header>
@@ -24,31 +28,22 @@
   <main id="top">
     <section class="hero">
       <div class="hero-prelude" aria-hidden="true">
-        <div class="prelude-fog"></div>
-        <div class="prelude-fog-bank fog-bank-a"></div>
-        <div class="prelude-fog-bank fog-bank-b"></div>
-        <div class="prelude-fog-bank fog-bank-c"></div>
-        <div class="prelude-noise"></div>
-        <div class="prelude-beacons"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="prelude-ring ring-a"></div>
-        <div class="prelude-ring ring-b"></div>
-        <div class="prelude-horizon"><span></span></div>
-        <div class="prelude-flash"></div>
+        <div class="prelude-fog fog-a"></div>
+        <div class="prelude-fog fog-b"></div>
+        <div class="prelude-pulse p1"></div>
+        <div class="prelude-pulse p2"></div>
+        <div class="prelude-pulse p3"></div>
+        <div class="prelude-line"></div>
         <p class="prelude-caption">SIGNAL / 02.24</p>
       </div>
-      <canvas class="hero-particles" aria-hidden="true"></canvas>
-      <div class="hero-bg"></div>
-      <div class="hero-color-wash"></div>
-      <div class="hero-flare"></div>
-      <div class="hero-haze"></div>
-      <div class="world-fog world-fog-a"></div>
-      <div class="world-fog world-fog-b"></div>
-      <div class="hero-horizon-glow"></div>
+      <div class="hero-bg hero-bg-gray"></div>
+      <div class="hero-bg hero-bg-color"></div>
+      <div class="hero-fog world-fog-a"></div>
+      <div class="hero-fog world-fog-b"></div>
+      <div class="hero-glow"></div>
       <div class="hero-beam"></div>
-      <div class="orb orb-a" data-depth="14"></div>
-      <div class="orb orb-b" data-depth="-10"></div>
-      <div class="hero-logo-layer" aria-hidden="true">
-        <div class="logo-reveal-window">
+      <div class="hero-logo-layer">
+        <div class="logo-window">
           <div class="logo-rise">
             <div class="mark-echo mark-echo-a">2<sup>n</sup></div>
             <div class="mark-echo mark-echo-b">2<sup>n</sup></div>
@@ -60,23 +55,19 @@
       <div class="hero-copy">
         <p class="eyebrow">FLORR.IO GUILD · EST. FEB 24</p>
         <div class="mark-spacer" aria-hidden="true"></div>
-        <p class="tagline">不是所有工会，<br/>都叫 <strong>2n</strong>。</p>
+        <p class="tagline">不是所有工会，<br>都叫 <strong>2n</strong>。</p>
         <p class="hero-sub">我们因 Florr 相遇，也因彼此成为 2n。</p>
       </div>
-      <div class="hero-foreground">
-        <div class="hero-world-front"></div>
-        <div class="ridge ridge-a"></div>
-        <div class="ridge ridge-b"></div>
-        <div class="ridge ridge-c"></div>
-      </div>
+      <div class="hero-horizon"></div>
+      <div class="hero-world-strip"></div>
       <div class="scroll-hint"><span>向下探索</span><i></i></div>
     </section>
 
     <section class="statement" id="about">
-      <div class="statement-ghost" aria-hidden="true">2<sup>n</sup></div>
+      <div class="statement-ghost">2<sup>n</sup></div>
       <div class="statement-core">
         <p class="kicker">WE ARE 2ⁿ · 这就是 2n</p>
-        <h2><span class="statement-line">不只是一个</span><br/><span class="statement-line muted-line">Florr 公会。</span></h2>
+        <h2><span class="statement-line">不只是一个</span><br><span class="statement-line muted-line">Florr 公会。</span></h2>
         <p class="statement-lead">从 02.24 开始，我们把一次次上线、组队和共同经历，变成了属于 2n 的故事。</p>
       </div>
       <div class="stats">
@@ -89,50 +80,25 @@
     <section class="world-wrap" id="world">
       <div class="world-pin">
         <div class="world-ui" aria-hidden="true">
-          <div class="world-ui-title"><span>OUR WORLD</span><strong>五个生态 · 一个世界</strong></div>
+          <div class="world-ui-title"><span>OUR WORLD</span><strong>五个生态 · 一个完整世界</strong></div>
           <div class="world-ui-progress"><i id="worldProgress"></i></div>
           <div class="world-ui-count"><b id="worldIndex">01</b><span>/ 05</span></div>
         </div>
         <div class="world-track">
           <article class="biome garden" data-index="01">
-            <div class="biome-copy">
-              <span class="biome-no">01 · 起点</span>
-              <h3>花园<em>GARDEN</em></h3>
-              <p>故事从这里开始。第一次组队、第一次并肩向前。</p>
-              <div class="biome-meta"><span>新手起点</span><span>协作入门</span><span>绿色生态</span></div>
-            </div>
+            <div class="biome-copy"><span class="biome-no">01 · 起点</span><h3>花园<em>GARDEN</em></h3><p>故事从这里开始。第一次组队、第一次并肩向前。</p><div class="biome-meta"><span>新手起点</span><span>协作入门</span><span>绿色生态</span></div></div>
           </article>
           <article class="biome desert" data-index="02">
-            <div class="biome-copy">
-              <span class="biome-no">02 · 炙热</span>
-              <h3>沙漠<em>DESERT</em></h3>
-              <p>环境越严苛，越需要彼此照应。能走到这里，就已经不只是随便组队了。</p>
-              <div class="biome-meta"><span>耐力考验</span><span>炎热地带</span><span>继续深入</span></div>
-            </div>
+            <div class="biome-copy"><span class="biome-no">02 · 炙热</span><h3>沙漠<em>DESERT</em></h3><p>环境越严苛，越需要彼此照应。能走到这里，就已经不只是随便组队了。</p><div class="biome-meta"><span>耐力考验</span><span>炎热地带</span><span>继续深入</span></div></div>
           </article>
           <article class="biome ocean" data-index="03">
-            <div class="biome-copy">
-              <span class="biome-no">03 · 深入</span>
-              <h3>海洋<em>OCEAN</em></h3>
-              <p>向更深处探索，也把默契带得更远。海洋是很多玩家真正开始形成配合的地方。</p>
-              <div class="biome-meta"><span>深海路线</span><span>节奏配合</span><span>蓝色生态</span></div>
-            </div>
+            <div class="biome-copy"><span class="biome-no">03 · 深入</span><h3>海洋<em>OCEAN</em></h3><p>向更深处探索，也把默契带得更远。海洋是很多玩家真正开始形成配合的地方。</p><div class="biome-meta"><span>深海路线</span><span>节奏配合</span><span>蓝色生态</span></div></div>
           </article>
           <article class="biome jungle" data-index="04">
-            <div class="biome-copy">
-              <span class="biome-no">04 · 同行</span>
-              <h3>丛林<em>JUNGLE</em></h3>
-              <p>复杂的路，不必一个人走。到了这里，比操作更重要的，是有人始终在旁边。</p>
-              <div class="biome-meta"><span>地形复杂</span><span>同行推进</span><span>绿色深处</span></div>
-            </div>
+            <div class="biome-copy"><span class="biome-no">04 · 同行</span><h3>丛林<em>JUNGLE</em></h3><p>复杂的路，不必一个人走。到了这里，比操作更重要的，是有人始终在旁边。</p><div class="biome-meta"><span>地形复杂</span><span>同行推进</span><span>绿色深处</span></div></div>
           </article>
           <article class="biome hel" data-index="05">
-            <div class="biome-copy">
-              <span class="biome-no">05 · 极限</span>
-              <h3>地狱<em>HEL</em></h3>
-              <p>走到最危险的地方，仍然看得到 2n。真正的核心成员，往往也在这里被记住。</p>
-              <div class="biome-meta"><span>高风险</span><span>极限挑战</span><span>红色终点</span></div>
-            </div>
+            <div class="biome-copy"><span class="biome-no">05 · 极限</span><h3>地狱<em>HEL</em></h3><p>走到最危险的地方，仍然看得到 2n。真正的核心成员，往往也在这里被记住。</p><div class="biome-meta"><span>高风险</span><span>极限挑战</span><span>红色终点</span></div></div>
           </article>
         </div>
       </div>
@@ -147,80 +113,38 @@
         </div>
         <div class="leaders-track">
           <article class="leader-panel leader-awdc" data-index="01">
-            <div class="leader-copy">
-              <span class="leader-role">会长 · PRESIDENT</span>
-              <h3>awdc</h3>
-              <p class="leader-fact">2 个 Super</p>
-              <p class="leader-desc">作为 2n 的会长，负责带领整个公会向前推进，也是 2n 形象与组织的核心人物。</p>
-            </div>
-            <div class="leader-side">
-              <div class="leader-badge">02 SUPER</div>
-              <img class="leader-emblem" src="./assets/awdc-petal.png" alt="awdc petal" />
-            </div>
+            <div class="leader-copy"><span class="leader-role">会长 · PRESIDENT</span><h3>awdc</h3><p class="leader-fact">2 个 Super</p><p class="leader-desc">作为 2n 的会长，负责带领整个公会向前推进，也是 2n 形象与组织的核心人物。</p></div>
+            <div class="leader-side"><div class="leader-badge">02 SUPER</div><img class="leader-emblem" src="./assets/petal-emblem.svg" alt="petal emblem"><div class="leader-mini">带队推进 · 核心统筹</div></div>
           </article>
           <article class="leader-panel leader-flower" data-index="02">
-            <div class="leader-copy">
-              <span class="leader-role">副会长 · VICE PRESIDENT</span>
-              <h3>flowerwsr</h3>
-              <p class="leader-fact">精通计算机</p>
-              <p class="leader-desc">参与 Florr 维基的维护，也参与公会成员表格与相关信息的编写、整理和维护，是 2n 的重要信息中枢。</p>
-            </div>
-            <div class="leader-side">
-              <div class="leader-badge">WIKI · DATA</div>
-              <div class="leader-quote">“把资料整理好，才能让工会跑得更远。”</div>
-            </div>
+            <div class="leader-copy"><span class="leader-role">副会长 · VICE PRESIDENT</span><h3>flowerwsr</h3><p class="leader-fact">精通计算机</p><p class="leader-desc">参与 Florr 维基的维护，也参与工会成员表格与相关信息的编写、整理和维护，是 2n 的重要信息中枢。</p></div>
+            <div class="leader-side"><div class="leader-badge">WIKI · DATA</div><div class="leader-quote">“把资料整理好，才能让工会跑得更远。”</div></div>
           </article>
           <article class="leader-panel leader-cnfly" data-index="03">
-            <div class="leader-copy">
-              <span class="leader-role">副会长 · VICE PRESIDENT</span>
-              <h3>cnflydream</h3>
-              <p class="leader-fact">3 个 S</p>
-              <p class="leader-desc">拥有 3 个 S，是 2n 管理层中非常醒目的核心成员之一，在实力与存在感上都很突出。</p>
-            </div>
-            <div class="leader-side">
-              <div class="leader-badge">03 S</div>
-              <div class="leader-statline"><span>CORE</span><span>STRONG</span><span>ACTIVE</span></div>
-            </div>
+            <div class="leader-copy"><span class="leader-role">副会长 · VICE PRESIDENT</span><h3>cnflydream</h3><p class="leader-fact">3 个 S</p><p class="leader-desc">拥有 3 个 S，是 2n 管理层中非常醒目的核心成员之一，在实力与存在感上都很突出。</p></div>
+            <div class="leader-side"><div class="leader-badge">03 S</div><div class="leader-statline"><span>CORE</span><span>STRONG</span><span>ACTIVE</span></div></div>
           </article>
           <article class="leader-panel leader-ss" data-index="04">
-            <div class="leader-copy">
-              <span class="leader-role">副会长 · VICE PRESIDENT</span>
-              <h3>sschara</h3>
-              <p class="leader-fact">3 次血祭贡献</p>
-              <p class="leader-desc">曾为工会贡献 3 次血祭。真正重要的从来不只是头衔，而是愿意在关键时候为整个 2n 站出来。</p>
-            </div>
-            <div class="leader-side">
-              <div class="leader-badge">×3 BLOOD SACRIFICE</div>
-              <div class="leader-quote">“关键时刻，得有人顶上去。”</div>
-            </div>
+            <div class="leader-copy"><span class="leader-role">副会长 · VICE PRESIDENT</span><h3>sschara</h3><p class="leader-fact">3 次血祭贡献</p><p class="leader-desc">曾为工会贡献 3 次血祭。真正重要的从来不只是头衔，而是愿意在关键时候为整个 2n 站出来。</p></div>
+            <div class="leader-side"><div class="leader-badge">×3 BLOOD SACRIFICE</div><div class="leader-quote">“关键时刻，得有人顶上去。”</div></div>
           </article>
         </div>
       </div>
     </section>
 
     <section class="members" id="members">
-      <div class="section-head"><p>MEMBERS</p><h2>One guild.
-Many names.</h2></div>
-      <div class="member-overview">
-        <div class="member-total"><strong>100+</strong><span>公会成员</span></div>
-        <p>从核心队伍到日常上线成员，2n 不是一张名单，而是一群会在 Florr 里彼此照应的人。下面展示的是目前整理出的部分成员。</p>
-      </div>
+      <div class="section-head"><p>MEMBERS</p><h2>One guild.<br>Many names.</h2></div>
+      <div class="member-overview"><div class="member-total"><strong>100+</strong><span>公会成员</span></div><p>从核心队伍到日常上线成员，2n 不是一张名单，而是一群会在 Florr 里彼此照应的人。下面展示的是目前整理出的部分成员。</p></div>
       <div class="member-wall">
-        <span>Llhleo</span><span>Hugo12168</span><span>ZHZ114514</span><span>zhy10</span><span>满</span><span>xtxsh</span><span>imstarry_01</span><span>Taurus</span>
-        <span>X-zero</span><span>MeteorFall</span><span>Fawudazheng</span><span>ILXN</span><span>citizens</span><span>dianlao</span><span>LTJ</span><span>grassland</span>
-        <span>LCY2024oO</span><span>jisizhe</span><span>fly-cy</span><span>bookshelf</span>
+        <span>Llhleo</span><span>Hugo12168</span><span>ZHZ114514</span><span>zhy10</span><span>满</span><span>xtxsh</span><span>imstarry_01</span><span>Taurus</span><span>X-zero</span><span>MeteorFall</span><span>Fawudazheng</span><span>ILXN</span><span>citizens</span><span>dianlao</span><span>LTJ</span><span>grassland</span><span>LCY2024oO</span><span>jisizhe</span><span>fly-cy</span><span>bookshelf</span>
       </div>
       <a class="members-link" href="https://llhleo.github.io/2n-welcome/" rel="noopener">查看完整资料与旧站内容 →</a>
     </section>
 
     <section class="film" id="history">
-      <video class="film-video" muted loop playsinline preload="metadata" src="./assets/half-year.mp4"></video>
+      <video class="film-video" src="./assets/half-year.mp4" muted loop playsinline preload="metadata"></video>
       <div class="film-shade"></div>
-      <div class="film-copy">
-        <p>2ⁿ · HALF-YEAR</p>
-        <h2>From a guild<br/>to a story.</h2>
-        <button id="playFilm" type="button">PLAY WITH SOUND</button>
-      </div>
+      <div class="film-copy"><p>2ⁿ · HALF-YEAR</p><h2>From a guild<br>to a story.</h2><p class="video-note">半周年纪念影像</p></div>
     </section>
 
     <section class="timeline">
@@ -234,7 +158,7 @@ Many names.</h2></div>
 
     <section class="join-section" id="join">
       <p>READY?</p>
-      <h2>JOIN<br/><span>2<sup>n</sup></span></h2>
+      <h2>JOIN<br><span>2<sup>n</sup></span></h2>
       <a href="https://llhleo.github.io/2n-welcome/v0/joinus.html" rel="noopener">ENTER 2ⁿ →</a>
     </section>
   </main>
