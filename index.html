@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
+  <div class="intro-screen" aria-hidden="true"><div class="intro-mark">2<sup>n</sup></div><div class="intro-line"></div></div>
   <div class="noise"></div>
   <header class="nav">
     <a class="brand" href="#top" aria-label="2n home">2<sup>n</sup></a>
@@ -23,6 +24,7 @@
 
   <main id="top">
     <section class="hero">
+      <canvas class="hero-particles" aria-hidden="true"></canvas>
       <div class="hero-bg"></div>
       <div class="orb orb-a" data-depth="14"></div>
       <div class="orb orb-b" data-depth="-10"></div>
@@ -34,14 +36,15 @@
           <h1 class="mark" id="heroMark"><span class="mark-two">2</span><span class="mark-exp">n</span></h1>
           <div class="mark-sheen"></div>
         </div>
-        <p class="tagline">PLAY TOGETHER.<br/>GO FURTHER.</p>
+        <p class="tagline">不是所有工会，<br/>都叫 <strong>2n</strong>。</p>
+        <p class="hero-sub">我们因 Florr 相遇，也因彼此成为 2n。</p>
       </div>
       <div class="hero-foreground">
         <div class="ridge ridge-a"></div>
         <div class="ridge ridge-b"></div>
         <div class="ridge ridge-c"></div>
       </div>
-      <div class="scroll-hint"><span>SCROLL TO EXPLORE</span><i></i></div>
+      <div class="scroll-hint"><span>向下探索</span><i></i></div>
     </section>
 
     <section class="statement" id="about">
