@@ -1,16 +1,16 @@
-# 2n Website v7
+# 2n Guild Site v9
 
-Static HTML/CSS/JS prototype for the 2ⁿ Florr guild website.
+Mobile-responsive pass based on v8.
 
-## v7 changes
-- Stronger cinematic fog in the opening sequence.
-- Three independently moving fog banks before the 2ⁿ reveal.
-- Dense low fog sits on the horizon so the world feels hidden before it opens.
-- Residual foreground fog remains after the reveal, then slowly thins while 2ⁿ rises.
-- Mobile fog density and coverage tuned separately.
+## v9 changes
+- Re-composed the hero specifically for phone screens instead of scaling desktop layout down.
+- Separated the 2ⁿ mark, Chinese tagline, subtitle, horizon and foreground vertically.
+- Reduced foreground height on mobile so it no longer covers the slogan.
+- Removed decorative ridge blobs on phones; the illustrated foreground remains.
+- Repositioned fog, beam, flare and horizon for portrait screens.
+- Added short-screen rules for smaller phones.
+- Reduced particle count on mobile for smoother animation.
+- Prevents accidental scrolling during the first atmosphere-only part of the opening.
+- Improved spacing and typography in stats, biomes, leaders, history and join sections.
 
-## Run
-Open `index.html` in a browser, or serve the folder with any static web server.
-
-## Cloudflare Pages
-No build step is required. Publish the project root.
+Static site: upload the files in this folder to the repository root.

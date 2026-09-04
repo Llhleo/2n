@@ -114,3 +114,80 @@
 .hero-sub{color:rgba(7,9,8,.72)}
 .orb-a{background:#d4b876;opacity:.14}.orb-b{background:#f06a36;opacity:.12}
 @media(max-width:800px){.hero-bg{background-position:50% 50%;inset:-10%;transform:scale(1.2)}.hero-world-front{background-size:auto 100%;background-position:center bottom}.hero-foreground{height:31vh}.hero-flare{width:84vw;height:84vw}}
+
+/* v9 — mobile composition audit/fix */
+body.is-opening{overflow:hidden}
+@media(max-width:800px){
+  .nav{height:60px;padding:0 max(5vw,18px);border-bottom-color:rgba(255,255,255,.06)}
+  .brand{font-size:29px}.join{padding:8px 12px;font-size:9px;letter-spacing:.13em}
+
+  .hero{height:100svh;min-height:620px;place-items:initial}
+  .hero-copy{position:absolute;top:max(76px,10.5svh);left:5.5vw;right:5.5vw;width:auto;text-align:center}
+  .eyebrow{font-size:9px;letter-spacing:.24em;margin:0 0 1.2svh;white-space:nowrap}
+  .mark-stage{height:34svh;min-height:220px;max-height:300px;padding:0;margin:0;display:grid;place-items:center}
+  .mark,.mark-echo{font-size:clamp(158px,49vw,216px);line-height:.72}
+  .mark{transform:translateY(21svh) scale(.94)}
+  .mark-exp{font-size:.31em;top:.14em}
+  .tagline{font-size:clamp(25px,7.4vw,34px);line-height:1.06;margin:1.0svh 0 0;letter-spacing:-.02em}
+  .hero-sub{width:min(86vw,390px);font-size:10px;line-height:1.55;letter-spacing:.09em;margin:1.8svh auto 0}
+
+  .hero-horizon-glow{top:47%}
+  .hero-beam{top:44%;width:92vw;height:28svh}
+  .hero-flare{top:47%;width:86vw;height:86vw}
+  .hero-foreground{height:22svh;left:-5%;right:-5%}
+  .hero-world-front{background-size:auto 100%;background-position:center bottom;transform:translateY(10%)}
+  .ridge{display:none}
+  .world-fog-a{top:44%;width:125vw;height:20svh;left:-48vw}
+  .world-fog-b{top:54%;width:120vw;height:18svh;right:-46vw}
+  .scroll-hint{left:5.5vw;bottom:max(2.8svh,18px);gap:12px;font-size:9px;letter-spacing:.18em}
+  .scroll-hint i{width:42px}
+
+  .hero-prelude{z-index:30}
+  .prelude-horizon{top:54%}
+  .prelude-horizon span{width:32vw;height:18svh}
+  .prelude-ring{top:51%}
+  .prelude-caption{bottom:max(5svh,28px);font-size:8px;letter-spacing:.36em}
+  .fog-bank-a{width:135vw;height:34svh;left:-60vw;top:18svh}
+  .fog-bank-b{width:140vw;height:38svh;right:-62vw;top:36svh}
+  .fog-bank-c{width:135vw;height:25svh;left:-18vw;bottom:4svh}
+  .hero-prelude:after{height:31svh;bottom:-1svh}
+
+  .statement{padding:12svh 6vw 10svh}
+  .statement h2,.section-head h2,.film h2{font-size:clamp(44px,12vw,64px);line-height:.94;letter-spacing:-.045em}
+  .statement h2{margin:4svh 0 7svh}
+  .stats article{padding:3.6svh 0}
+  .stats strong{font-size:clamp(54px,16vw,78px)}
+
+  .world-wrap{height:500svh}.world-pin{height:100svh}
+  .biome{padding:10svh 6vw 7svh}.biome h3{font-size:clamp(66px,19vw,92px);line-height:.78;margin:1.5svh 0 2.2svh}.biome p{font-size:12px;letter-spacing:.08em}
+
+  .leaders{padding:11svh 5vw 10svh}
+  .leaders .section-head h2{margin:2svh 0 7svh}
+  .leader-grid{grid-template-columns:1fr 1fr}
+  .leader-card{padding:4vw;aspect-ratio:3/4}
+  .leader-card h3{font-size:clamp(25px,7vw,36px);overflow-wrap:anywhere}
+
+  .film{min-height:620px;height:100svh}.film-copy{left:6vw;right:6vw;bottom:7svh}.film h2{margin:1.5svh 0 4svh}
+  .timeline{padding:11svh 6vw}.timeline .section-head h2{margin:2svh 0 7svh}.timeline-list article{padding:4svh 0}.timeline-list h3{font-size:clamp(32px,9vw,42px)}
+
+  .join-section{min-height:88svh;padding:10svh 5vw}.join-section h2{font-size:clamp(82px,25vw,112px);line-height:.69;margin:4svh 0 7svh}
+}
+@media(max-width:430px){
+  .hero{min-height:600px}
+  .hero-copy{top:max(70px,9svh)}
+  .mark-stage{height:32svh;min-height:205px}
+  .mark,.mark-echo{font-size:clamp(150px,48vw,198px)}
+  .tagline{font-size:clamp(24px,7.1vw,31px)}
+  .hero-sub{font-size:9.5px}
+  .hero-foreground{height:20svh}
+  .leader-card h3{font-size:clamp(23px,6.7vw,31px)}
+}
+@media(max-height:700px) and (max-width:800px){
+  .hero-copy{top:68px}
+  .mark-stage{height:31svh;min-height:185px}
+  .mark,.mark-echo{font-size:clamp(138px,46vw,184px)}
+  .tagline{font-size:clamp(23px,6.8vw,29px);margin-top:.4svh}
+  .hero-sub{margin-top:1.1svh;line-height:1.4}
+  .hero-foreground{height:18svh}
+  .scroll-hint{bottom:14px}
+}

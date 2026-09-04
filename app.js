@@ -10,6 +10,8 @@
   const ridges = document.querySelectorAll('.ridge');
   const canvas = document.querySelector('.hero-particles');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = window.matchMedia('(max-width: 800px)').matches;
+  if (!reduceMotion) document.body.classList.add('is-opening');
 
   function initParticles(){
     if (!canvas || reduceMotion) return;
@@ -31,7 +33,7 @@
       const r=canvas.getBoundingClientRect(); dpr=Math.min(window.devicePixelRatio||1,2); w=r.width; h=r.height;
       canvas.width=Math.max(1,Math.floor(w*dpr)); canvas.height=Math.max(1,Math.floor(h*dpr)); ctx.setTransform(dpr,0,0,dpr,0,0);
       particles.length=0;
-      const count=Math.max(40,Math.min(100,Math.round(w/15)));
+      const count=isMobile ? Math.max(30,Math.min(52,Math.round(w/10))) : Math.max(40,Math.min(100,Math.round(w/15)));
       for(let i=0;i<count;i++){const p={};spawn(p,true);particles.push(p)}
     }
     function tick(){
@@ -56,6 +58,7 @@
     gsap.registerPlugin(ScrollTrigger);
 
     if (reduceMotion) {
+      document.body.classList.remove('is-opening');
       gsap.set('.hero-prelude',{display:'none'});
       gsap.set(['.nav','.eyebrow','.tagline','.hero-sub','.scroll-hint'],{opacity:1});
       gsap.set('.mark-horizon-mask',{clipPath:'inset(0% 0 0 0)'});
@@ -76,6 +79,7 @@
         .to('.prelude-caption',{opacity:0,duration:.45},2.35)
         .to('.prelude-flash',{opacity:.9,duration:.18,ease:'power4.in'},2.92)
         .to('.prelude-flash',{opacity:0,duration:.58,ease:'power2.out'},3.10)
+        .call(()=>document.body.classList.remove('is-opening'),[],3.12)
         .to('.hero-prelude',{opacity:0,duration:.85,ease:'power2.inOut'},3.15)
         .set('.hero-prelude',{display:'none'},4.0);
 
