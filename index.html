@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#0a0a0a" />
   <title>2ⁿ Guild · Florr</title>
   <meta name="description" content="2ⁿ — Florr.io guild. Founded Feb 24." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
@@ -21,11 +24,22 @@
   <main id="top">
     <section class="hero">
       <div class="hero-bg"></div>
-      <div class="orb orb-a"></div><div class="orb orb-b"></div>
+      <div class="orb orb-a" data-depth="14"></div>
+      <div class="orb orb-b" data-depth="-10"></div>
       <div class="hero-copy">
         <p class="eyebrow">FLORR.IO GUILD · EST. FEB 24</p>
-        <h1 class="mark">2<sup>n</sup></h1>
+        <div class="mark-stage" aria-hidden="true">
+          <div class="mark-echo mark-echo-a">2<sup>n</sup></div>
+          <div class="mark-echo mark-echo-b">2<sup>n</sup></div>
+          <h1 class="mark" id="heroMark"><span class="mark-two">2</span><span class="mark-exp">n</span></h1>
+          <div class="mark-sheen"></div>
+        </div>
         <p class="tagline">PLAY TOGETHER.<br/>GO FURTHER.</p>
+      </div>
+      <div class="hero-foreground">
+        <div class="ridge ridge-a"></div>
+        <div class="ridge ridge-b"></div>
+        <div class="ridge ridge-c"></div>
       </div>
       <div class="scroll-hint"><span>SCROLL TO EXPLORE</span><i></i></div>
     </section>
