@@ -23,9 +23,9 @@ a{color:inherit;text-decoration:none}
 .world-fog-a{width:48vw;height:22vh;left:-8vw;bottom:24vh}.world-fog-b{width:38vw;height:18vh;right:-6vw;bottom:30vh}
 .hero-glow{left:0;right:0;bottom:19.2vh;height:2px;z-index:8;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);opacity:0;box-shadow:0 0 22px rgba(255,255,255,.75)}
 .hero-beam{width:22vw;height:130vh;left:50%;top:-18vh;transform:translateX(-50%) rotate(8deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.34),transparent);opacity:0;filter:blur(12px);z-index:7}
-.hero-logo-layer{left:50%;top:20.4vh;transform:translateX(-50%);z-index:10;width:min(92vw,700px);height:42vh;pointer-events:none}
+.hero-logo-layer{left:50%;top:17vh;transform:translateX(-50%);z-index:10;width:min(92vw,760px);height:47vh;pointer-events:none}
 .logo-window{position:relative;width:100%;height:100%;overflow:hidden}
-.logo-rise{position:absolute;left:50%;bottom:-15vh;transform:translateX(-50%);opacity:0;will-change:transform,opacity;filter:blur(8px)}
+.logo-rise{position:absolute;left:50%;bottom:0;transform:translateX(-50%);opacity:0;will-change:transform,opacity;filter:blur(8px)}
 .mark,.mark-echo{margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-size:min(32vw,290px);line-height:.78;letter-spacing:-.08em;position:relative;color:#111}
 .mark{z-index:2}.mark-two{display:inline-block}.mark-exp{font-size:.34em;position:relative;top:-.92em;left:.03em}
 .mark-echo{position:absolute;left:0;top:0;color:transparent;-webkit-text-stroke:1.4px rgba(255,255,255,.32);opacity:0}.mark-echo-a{transform:translate(-10px,8px)}.mark-echo-b{transform:translate(10px,-8px)}
@@ -54,10 +54,23 @@ footer{display:flex;justify-content:space-between;align-items:center;padding:24p
 html.scroll-locked,body.scroll-locked{overflow:hidden!important;height:100%} body.scroll-locked{touch-action:none!important}
 @media(max-width:800px){
   .nav{height:64px;padding:0 16px}.nav nav{display:none}.brand{font-size:34px}.nav .join{padding:8px 14px;font-size:11px}
-  .hero-logo-layer{top:18.5vh;width:86vw;height:34vh}.mark,.mark-echo{font-size:56vw}.hero-copy{bottom:22vh}.eyebrow{font-size:10px;letter-spacing:.24em;margin-bottom:3vh}.mark-spacer{height:14vh}.tagline{font-size:16vw}.hero-sub{font-size:13px;max-width:84vw}.hero-world-strip{height:15vh;background-size:cover}.hero-horizon,.prelude-line,.hero-glow{bottom:14.4vh}.scroll-hint{bottom:2.6vh}
+  .hero-logo-layer{top:17svh;width:92vw;height:38svh}.mark,.mark-echo{font-size:48vw}.hero-copy{bottom:18.2svh}.eyebrow{font-size:10px;letter-spacing:.24em;margin-bottom:2.4svh}.mark-spacer{height:28svh}.tagline{font-size:10.8vw;line-height:1.02}.hero-sub{font-size:12.5px;max-width:84vw;margin-top:2svh}.hero-world-strip{height:13.5svh;background-size:auto 100%;background-position:center bottom}.hero-horizon,.prelude-line,.hero-glow{bottom:13.1svh}.scroll-hint{bottom:2.3svh}
   .statement{padding:13vh 5vw 10vh}.section-head{display:block}.stats{grid-template-columns:1fr}.stats article{border-right:0;border-bottom:1px solid var(--line)}.stats article:last-child{border-bottom:0}
   .world-ui,.leaders-ui{left:5vw;right:5vw;top:8vh;grid-template-columns:auto 1fr auto;gap:12px}.world-ui-title strong,.leaders-ui-title strong{display:none}.world-ui-title span,.leaders-ui-title span{font-size:9px}.world-ui-count b,.leaders-ui-count b{font-size:24px}
   .biome::after{right:5vw;top:12vh;font-size:32vw}.biome-copy{left:5vw;right:5vw;bottom:10vh;max-width:none;padding:18px 18px 20px;border-radius:20px}.biome h3{font-size:24vw}.biome h3 em{font-size:11px}.biome p{font-size:13px}.biome-meta span{font-size:10px;padding:7px 12px}
   .leader-panel{grid-template-columns:1fr;gap:18px;padding:18vh 5vw 10vh}.leader-panel::after{right:5vw;top:11vh;font-size:31vw}.leader-copy h3{font-size:18vw}.leader-side{padding:18px}.leader-emblem{width:140px}
   .members,.timeline,.join-section{padding-left:5vw;padding-right:5vw}.member-overview{grid-template-columns:1fr;gap:16px}.member-wall span{font-size:13px;padding:9px 14px}.timeline-list article{grid-template-columns:1fr;gap:10px}.film-copy{left:5vw;max-width:84vw} footer{flex-wrap:wrap;gap:16px;padding:24px 5vw}
+}
+
+@media(max-width:430px){
+  .hero-logo-layer{top:17.5svh;height:36svh;width:94vw}
+  .mark,.mark-echo{font-size:50vw}
+  .hero-copy{bottom:18.5svh}
+  .mark-spacer{height:27svh}
+  .tagline{font-size:10.5vw;letter-spacing:-.055em}
+  .hero-sub{font-size:12px}
+}
+@media(max-width:380px){
+  .mark,.mark-echo{font-size:47vw}
+  .tagline{font-size:10vw}
 }

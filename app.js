@@ -33,7 +33,7 @@
     gsap.set(['.nav','.scroll-hint','.eyebrow','.tagline','.hero-sub'], { autoAlpha:0, y:18 });
     gsap.set('.hero-bg-color', { autoAlpha:0 });
     gsap.set('.hero-world-strip', { yPercent:18 });
-    gsap.set('.logo-rise', { y:220, autoAlpha:0, filter:'blur(8px)' });
+    gsap.set('.logo-rise', { yPercent:115, autoAlpha:0, filter:'blur(8px)' });
 
     if (!reduceMotion) {
       lockOpeningScroll();
@@ -48,7 +48,7 @@
         .to('.world-fog-a',{x:'18vw',autoAlpha:.65,duration:1.8},2.0)
         .to('.world-fog-b',{x:'-15vw',autoAlpha:.5,duration:2.1},2.1)
         .to('.hero-prelude',{autoAlpha:0,duration:.9,ease:'power2.inOut'},2.4)
-        .to('.logo-rise',{y:0,autoAlpha:1,filter:'blur(0px)',duration:1.9,ease:'power4.out'},3.1)
+        .to('.logo-rise',{yPercent:0,autoAlpha:1,filter:'blur(0px)',duration:1.9,ease:'power4.out'},3.1)
         .to('.mark-echo-a',{autoAlpha:.65,duration:.45},3.65)
         .to('.mark-echo-b',{autoAlpha:.55,duration:.45},3.75)
         .to('.mark-sheen',{autoAlpha:.95,left:'120%',duration:1.0,ease:'power2.inOut'},4.35)
