@@ -178,8 +178,10 @@
     gsap.utils.toArray('.biome-copy').forEach((copy)=>{
       gsap.fromTo(copy,{y:44,opacity:.16},{y:0,opacity:1,duration:.7,ease:'power3.out',scrollTrigger:{trigger:copy,containerAnimation:worldTween,start:'left 82%',toggleActions:'play none none reverse'}});
     });
-    gsap.utils.toArray('.biome-atmosphere').forEach((atmosphere)=>{
-      gsap.to(atmosphere,{xPercent:14,ease:'none',scrollTrigger:{trigger:atmosphere,containerAnimation:worldTween,start:'left right',end:'right left',scrub:true}});
+    gsap.utils.toArray('.biome-media').forEach((media)=>{
+      gsap.fromTo(media,{scale:.92,opacity:0,x:-30},{scale:1,opacity:1,x:0,duration:.85,ease:'power3.out',scrollTrigger:{trigger:media,containerAnimation:worldTween,start:'left 80%',toggleActions:'play none none reverse'}});
+      const img=media.querySelector('img');
+      if(img){ gsap.to(img,{scale:1.08,ease:'none',scrollTrigger:{trigger:media,containerAnimation:worldTween,start:'left right',end:'right left',scrub:true}}); }
     });
     const leadersTrack=document.querySelector('.leaders-track');
     const leadersWrap=document.querySelector('.leaders-wrap');
