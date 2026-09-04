@@ -12,7 +12,20 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <div class="intro-screen" aria-hidden="true"><div class="intro-mark">2<sup>n</sup></div><div class="intro-line"></div></div>
+  <div class="intro-screen" aria-hidden="true">
+    <div class="intro-fog"></div>
+    <div class="intro-grid"></div>
+    <div class="intro-pulse pulse-1"></div>
+    <div class="intro-pulse pulse-2"></div>
+    <div class="intro-pulse pulse-3"></div>
+    <div class="intro-stars">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+    <div class="intro-outline">2<sup>n</sup></div>
+    <div class="intro-scan"></div>
+    <div class="intro-caption">正在进入 2n</div>
+  </div>
+
   <div class="noise"></div>
   <header class="nav">
     <a class="brand" href="#top" aria-label="2n home">2<sup>n</sup></a>
@@ -26,6 +39,7 @@
     <section class="hero">
       <canvas class="hero-particles" aria-hidden="true"></canvas>
       <div class="hero-bg"></div>
+      <div class="hero-haze"></div>
       <div class="orb orb-a" data-depth="14"></div>
       <div class="orb orb-b" data-depth="-10"></div>
       <div class="hero-copy">

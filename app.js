@@ -34,25 +34,35 @@
   if (window.gsap && window.ScrollTrigger) {
     gsap.registerPlugin(ScrollTrigger);
 
+    if (!reduceMotion) {
+      gsap.to('.pulse-1', { scale: 1.4, opacity: 0, duration: 2.6, repeat: -1, ease: 'sine.out' });
+      gsap.to('.pulse-2', { scale: 1.28, opacity: 0, duration: 2.3, repeat: -1, delay: .4, ease: 'sine.out' });
+      gsap.to('.pulse-3', { scale: 1.18, opacity: 0, duration: 2.1, repeat: -1, delay: .8, ease: 'sine.out' });
+    }
+
     const intro = gsap.timeline({ defaults:{ease:'power3.out'} });
-    intro.to('.intro-mark',{opacity:1,scale:1,filter:'blur(0px)',duration:.9})
-      .to('.intro-line',{scaleX:1,duration:.65,ease:'power2.inOut'},.18)
-      .to('.intro-mark',{scale:1.06,opacity:.18,duration:.55,ease:'power2.in'},1.0)
-      .to('.intro-screen',{yPercent:-100,duration:1.05,ease:'power4.inOut'},1.05)
+    intro
+      .fromTo('.intro-caption',{opacity:0,y:8},{opacity:.9,y:0,duration:.6},.25)
+      .fromTo('.intro-outline',{opacity:0,filter:'blur(16px)',scale:.98},{opacity:.24,filter:'blur(4px)',scale:1,duration:.85,ease:'power2.out'},1.25)
+      .to('.intro-scan',{opacity:.9,left:'112%',duration:1.15,ease:'power2.inOut'},1.5)
+      .to('.intro-outline',{opacity:.85,filter:'blur(0px)',duration:.65},1.85)
+      .to('.intro-caption',{opacity:0,duration:.35},2.0)
+      .to('.intro-screen',{opacity:0,duration:.9,ease:'power2.inOut'},2.65)
       .set('.intro-screen',{display:'none'});
 
-    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay:1.0 });
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 2.4 });
     heroTl.from('.nav', { y: -22, opacity: 0, duration: .7 }, 0)
-      .from('.eyebrow', { y: 26, opacity: 0, duration: .65 }, .08)
-      .from('.ridge', { yPercent: 112, stagger: .08, duration: 1.15 }, .12)
-      .from('.mark-two', { yPercent: 56, scale: .82, rotationX: 18, rotationZ: -5, opacity: 0, filter: 'blur(12px)', duration: 1.35 }, .24)
-      .from('.mark-exp', { yPercent: -75, xPercent: -18, scale: .15, opacity: 0, rotation: 16, filter: 'blur(9px)', duration: 1.0 }, .72)
-      .from('.mark-echo-a', { opacity: 0, x: -28, y: 24, duration: .9 }, .48)
-      .from('.mark-echo-b', { opacity: 0, x: 28, y: -22, duration: .9 }, .52)
-      .to(sheen, { opacity: .95, left: '118%', duration: 1.05, ease: 'power2.inOut' }, 1.18)
-      .from('.tagline', { y: 34, opacity: 0, duration: .82 }, 1.25)
-      .from('.hero-sub', { y: 18, opacity: 0, duration: .65 }, 1.48)
-      .from('.scroll-hint', { y: 16, opacity: 0, duration: .6 }, 1.68);
+      .from('.eyebrow', { y: 18, opacity: 0, duration: .55 }, .1)
+      .from('.ridge', { yPercent: 112, stagger: .08, duration: 1.2 }, .25)
+      .from('.hero-haze', { opacity: 0, duration: 1.1 }, .25)
+      .from('.mark-two', { yPercent: 95, scale: .86, rotationX: 20, rotationZ: -6, opacity: 0, filter: 'blur(16px)', duration: 1.45, ease:'power4.out' }, .68)
+      .from('.mark-exp', { yPercent: -95, xPercent: -20, scale: .1, opacity: 0, rotation: 18, filter: 'blur(12px)', duration: 1.05 }, 1.12)
+      .from('.mark-echo-a', { opacity: 0, x: -32, y: 28, duration: .95 }, .98)
+      .from('.mark-echo-b', { opacity: 0, x: 32, y: -22, duration: .95 }, 1.02)
+      .to(sheen, { opacity: .95, left: '118%', duration: 1.0, ease: 'power2.inOut' }, 1.54)
+      .from('.tagline', { y: 34, opacity: 0, duration: .9 }, 1.6)
+      .from('.hero-sub', { y: 18, opacity: 0, duration: .65 }, 1.84)
+      .from('.scroll-hint', { y: 16, opacity: 0, duration: .6 }, 1.98);
 
     gsap.to('.hero-bg', {scale:1.34,yPercent:8,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
     gsap.to(heroCopy, {yPercent:-34,opacity:.12,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
@@ -65,6 +75,7 @@
       gsap.to('.mark-echo-b',{y:-12,x:12,duration:4.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
       gsap.to('.mark-two',{y:-5,duration:3.2,repeat:-1,yoyo:true,ease:'sine.inOut'});
       gsap.to('.mark-exp',{y:5,rotation:3,duration:2.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
+      gsap.to('.hero-haze',{opacity:.55,duration:4.8,repeat:-1,yoyo:true,ease:'sine.inOut'});
     }
 
     const track=document.querySelector('.world-track'); const wrap=document.querySelector('.world-wrap');
@@ -81,9 +92,10 @@
       gsap.to(orbA,{x:x*38,y:y*28,duration:1.2,overwrite:true,ease:'power3.out'});
       gsap.to(orbB,{x:x*-30,y:y*-20,duration:1.2,overwrite:true,ease:'power3.out'});
       gsap.to('.hero-bg',{x:x*20,y:y*12,duration:1.4,overwrite:true,ease:'power3.out'});
+      gsap.to('.hero-haze',{x:x*10,y:y*6,duration:1.4,overwrite:true,ease:'power3.out'});
       gsap.to('.ridge-a',{x:x*-24,duration:1,overwrite:true,ease:'power3.out'}); gsap.to('.ridge-b',{x:x*-10,duration:1,overwrite:true,ease:'power3.out'}); gsap.to('.ridge-c',{x:x*18,duration:1,overwrite:true,ease:'power3.out'});
     });
-    hero.addEventListener('mouseleave',()=>gsap.to([heroMark,orbA,orbB,'.hero-bg','.ridge-a','.ridge-b','.ridge-c'],{x:0,y:0,rotate:0,duration:1.1,ease:'power3.out',overwrite:true}));
+    hero.addEventListener('mouseleave',()=>gsap.to([heroMark,orbA,orbB,'.hero-bg','.hero-haze','.ridge-a','.ridge-b','.ridge-c'],{x:0,y:0,rotate:0,duration:1.1,ease:'power3.out',overwrite:true}));
   }
 
   playBtn?.addEventListener('click',async()=>{if(!video)return;video.muted=false;if(video.paused)await video.play().catch(()=>{});playBtn.textContent='SOUND ON'});
