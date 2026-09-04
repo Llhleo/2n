@@ -350,3 +350,42 @@ body.scroll-locked{touch-action:none!important}
   .biome-atmosphere i:nth-child(4),.biome-atmosphere i:nth-child(5){display:none}
 }
 @media(prefers-reduced-motion:reduce){.biome-atmosphere i{animation:none}}
+
+
+/* v16 — use only the real game background image (no UI / no ID / no inset thumbnails) */
+.hero-bg{background-image:linear-gradient(180deg,rgba(255,255,255,.08),rgba(5,8,7,.08)),url('./assets/world-real-panorama.png')!important;background-size:cover!important;background-position:center center!important;filter:saturate(0) contrast(.86) brightness(.74) blur(4px)!important}
+.world-wrap{height:520vh;background:#0a0b0c!important}
+.world-wrap .world-pin{position:relative;height:100svh;overflow:hidden;background:#0a0b0c}
+.world-wrap .world-track{display:flex;width:500vw;height:100%;background:none!important}
+.world-wrap .biome{position:relative;flex:0 0 100vw;width:100vw;height:100%;padding:0!important;display:block!important;overflow:hidden;isolation:isolate;background-size:cover!important;background-repeat:no-repeat!important;background-position:center center!important;color:#fff}
+.world-wrap .biome.garden{background-image:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.22) 50%,rgba(0,0,0,.62)),url('./assets/biome-clean-garden.png')!important}
+.world-wrap .biome.desert{background-image:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.22) 50%,rgba(0,0,0,.62)),url('./assets/biome-clean-desert.png')!important}
+.world-wrap .biome.ocean{background-image:linear-gradient(180deg,rgba(0,0,0,.14),rgba(0,0,0,.24) 50%,rgba(0,0,0,.64)),url('./assets/biome-clean-ocean.png')!important}
+.world-wrap .biome.jungle{background-image:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.22) 50%,rgba(0,0,0,.62)),url('./assets/biome-clean-jungle.png')!important}
+.world-wrap .biome.hel{background-image:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.22) 50%,rgba(0,0,0,.62)),url('./assets/biome-clean-hel.png')!important}
+.world-wrap .biome:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 22% 18%,rgba(255,255,255,.10),transparent 18%),radial-gradient(circle at 78% 26%,rgba(255,255,255,.08),transparent 22%),linear-gradient(180deg,rgba(255,255,255,.02),transparent 28%,rgba(0,0,0,.24) 70%,rgba(0,0,0,.48));z-index:1}
+.world-wrap .biome:after{content:attr(data-index);position:absolute;right:4vw;top:9vh;font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(110px,20vw,280px);line-height:.8;color:rgba(255,255,255,.07);z-index:1}
+.world-wrap .biome-copy{position:absolute;left:6vw;bottom:10vh;z-index:2;max-width:min(580px,48vw);padding:22px 24px 24px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:linear-gradient(180deg,rgba(8,12,14,.32),rgba(8,12,14,.18));backdrop-filter:blur(10px);box-shadow:0 24px 60px rgba(0,0,0,.26)}
+.world-wrap .biome-no{display:block;font-size:11px!important;letter-spacing:.30em!important;margin-bottom:16px;color:rgba(255,255,255,.76)}
+.world-wrap .biome-copy h3{display:block;margin:0 0 16px;font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(86px,13vw,188px);line-height:.78;letter-spacing:-.07em;text-shadow:0 10px 40px rgba(0,0,0,.22)}
+.world-wrap .biome-copy h3 em{display:block;margin-top:14px;font-family:Inter,Arial,sans-serif;font-style:normal;font-size:13px;letter-spacing:.30em;color:rgba(255,255,255,.78)}
+.world-wrap .biome-copy p{margin:0 0 20px;max-width:460px;font-size:15px;line-height:1.85;color:rgba(255,255,255,.88)}
+.world-wrap .biome-meta{display:flex;flex-wrap:wrap;gap:10px}
+.world-wrap .biome-meta span{display:inline-flex;align-items:center;min-height:38px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);font-size:11px;letter-spacing:.18em;color:#f3eee3}
+.leader-awdc,.leader-flower,.leader-cnfly,.leader-ss{background-size:cover!important;background-position:center center!important}
+.leader-awdc{background-image:linear-gradient(180deg,rgba(6,7,8,.18),rgba(6,7,8,.08) 28%,rgba(6,7,8,.72)),url('./assets/biome-clean-garden.png')!important}
+.leader-flower{background-image:linear-gradient(180deg,rgba(6,7,8,.18),rgba(6,7,8,.08) 28%,rgba(6,7,8,.72)),url('./assets/biome-clean-desert.png')!important}
+.leader-cnfly{background-image:linear-gradient(180deg,rgba(6,7,8,.18),rgba(6,7,8,.08) 28%,rgba(6,7,8,.72)),url('./assets/biome-clean-ocean.png')!important}
+.leader-ss{background-image:linear-gradient(180deg,rgba(6,7,8,.18),rgba(6,7,8,.08) 28%,rgba(6,7,8,.72)),url('./assets/biome-clean-hel.png')!important}
+@media(max-width:800px){
+  .hero-bg{background-image:linear-gradient(180deg,rgba(255,255,255,.08),rgba(5,8,7,.08)),url('./assets/world-real-panorama.png')!important;background-size:auto 100%!important;background-position:center center!important}
+  .world-wrap{height:500vh}
+  .world-wrap .world-ui{left:5vw;right:5vw;top:max(2.4svh,16px)}
+  .world-wrap .world-ui-title strong{display:none}
+  .world-wrap .biome:after{right:5vw;top:11svh;font-size:32vw}
+  .world-wrap .biome-copy{left:5vw;right:5vw;bottom:11svh;max-width:none;padding:18px 18px 20px;border-radius:20px;background:linear-gradient(180deg,rgba(8,12,14,.38),rgba(8,12,14,.22));box-shadow:0 18px 40px rgba(0,0,0,.24)}
+  .world-wrap .biome-copy h3{font-size:24vw;line-height:.78;margin-bottom:12px}
+  .world-wrap .biome-copy h3 em{font-size:11px;margin-top:10px}
+  .world-wrap .biome-copy p{font-size:13px;line-height:1.75;margin-bottom:16px;max-width:none}
+  .world-wrap .biome-meta span{font-size:10px;padding:7px 12px}
+}
