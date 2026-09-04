@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d9ddd6"/>
+      <stop offset=".38" stop-color="#d7dfd8"/>
+      <stop offset=".66" stop-color="#b8d2cd"/>
+      <stop offset="1" stop-color="#728d86"/>
+    </linearGradient>
+    <linearGradient id="horizon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#42674d"/>
+      <stop offset=".22" stop-color="#918357"/>
+      <stop offset=".42" stop-color="#b79864"/>
+      <stop offset=".58" stop-color="#397e91"/>
+      <stop offset=".76" stop-color="#335c42"/>
+      <stop offset="1" stop-color="#4b2928"/>
+    </linearGradient>
+    <radialGradient id="light" cx="50%" cy="52%" r="45%">
+      <stop offset="0" stop-color="#fffef1" stop-opacity=".72"/>
+      <stop offset=".28" stop-color="#fffce6" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="20"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="5"/></filter>
+  </defs>
+  <rect width="900" height="1600" fill="url(#sky)"/>
+  <ellipse cx="450" cy="760" rx="430" ry="370" fill="url(#light)" filter="url(#blur)"/>
+  <g opacity=".12" fill="#ffffff" filter="url(#blur)">
+    <ellipse cx="160" cy="520" rx="250" ry="90"/>
+    <ellipse cx="730" cy="670" rx="300" ry="105"/>
+  </g>
+  <!-- distant world only begins in the bottom third on portrait -->
+  <path d="M0 1118 C90 1080 130 1092 190 1114 C245 1133 285 1125 340 1106 C405 1083 456 1090 510 1114 C575 1145 628 1110 684 1090 C752 1066 818 1082 900 1124 L900 1600 L0 1600Z" fill="url(#horizon)" opacity=".86"/>
+  <!-- garden -->
+  <path d="M0 1155 C58 1114 106 1128 160 1158 L205 1600 L0 1600Z" fill="#345740" opacity=".9"/>
+  <g fill="#6f9a72" opacity=".55"><circle cx="58" cy="1137" r="11"/><circle cx="116" cy="1153" r="7"/></g>
+  <!-- desert -->
+  <path d="M170 1174 Q270 1115 380 1172 Q313 1225 205 1238Z" fill="#a68b61" opacity=".8"/>
+  <!-- ocean as a thin horizon band, not half the phone -->
+  <path d="M330 1188 Q430 1162 548 1190 L592 1600 L350 1600Z" fill="#2f7d8e" opacity=".78"/>
+  <path d="M360 1220 Q445 1203 548 1220" fill="none" stroke="#9bd4da" stroke-width="7" opacity=".32"/>
+  <!-- jungle -->
+  <path d="M535 1188 C590 1110 625 1130 654 1172 C685 1093 739 1102 758 1188 L785 1600 L520 1600Z" fill="#2d5139" opacity=".88"/>
+  <g fill="#66896c" opacity=".45"><ellipse cx="628" cy="1137" rx="38" ry="12" transform="rotate(-28 628 1137)"/><ellipse cx="700" cy="1148" rx="34" ry="11" transform="rotate(24 700 1148)"/></g>
+  <!-- hel -->
+  <path d="M735 1192 L770 1125 L798 1180 L830 1088 L858 1178 L900 1118 L900 1600 L760 1600Z" fill="#382524" opacity=".92"/>
+  <ellipse cx="850" cy="1160" rx="90" ry="60" fill="#c65a39" opacity=".16" filter="url(#blur)"/>
+  <path d="M0 1290 C165 1240 292 1285 425 1262 C575 1237 730 1280 900 1248 L900 1600 L0 1600Z" fill="#1b2d29" opacity=".46"/>
+</svg>
