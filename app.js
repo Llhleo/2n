@@ -42,27 +42,32 @@
 
     const intro = gsap.timeline({ defaults:{ease:'power3.out'} });
     intro
-      .fromTo('.intro-caption',{opacity:0,y:8},{opacity:.9,y:0,duration:.6},.25)
-      .fromTo('.intro-outline',{opacity:0,filter:'blur(16px)',scale:.98},{opacity:.24,filter:'blur(4px)',scale:1,duration:.85,ease:'power2.out'},1.25)
-      .to('.intro-scan',{opacity:.9,left:'112%',duration:1.15,ease:'power2.inOut'},1.5)
-      .to('.intro-outline',{opacity:.85,filter:'blur(0px)',duration:.65},1.85)
-      .to('.intro-caption',{opacity:0,duration:.35},2.0)
-      .to('.intro-screen',{opacity:0,duration:.9,ease:'power2.inOut'},2.65)
+      .fromTo('.intro-caption',{opacity:0,y:8},{opacity:.78,y:0,duration:.7},.35)
+      .fromTo('.intro-horizon',{opacity:0,scaleX:.18},{opacity:1,scaleX:1,duration:1.0,ease:'power2.inOut'},1.35)
+      .to('.intro-scan',{opacity:.78,left:'112%',duration:1.2,ease:'power2.inOut'},1.65)
+      .to('.intro-caption',{opacity:0,duration:.45},2.55)
+      .to('.intro-horizon',{opacity:.38,filter:'blur(2px)',duration:.6},2.7)
+      .to('.intro-screen',{opacity:0,duration:1.0,ease:'power2.inOut'},3.15)
       .set('.intro-screen',{display:'none'});
 
-    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 2.4 });
-    heroTl.from('.nav', { y: -22, opacity: 0, duration: .7 }, 0)
-      .from('.eyebrow', { y: 18, opacity: 0, duration: .55 }, .1)
-      .from('.ridge', { yPercent: 112, stagger: .08, duration: 1.2 }, .25)
-      .from('.hero-haze', { opacity: 0, duration: 1.1 }, .25)
-      .from('.mark-two', { yPercent: 95, scale: .86, rotationX: 20, rotationZ: -6, opacity: 0, filter: 'blur(16px)', duration: 1.45, ease:'power4.out' }, .68)
-      .from('.mark-exp', { yPercent: -95, xPercent: -20, scale: .1, opacity: 0, rotation: 18, filter: 'blur(12px)', duration: 1.05 }, 1.12)
-      .from('.mark-echo-a', { opacity: 0, x: -32, y: 28, duration: .95 }, .98)
-      .from('.mark-echo-b', { opacity: 0, x: 32, y: -22, duration: .95 }, 1.02)
-      .to(sheen, { opacity: .95, left: '118%', duration: 1.0, ease: 'power2.inOut' }, 1.54)
-      .from('.tagline', { y: 34, opacity: 0, duration: .9 }, 1.6)
-      .from('.hero-sub', { y: 18, opacity: 0, duration: .65 }, 1.84)
-      .from('.scroll-hint', { y: 16, opacity: 0, duration: .6 }, 1.98);
+    const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 3.0 });
+    heroTl
+      .from('.nav', { y: -20, opacity: 0, duration: .7 }, .12)
+      .from('.hero-bg', { scale: 1.2, filter:'blur(8px)', duration: 1.4, ease:'power2.out' }, 0)
+      .to('.hero-horizon-glow',{opacity:1,duration:.8},.38)
+      .to('.hero-beam',{opacity:.72,duration:1.0},.48)
+      .from('.ridge', { yPercent: 118, stagger: .1, duration: 1.35, ease:'power4.out' }, .5)
+      .from('.eyebrow', { y: 16, opacity: 0, duration: .55 }, .9)
+      .from('.mark-two', { yPercent: 128, scale: .9, rotationX: 24, rotationZ: -4, opacity: 0, filter: 'blur(18px)', duration: 1.65, ease:'power4.out' }, 1.12)
+      .from('.mark-exp', { yPercent: 80, xPercent: -12, scale: .2, opacity: 0, rotation: 10, filter: 'blur(12px)', duration: 1.15, ease:'power4.out' }, 1.66)
+      .from('.mark-echo-a', { opacity: 0, x: -26, y: 34, duration: .95 }, 1.48)
+      .from('.mark-echo-b', { opacity: 0, x: 28, y: -18, duration: .95 }, 1.54)
+      .to(sheen, { opacity: .95, left: '118%', duration: 1.05, ease: 'power2.inOut' }, 2.05)
+      .to('.hero-horizon-glow',{opacity:.32,duration:1.0},2.15)
+      .to('.hero-beam',{opacity:.18,duration:1.0},2.15)
+      .from('.tagline', { y: 34, opacity: 0, duration: .88 }, 2.18)
+      .from('.hero-sub', { y: 18, opacity: 0, duration: .68 }, 2.46)
+      .from('.scroll-hint', { y: 16, opacity: 0, duration: .62 }, 2.66);
 
     gsap.to('.hero-bg', {scale:1.34,yPercent:8,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
     gsap.to(heroCopy, {yPercent:-34,opacity:.12,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:true}});
