@@ -181,6 +181,13 @@
     gsap.utils.toArray('.biome-atmosphere').forEach((atmosphere)=>{
       gsap.to(atmosphere,{xPercent:14,ease:'none',scrollTrigger:{trigger:atmosphere,containerAnimation:worldTween,start:'left right',end:'right left',scrub:true}});
     });
+    const leadersTrack=document.querySelector('.leaders-track');
+    const leadersWrap=document.querySelector('.leaders-wrap');
+    const leadersProgress=document.querySelector('#leadersProgress');
+    const leadersIndex=document.querySelector('#leadersIndex');
+    const leadersTween=gsap.to(leadersTrack,{xPercent:-75,ease:'none',scrollTrigger:{trigger:leadersWrap,start:'top top',end:'bottom bottom',scrub:1,pin:'.leaders-pin',onUpdate:self=>{if(leadersProgress) leadersProgress.style.transform=`scaleX(${Math.max(.02,self.progress)})`; if(leadersIndex) leadersIndex.textContent=String(Math.min(4,Math.floor(self.progress*4)+1)).padStart(2,'0');}}});
+    gsap.utils.toArray('.leader-copy').forEach((copy)=>{gsap.fromTo(copy,{y:42,opacity:.12},{y:0,opacity:1,duration:.75,ease:'power3.out',scrollTrigger:{trigger:copy,containerAnimation:leadersTween,start:'left 82%',toggleActions:'play none none reverse'}});});
+    gsap.utils.toArray('.leader-side').forEach((side)=>{gsap.fromTo(side,{x:34,opacity:0},{x:0,opacity:1,duration:.72,ease:'power3.out',scrollTrigger:{trigger:side,containerAnimation:leadersTween,start:'left 78%',toggleActions:'play none none reverse'}});});
     gsap.utils.toArray('.leader-card').forEach((card,i)=>gsap.from(card,{y:60,opacity:0,duration:.8,delay:i*.04,scrollTrigger:{trigger:card,start:'top 88%'}}));
     gsap.from('.member-total',{y:38,opacity:0,duration:.85,scrollTrigger:{trigger:'.members',start:'top 82%'}});
     gsap.from('.member-overview p',{y:24,opacity:0,duration:.75,scrollTrigger:{trigger:'.member-overview',start:'top 84%'}});
