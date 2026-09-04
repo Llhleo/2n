@@ -182,6 +182,9 @@
       gsap.to(atmosphere,{xPercent:14,ease:'none',scrollTrigger:{trigger:atmosphere,containerAnimation:worldTween,start:'left right',end:'right left',scrub:true}});
     });
     gsap.utils.toArray('.leader-card').forEach((card,i)=>gsap.from(card,{y:60,opacity:0,duration:.8,delay:i*.04,scrollTrigger:{trigger:card,start:'top 88%'}}));
+    gsap.from('.member-total',{y:38,opacity:0,duration:.85,scrollTrigger:{trigger:'.members',start:'top 82%'}});
+    gsap.from('.member-overview p',{y:24,opacity:0,duration:.75,scrollTrigger:{trigger:'.member-overview',start:'top 84%'}});
+    gsap.from('.member-wall span',{y:22,opacity:0,stagger:.03,duration:.45,scrollTrigger:{trigger:'.member-wall',start:'top 86%'}});
     gsap.from('.timeline-list article',{y:40,opacity:0,stagger:.12,scrollTrigger:{trigger:'.timeline-list',start:'top 80%'}});
 
     // The second screen should feel like the same film, not a separate template.

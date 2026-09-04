@@ -1,3 +1,9 @@
+# 2n-site-v13
+
+- 五生态章节已改为使用你提供的游戏原图（由合成长图切成 5 个生态面板）
+- 新增 Members 章节，展示公会规模和部分成员
+- 保留 v12 的首屏锁滚动与开场逻辑
+
 # 2n Website v12
 
 Static HTML/CSS/JS version for GitHub / Cloudflare Pages.
