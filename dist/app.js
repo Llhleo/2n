@@ -19,12 +19,10 @@
   const heroCopy = one('.hero-copy');
   const eyebrow = one('.hero-eyebrow');
   const cue = one('.scroll-cue');
-  const worldIndex = one('.world-index');
   const loadStatus = one('.load-status');
   const meter = one('.progress i');
   const counter = one('.chapter-count b');
   const chapterName = one('.chapter-name');
-  const motionButton = one('.motion-toggle');
   const panels = all('.panel');
   const mediaQuery = matchMedia('(prefers-reduced-motion: reduce)');
   const qaTouch = location.hostname === 'terminal.local' && new URLSearchParams(location.search).has('qa-touch');
@@ -38,12 +36,10 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '27';
+  root.dataset.version = '28';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
-  let userReduced = false;
-  try { userReduced = localStorage.getItem('2n-reduced-motion') === 'true'; } catch {}
-  let reduced = mediaQuery.matches || userReduced;
+  let reduced = mediaQuery.matches;
   let width = innerWidth, height = innerHeight, lead = 1, travel = 0;
   let geometry = [], stops = [], cardGeometry = [];
   let scene = null, active = true, initialized = false, ready = false;
@@ -78,10 +74,8 @@
   const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
 
   function setMotionPreference() {
-    reduced = mediaQuery.matches || userReduced;
+    reduced = mediaQuery.matches;
     root.classList.toggle('is-reduced-motion', reduced);
-    motionButton.setAttribute('aria-pressed', String(reduced));
-    motionButton.textContent = reduced ? '动态已减少' : '减少动态';
   }
 
   // Two canvas layers composite the exact supplied PNGs. No generated scenery assets.
@@ -244,7 +238,6 @@
     heroLines[1].style.transform = 'translateY(' + (1-state.copyTwo)*115 + '%)';
     eyebrow.style.opacity = state.eyebrow;
     cue.style.opacity = state.controls;
-    worldIndex.style.opacity = state.controls;
   }
 
   function updateChapter(index) {
@@ -254,11 +247,6 @@
     chapterName.textContent = index === 0 ? '序章' : panels[index-1].dataset.chapter;
     root.classList.toggle('is-light-chrome', index > 0 && index <= 6 || index === 8);
     root.classList.toggle('is-ink-footer', index === 7 || index === 9 || index === 10);
-    const group = index >= 1 && index <= 5 ? 'biomes' : index === 7 ? 'leaders' : index === 9 ? 'film' : '';
-    all('.chapter-nav button').forEach(button => {
-      if (button.dataset.section === group) button.setAttribute('aria-current', 'true');
-      else button.removeAttribute('aria-current');
-    });
   }
 
   function renderMembers(phase, x) {
@@ -342,7 +330,6 @@
     heroCopy.style.opacity = 1-smooth(progress(entry, .06, .48));
     eyebrow.style.opacity = state.eyebrow*(1-smooth(progress(entry, .10, .5)));
     cue.style.opacity = state.controls*(1-progress(entry, 0, .22));
-    worldIndex.style.opacity = state.controls*(1-progress(entry, .06, .5));
     if (scene && entry < 1) {
       // After the intro, mobile moves the finished layers on the compositor.
       // Desktop keeps the richer per-frame canvas camera.
@@ -422,7 +409,7 @@
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
     introScreen.classList.add('is-finished'); introScreen.inert=true;
     for (const element of [header,controls,hero,...panels]) { element.inert=false; element.style.opacity=''; }
-    for (const element of [...heroLines,...introLines,heroCopy,eyebrow,cue,worldIndex]) element.style.cssText='';
+    for (const element of [...heroLines,...introLines,heroCopy,eyebrow,cue]) element.style.cssText='';
     all('.biome-copy,.biome-visual,.leader-card>div').forEach(element => { element.style.transform=''; element.style.opacity=''; });
     [orb,bridgeFirst,bridgeSecond].forEach(element => { element.style.transform=''; element.style.opacity=''; });
     [members,one('.leaders'),memberCore,memberMessage,memberResult,memberCaption,anniversaryTitle,...memberBubbles,...anniversaryParticles].forEach(element => { element.style.transform=''; element.style.opacity=''; });
@@ -457,11 +444,6 @@
   all('[data-section]').forEach(button=>button.addEventListener('click',()=>goTo(button.dataset.section)));
   all('[data-go="0"]').forEach(button=>button.addEventListener('click',()=>goTo(0)));
   one('.skip-link').addEventListener('click', event => { if (!active) return; event.preventDefault(); finishIntro(); goTo('biomes'); });
-  motionButton.addEventListener('click', () => {
-    userReduced=!userReduced;
-    try { localStorage.setItem('2n-reduced-motion',String(userReduced)); } catch {}
-    setMotionPreference(); if (reduced && playing) finishIntro(); schedule();
-  });
   mediaQuery.addEventListener('change', () => { setMotionPreference(); if(reduced && playing) finishIntro(); schedule(); });
   addEventListener('2n:fallback', fallback);
   addEventListener('error', () => { if (!ready && active) window.twoNFallback(); });

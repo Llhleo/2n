@@ -29,7 +29,6 @@ button:focus-visible,a:focus-visible,video:focus-visible { outline:2px solid cur
 .intro-line sup { font-size:.35em; }
 .load-rule { position:absolute; left:7vw; right:7vw; bottom:16vh; height:1px; background:#ffffff29; }
 .load-rule i { display:block; width:100%; height:2px; background:#dcf4db; transform-origin:left; transform:scaleX(0); transition:transform .28s ease-out; }
-.intro-bottom { position:absolute; left:7vw; bottom:9vh; font-size:12px; letter-spacing:.13em; }
 .skip-intro { position:absolute; right:4vw; bottom:max(20px,env(safe-area-inset-bottom)); padding:14px; border:1px solid #ffffff44; border-radius:0; background:none; font-size:14px; }
 .site-header {
   position:fixed; z-index:40; top:0; left:0; right:0; height:84px; display:flex;
@@ -41,11 +40,6 @@ button:focus-visible,a:focus-visible,video:focus-visible { outline:2px solid cur
 .brand-wordmark { font:700 40px/.85 Georgia,serif; letter-spacing:-.12em; }
 .brand-wordmark sup { font-size:.4em; position:relative; top:-.1em; }
 .brand-image { display:none; width:64px; height:36px; object-fit:contain; }
-.chapter-nav { display:flex; align-items:center; gap:2.4vw; }
-.chapter-nav button,.motion-toggle { min-height:44px; padding:9px 4px; font-size:14px; }
-.chapter-nav button { border-bottom:1px solid transparent; }
-.chapter-nav button[aria-current] { border-bottom-color:currentColor; }
-.motion-toggle { border-bottom:1px solid currentColor!important; }
 .story-controls {
   position:fixed; z-index:40; bottom:0; left:0; right:0; display:flex; gap:20px; align-items:center;
   padding:8px 4vw max(12px,env(safe-area-inset-bottom)); background:var(--paper); font-size:12px;
@@ -80,9 +74,6 @@ button:focus-visible,a:focus-visible,video:focus-visible { outline:2px solid cur
 .hero-line { display:block; }
 .scroll-cue { position:absolute; z-index:4; bottom:17%; right:6vw; display:flex; flex-direction:column; align-items:flex-end; gap:12px; background:none; color:#fff; border:0; padding:12px 0; font-size:16px; }
 .cue-direction { font-size:12px; letter-spacing:.1em; }
-.world-index { position:absolute; z-index:4; left:6vw; right:6vw; bottom:8%; display:flex; justify-content:space-between; list-style:none; margin:0; padding:0; color:#fff; font-size:14px; }
-.world-index li { display:flex; gap:15px; }
-.world-index span { opacity:.58; font-size:12px; }
 .story-shell { height:auto; }
 .story-viewport { position:relative; }
 .story-track { display:block; }
@@ -181,8 +172,6 @@ html:not(.is-enhanced) .story-controls,html:not(.is-enhanced) .replay-intro { di
   .world-back,.world-front { will-change:transform; transform-origin:center; }
   .site-header { height:70px; padding:env(safe-area-inset-top) 20px 0; }
   .brand-button { width:38px; } .brand-wordmark { font-size:33px; }
-  .chapter-nav { gap:12px; } .chapter-nav button,.motion-toggle { font-size:14px; padding:8px 0; }
-  .motion-toggle { font-size:12px; }
   .story-controls { gap:8px; padding-left:20px; padding-right:20px; }
   .chapter-position { gap:10px; } .progress { min-width:12px; }
   .replay-intro { font-size:12px; white-space:nowrap; }
@@ -191,7 +180,6 @@ html:not(.is-enhanced) .story-controls,html:not(.is-enhanced) .replay-intro { di
   .intro-statement { left:24px; right:14px; }
   .intro-line { font-size:clamp(28px,8vw,60px); line-height:1.4; letter-spacing:-.045em; }
   .intro-line-two { font-size:13vw; }
-  .intro-bottom { left:24px; right:24px; bottom:15vh; font-size:12px; line-height:1.7; max-width:260px; }
   .load-rule { left:24px; right:24px; bottom:24vh; }
   .hero-eyebrow { top:22%; font-size:12px; letter-spacing:.08em; gap:14px; }
   .hero-mark { top:33%; } .hero-wordmark { font-size:clamp(220px,63vw,430px); }
@@ -199,8 +187,6 @@ html:not(.is-enhanced) .story-controls,html:not(.is-enhanced) .replay-intro { di
   .hero-copy { left:24px; bottom:21%; }
   .hero-copy h1 { font-size:clamp(28px,8vw,44px); line-height:1.1; }
   .scroll-cue { right:24px; bottom:13%; flex-direction:row; gap:12px; align-items:center; font-size:14px; }
-  .world-index { left:24px; right:24px; bottom:8.6%; font-size:12px; }
-  .world-index li { gap:0; } .world-index span { display:none; }
   .biome-copy { left:26px; right:26px; bottom:21%; }
   .biome-copy h2 { font-size:27vw; margin:24px 0 34px; }
   .biome-copy p { font-size:16px; max-width:22em; }
@@ -223,7 +209,7 @@ html:not(.is-enhanced) .story-controls,html:not(.is-enhanced) .replay-intro { di
 @media (max-height:540px) {
   .hero-eyebrow { top:22%; } .hero-mark { top:24%; } .hero-wordmark { font-size:47vh; }
   .hero-copy { bottom:24%; } .hero-copy h1 { font-size:28px; }
-  .world-index { bottom:15%; } .scroll-cue { bottom:24%; }
+  .scroll-cue { bottom:24%; }
   .is-enhanced .panel { overflow-y:auto; }
   .biome-copy { bottom:18%; } .biome-copy h2 { font-size:20vh; margin:12px 0 18px; }
   .biome-copy p { max-width:36em; }

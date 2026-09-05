@@ -61,9 +61,9 @@
       split:smooth(progress(phase,.355,.43)),
       title:smooth(progress(phase,.43,.48))*(1-smooth(progress(phase,.70,.82))),
       order:smooth(progress(phase,.52,.62)),
-      turns:progress(phase,.43,.66)*Math.PI*2.5,
-      spiral:smooth(progress(phase,.68,.84)),
-      collapse:smooth(progress(phase,.88,1))
+      turns:progress(phase,.43,1)*Math.PI*4,
+      spiral:smooth(progress(phase,.66,.84)),
+      collapse:Math.pow(progress(phase,.66,1),2)
     };
   }
   function anniversaryParticle(index,count,phase,width,height) {
@@ -75,7 +75,7 @@
     const radius=Math.min(width*.42,height*.32);
     const irregular=lerp(.69+noise(index+80)*.29,1,s.order)+Math.sin(s.turns*1.7+index*1.9)*.045*breathing;
     const coil=s.spiral;
-    const angle=base+jitter+s.turns+coil*fraction*Math.PI*3+s.collapse*Math.PI*2;
+    const angle=base+jitter+s.turns+coil*fraction*Math.PI*3;
     const r=radius*s.split*irregular*lerp(1,.13+.87*fraction,coil)*(1-s.collapse);
     return {
       x:Math.cos(angle)*r,y:Math.sin(angle)*r,
