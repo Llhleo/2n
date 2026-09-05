@@ -15,8 +15,6 @@
   const controls = one('.story-controls');
   const introScreen = one('.intro-screen');
   const introLines = all('.intro-line');
-  const heroLines = all('.hero-line');
-  const heroCopy = one('.hero-copy');
   const eyebrow = one('.hero-eyebrow');
   const cue = one('.scroll-cue');
   const loadStatus = one('.load-status');
@@ -36,7 +34,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '28';
+  root.dataset.version = '29';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let reduced = mediaQuery.matches;
@@ -57,7 +55,6 @@
   const memberCore = one('.member-core');
   const memberMessage = one('.member-message');
   const memberResult = one('.member-result');
-  const memberCaption = one('.member-caption');
   const memberBubbles = all('.member-cloud span');
   const anniversaryTitle = one('.anniversary-title');
   const anniversaryParticles = memberBubbles.map((_,i)=> {
@@ -71,6 +68,12 @@
     return dot;
   });
   let memberStart = 0, memberDuration = 1;
+  let controlsShown = false, controlScrollAnchor = 0;
+  function showControls(shown) {
+    controlsShown=shown;
+    controls.classList.toggle('is-shown',shown);
+    controls.inert=!shown || !ready;
+  }
   const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
 
   function setMotionPreference() {
@@ -230,12 +233,12 @@
     introLines[1].style.transform = 'translateY(' + ((1-state.lineTwo)*120 - state.statementExit*125) + '%)';
     introScreen.style.clipPath = 'inset(0 0 ' + state.curtain*100 + '% 0)';
     introScreen.style.pointerEvents = ready ? 'none' : 'auto';
-    for (const element of [header, controls]) {
+    for (const element of [header]) {
       element.style.opacity = state.controls;
       element.style.transform = 'translateY(' + ((1-state.controls)*12) + 'px)';
     }
-    heroLines[0].style.transform = 'translateY(' + (1-state.copyOne)*115 + '%)';
-    heroLines[1].style.transform = 'translateY(' + (1-state.copyTwo)*115 + '%)';
+    controls.style.opacity=controlsShown ? state.controls : 0;
+    controls.style.transform=controlsShown ? 'translateY(0)' : 'translateY(110%)';
     eyebrow.style.opacity = state.eyebrow;
     cue.style.opacity = state.controls;
   }
@@ -267,7 +270,6 @@
     memberCore.style.opacity = String(lerp(.65,1,smooth(gather))*(1-smooth(progress(stage.split,0,.45))));
     memberMessage.style.opacity = reduced ? '0' : String(1-smooth(progress(gather,.52,.73)));
     memberResult.style.opacity = reduced ? '1' : String(smooth(progress(gather,.67,.9))*stage.resultFade);
-    memberCaption.style.opacity = reduced ? '1' : String(smooth(progress(gather,.84,1))*stage.resultFade);
     anniversaryTitle.style.opacity = reduced ? '1' : String(stage.title);
     anniversaryParticles.forEach((dot,i)=> {
       const particle=M.anniversaryParticle(i,anniversaryParticles.length,phase,width,height);
@@ -326,8 +328,6 @@
     const logoScroll = reduced ? 0 : entry * height * -.12;
     mark.style.transform = 'translateX(-50%) translate3d(' + (reduced ? 0 : -cursorX*.4) + 'px,' + (logoRise+logoScroll) + 'px,0) scale(' + (1+(reduced ? 0 : entry*.25)) + ')';
     mark.style.opacity = 1 - smooth(progress(entry, .30, .72));
-    heroCopy.style.transform = 'translateY(' + (reduced ? 0 : -entry*height*.14) + 'px)';
-    heroCopy.style.opacity = 1-smooth(progress(entry, .06, .48));
     eyebrow.style.opacity = state.eyebrow*(1-smooth(progress(entry, .10, .5)));
     cue.style.opacity = state.controls*(1-progress(entry, 0, .22));
     if (scene && entry < 1) {
@@ -383,10 +383,10 @@
     root.dataset.state = 'ready';
     root.classList.remove('is-booting','is-intro-locked');
     introScreen.classList.add('is-finished'); introScreen.inert = true;
-    header.inert = false; controls.inert = false;
+    header.inert = false; showControls(false); controlScrollAnchor=scrollY;
     clearTimeout(window.twoNBootTimer);
     if (focusAfterIntro || introScreen.contains(document.activeElement)) {
-      one('.replay-intro').focus({ preventScroll:true }); focusAfterIntro=false;
+      one('.brand-button').focus({ preventScroll:true }); focusAfterIntro=false;
     }
     schedule();
   }
@@ -397,7 +397,7 @@
     scrollTo({ top:0, behavior:'instant' }); renderedScroll=0;
     root.dataset.state = 'intro'; root.classList.add('is-intro-locked');
     introScreen.classList.remove('is-finished'); introScreen.inert=false;
-    header.inert=true; controls.inert=true;
+    header.inert=true; showControls(false); controlScrollAnchor=0;
     if (reduced) finishIntro(); else schedule();
   }
   function fallback() {
@@ -409,10 +409,10 @@
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
     introScreen.classList.add('is-finished'); introScreen.inert=true;
     for (const element of [header,controls,hero,...panels]) { element.inert=false; element.style.opacity=''; }
-    for (const element of [...heroLines,...introLines,heroCopy,eyebrow,cue]) element.style.cssText='';
+    for (const element of [...introLines,eyebrow,cue]) element.style.cssText='';
     all('.biome-copy,.biome-visual,.leader-card>div').forEach(element => { element.style.transform=''; element.style.opacity=''; });
     [orb,bridgeFirst,bridgeSecond].forEach(element => { element.style.transform=''; element.style.opacity=''; });
-    [members,one('.leaders'),memberCore,memberMessage,memberResult,memberCaption,anniversaryTitle,...memberBubbles,...anniversaryParticles].forEach(element => { element.style.transform=''; element.style.opacity=''; });
+    [members,one('.leaders'),memberCore,memberMessage,memberResult,anniversaryTitle,...memberBubbles,...anniversaryParticles].forEach(element => { element.style.transform=''; element.style.opacity=''; });
   }
 
   function goTo(value) {
@@ -447,7 +447,15 @@
   mediaQuery.addEventListener('change', () => { setMotionPreference(); if(reduced && playing) finishIntro(); schedule(); });
   addEventListener('2n:fallback', fallback);
   addEventListener('error', () => { if (!ready && active) window.twoNFallback(); });
-  addEventListener('scroll', schedule, {passive:true});
+  addEventListener('scroll', () => {
+    const position=clamp(scrollY,0,lead+travel);
+    if(ready && active) {
+      const delta=position-controlScrollAnchor;
+      if(position<=2) { showControls(false); controlScrollAnchor=position; }
+      else if(Math.abs(delta)>=12) { showControls(delta>0); controlScrollAnchor=position; }
+    }
+    schedule();
+  }, {passive:true});
   addEventListener('wheel', event => {
     if (!active || event.ctrlKey) return;
     if (!ready) { event.preventDefault(); return; }

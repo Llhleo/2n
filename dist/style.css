@@ -44,7 +44,9 @@ button:focus-visible,a:focus-visible,video:focus-visible { outline:2px solid cur
   position:fixed; z-index:40; bottom:0; left:0; right:0; display:flex; gap:20px; align-items:center;
   padding:8px 4vw max(12px,env(safe-area-inset-bottom)); background:var(--paper); font-size:12px;
 }
-.is-enhanced .story-controls { background:transparent; color:#fff; text-shadow:0 1px 10px #0005; transition:color .45s; }
+.story-controls { visibility:hidden; pointer-events:none; }
+.is-enhanced .story-controls { background:transparent; color:#fff; text-shadow:0 1px 10px #0005; transition:color .45s,transform .24s,opacity .24s; visibility:hidden; pointer-events:none; }
+.is-enhanced .story-controls.is-shown { visibility:visible; pointer-events:auto; }
 .is-enhanced.is-ink-footer .story-controls { color:var(--ink); text-shadow:none; }
 .chapter-position { display:flex; align-items:center; gap:20px; white-space:nowrap; }
 .chapter-count { font:12px/1.4 ui-monospace,monospace; letter-spacing:.06em; }
