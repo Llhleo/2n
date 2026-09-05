@@ -34,7 +34,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '29';
+  root.dataset.version = '30';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let reduced = mediaQuery.matches;
@@ -250,6 +250,9 @@
     chapterName.textContent = index === 0 ? '序章' : panels[index-1].dataset.chapter;
     root.classList.toggle('is-light-chrome', index > 0 && index <= 6 || index === 8);
     root.classList.toggle('is-ink-footer', index === 7 || index === 9 || index === 10);
+    const surface = index === 0 ? '#f3f2ec' : getComputedStyle(panels[index-1]).backgroundColor;
+    root.style.setProperty('--surface-color',surface);
+    one('meta[name="theme-color"]').content=surface;
   }
 
   function renderMembers(phase, x) {
@@ -452,7 +455,7 @@
     if(ready && active) {
       const delta=position-controlScrollAnchor;
       if(position<=2) { showControls(false); controlScrollAnchor=position; }
-      else if(Math.abs(delta)>=12) { showControls(delta>0); controlScrollAnchor=position; }
+      else if(Math.abs(delta)>=12) { showControls(delta<0); controlScrollAnchor=position; }
     }
     schedule();
   }, {passive:true});
@@ -502,9 +505,15 @@
   addEventListener('blur',()=>{wantedX=0;wantedY=0;});
   let resizeTimer;
   addEventListener('resize',()=>{
-    // Safari changes only innerHeight while its address bar retracts. Rebuilding
-    // the atlas during that gesture is the most visible source of scroll jank.
-    if (touchFirst && Math.abs(document.documentElement.clientWidth-width)<2) return;
+    // Update the visible surface when Safari retracts its toolbar, while keeping
+    // scroll distances and the expensive canvas atlas stable during the gesture.
+    if (touchFirst && Math.abs(document.documentElement.clientWidth-width)<2) {
+      if(window.visualViewport && Math.abs(window.visualViewport.scale-1)>.01) return;
+      root.style.setProperty('--view-height',innerHeight+'px');
+      if(active && initialized) shell.style.height=(lead+travel+innerHeight)+'px';
+      schedule();
+      return;
+    }
     clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>measure(),160);
   },{passive:true});
   addEventListener('pageshow',event=>{
