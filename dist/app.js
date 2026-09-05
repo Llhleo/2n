@@ -27,6 +27,8 @@
   const motionButton = one('.motion-toggle');
   const panels = all('.panel');
   const mediaQuery = matchMedia('(prefers-reduced-motion: reduce)');
+  const qaTouch = location.hostname === 'terminal.local' && new URLSearchParams(location.search).has('qa-touch');
+  const touchFirst = qaTouch || matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
   const imagePaths = ['garden', 'desert', 'ocean', 'jungle', 'hell'].map(name => 'assets/' + name + '.png');
   const tones = ['#239450', '#dfca91', '#4c8fb9', '#339a48', '#b53d3b'];
   // Content lives in HTML, so members and contributions survive script failure.
@@ -36,6 +38,8 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
+  root.dataset.version = '21';
+  root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let userReduced = false;
   try { userReduced = localStorage.getItem('2n-reduced-motion') === 'true'; } catch {}
@@ -97,7 +101,9 @@
     }
     resize() {
       this.makeAtlas();
-      this.dpr = Math.min(devicePixelRatio || 1, 1.75);
+      // A 1x canvas is enough beneath the textured artwork on touch screens and
+      // avoids pushing two retina-sized canvases through every scroll frame.
+      this.dpr = touchFirst ? 1 : Math.min(devicePixelRatio || 1, 1.5);
       for (const canvas of [this.back, this.front]) {
         canvas.width = Math.round(width * this.dpr);
         canvas.height = Math.round(height * this.dpr);
@@ -116,7 +122,8 @@
       ctx.scale(zoom, zoom);
       ctx.translate(-width * .5 + width * .30 * entry, -height * .5 + height * .035 * entry);
       ctx.beginPath();
-      for (let x = -width; x <= width * 2; x += Math.max(5, width / 100)) {
+      const sample = Math.max(touchFirst ? 9 : 5, width / (touchFirst ? 54 : 100));
+      for (let x = -width; x <= width * 2; x += sample) {
         const y = this.ridge(x, base + offsetY, amplitude, phase);
         if (x === -width) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
@@ -128,8 +135,15 @@
       }
       ctx.restore();
     }
+    transform(entry) {
+      const amount = smooth(entry);
+      this.back.style.transform = 'translate3d(' + (amount*width*.07) + 'px,' + (amount*height*.015) + 'px,0) scale(' + (1+amount*.32) + ')';
+      this.front.style.transform = 'translate3d(' + (amount*width*.12) + 'px,' + (-amount*height*.025) + 'px,0) scale(' + (1+amount*.42) + ')';
+    }
     draw(state, entry, now) {
       const { bg, fg } = this;
+      this.back.style.transform='none';
+      this.front.style.transform='none';
       for (const ctx of [bg, fg]) {
         ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         ctx.clearRect(0, 0, width, height);
@@ -137,7 +151,7 @@
       const sky = bg.createLinearGradient(0, 0, 0, height);
       sky.addColorStop(0, '#f3f2ec'); sky.addColorStop(.53, '#e9ece1'); sky.addColorStop(1, '#c3d2bc');
       bg.fillStyle = sky; bg.fillRect(0, 0, width, height);
-      const drift = reduced ? 0 : Math.sin(now / 7800) * 2;
+      const drift = reduced || touchFirst ? 0 : Math.sin(now / 7800) * 2;
       const base = logoTop + logoHeight * .67;
       const rise = (1 - state.world) * height * .24;
       const pointerX = reduced ? 0 : cursorX;
@@ -162,7 +176,13 @@
     height = innerHeight;
     root.style.setProperty('--view-height', height + 'px');
     lead = Math.round(Math.max(width * .94, height * .78));
-    geometry = panels.map(panel => ({ panel, x: panel.offsetLeft, width: panel.offsetWidth }));
+    geometry = panels.map(panel => ({
+      panel,
+      x:panel.offsetLeft,
+      width:panel.offsetWidth,
+      copy:panel.querySelector('.biome-copy'),
+      visual:panel.querySelector('.biome-visual')
+    }));
     travel = Math.max(0, track.scrollWidth - width);
     shell.style.height = (lead + travel + height) + 'px';
     logoTop = mark.offsetTop;
@@ -220,7 +240,9 @@
     if (playing) time = Math.min(M.DURATION, now - startedAt);
     const state = M.intro(ready ? M.DURATION : time);
     const desired = ready ? clamp(scrollY, 0, lead + travel) : 0;
-    renderedScroll = reduced ? desired : lerp(renderedScroll, desired, 1-Math.exp(-dt/78));
+    // Native touch scrolling already carries momentum. A second interpolation
+    // layer makes the fixed horizontal track feel as though it catches up late.
+    renderedScroll = reduced || touchFirst ? desired : lerp(renderedScroll, desired, 1-Math.exp(-dt/78));
     if (Math.abs(renderedScroll-desired) < .1) renderedScroll = desired;
     cursorX = lerp(cursorX, wantedX, .07); cursorY = lerp(cursorY, wantedY, .07);
     const scrolling = M.scroll(renderedScroll, lead, travel);
@@ -241,7 +263,12 @@
     eyebrow.style.opacity = state.eyebrow*(1-smooth(progress(entry, .10, .5)));
     cue.style.opacity = state.controls*(1-progress(entry, 0, .22));
     worldIndex.style.opacity = state.controls*(1-progress(entry, .06, .5));
-    if (scene && entry < 1) scene.draw(state, reduced ? 0 : entry, now);
+    if (scene && entry < 1) {
+      // After the intro, mobile moves the finished layers on the compositor.
+      // Desktop keeps the richer per-frame canvas camera.
+      if (touchFirst && ready && !reduced) scene.transform(entry);
+      else scene.draw(state, reduced ? 0 : entry, now);
+    }
     let chapter = 0;
     for (let i=0; i<geometry.length; i++) {
       const g = geometry[i];
@@ -249,15 +276,19 @@
       const visible = relative < width && relative + g.width > 0 && entry > .7;
       g.panel.inert = !ready || !visible;
       if (entry >= .86 && relative <= width*.5) chapter = i+1;
-      const copy = g.panel.querySelector('.biome-copy');
+      const copy = g.copy;
       if (copy) {
+        // Only the current and neighbouring ecosystem need per-frame styling.
+        // The track transform moves every other panel without waking its layer.
+        if (relative > width*1.35 || relative+g.width < -width*.35) continue;
         const entering = i===0 && entry<1 ? progress(entry,.70,1) : clamp(1-relative/width);
         const reveal = reduced ? 1 : easeOut(progress(entering,.12,.80));
         copy.style.opacity = i===0 && entry<1 ? entering : reveal;
         copy.style.transform = reduced ? 'none' : 'translate3d(' + (1-reveal)*65 + 'px,' + (1-reveal)*35 + 'px,0)';
-        const visual = g.panel.querySelector('.biome-visual');
-        const pan = reduced ? 0 : clamp(relative/width,-1,1)*width*.095;
-        visual.style.transform = 'translate3d(' + pan + 'px,0,0) scale(' + (reduced ? 1 : 1.12) + ')';
+        if (g.visual) {
+          const pan = reduced || touchFirst ? 0 : clamp(relative/width,-1,1)*width*.075;
+          g.visual.style.transform = reduced || touchFirst ? 'none' : 'translate3d(' + pan + 'px,0,0) scale(1.09)';
+        }
       }
     }
     cardGeometry.forEach(g => {
@@ -272,7 +303,8 @@
     root.dataset.introTime = String(Math.round(ready ? M.DURATION : time));
     if (playing && state.complete) finishIntro();
     const unsettled = Math.abs(desired-renderedScroll)>.1;
-    if (playing || unsettled || (!reduced && entry<1)) schedule();
+    const pointerUnsettled = !touchFirst && (Math.abs(cursorX-wantedX)>.1 || Math.abs(cursorY-wantedY)>.1);
+    if (playing || unsettled || pointerUnsettled) schedule();
   }
 
   function schedule() {
@@ -397,7 +429,12 @@
   },{passive:true});
   addEventListener('blur',()=>{wantedX=0;wantedY=0;});
   let resizeTimer;
-  addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>measure(),120);},{passive:true});
+  addEventListener('resize',()=>{
+    // Safari changes only innerHeight while its address bar retracts. Rebuilding
+    // the atlas during that gesture is the most visible source of scroll jank.
+    if (touchFirst && Math.abs(document.documentElement.clientWidth-width)<2) return;
+    clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>measure(),160);
+  },{passive:true});
   addEventListener('pageshow',event=>{
     if(event.persisted && initialized) {finishIntro();measure();}
   });
@@ -417,7 +454,13 @@
       let completed=false;
       const finish=value=>{if(completed)return;completed=true;clearTimeout(timer);resolve(value);};
       const timer=setTimeout(()=>finish(null),4500);
-      image.onload=()=>finish(image);image.onerror=()=>finish(null);image.src=path;
+      image.decoding='async';
+      image.onload=async()=>{
+        clearTimeout(timer);
+        try { await image.decode(); } catch {}
+        finish(image);
+      };
+      image.onerror=()=>finish(null);image.src=path;
     });
   }
   async function boot() {
