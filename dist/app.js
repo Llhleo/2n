@@ -38,7 +38,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '22';
+  root.dataset.version = '23';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let userReduced = false;
@@ -52,6 +52,12 @@
   let cursorX = 0, cursorY = 0, wantedX = 0, wantedY = 0;
   let logoTop = 0, logoHeight = 0, focusAfterIntro = false;
   let touch = null;
+  const bridge = one('.bridge');
+  const orb = one('.bridge-orb');
+  const bridgeFirst = one('.bridge-first');
+  const bridgeSecond = one('.bridge-second');
+  let bridgeStart = 0, bridgeDuration = 1;
+  const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0);
 
   function setMotionPreference() {
     reduced = mediaQuery.matches || userReduced;
@@ -183,7 +189,9 @@
       copy:panel.querySelector('.biome-copy'),
       visual:panel.querySelector('.biome-visual')
     }));
-    travel = Math.max(0, track.scrollWidth - width);
+    bridgeStart = bridge.offsetLeft;
+    bridgeDuration = Math.round(Math.max(width * 1.8, height * 2.2));
+    travel = Math.max(0, track.scrollWidth - width) + bridgeDuration;
     shell.style.height = (lead + travel + height) + 'px';
     logoTop = mark.offsetTop;
     logoHeight = mark.offsetHeight;
@@ -191,7 +199,7 @@
     cardGeometry = all('.leader-card').map(card => ({
       card, x:card.getBoundingClientRect().left - trackLeft, width:card.offsetWidth, content:card.lastElementChild
     }));
-    stops = [0, ...geometry.map(g => lead + g.x), ...cardGeometry.map(g => lead + g.x)];
+    stops = [0, ...geometry.map(g => scrollForX(g.x)), lead+bridgeStart+bridgeDuration, ...cardGeometry.map(g => scrollForX(g.x))];
     stops = [...new Set(stops.map(value => Math.min(lead + travel, Math.round(value))))].sort((a,b) => a-b);
     if (scene) scene.resize();
     if (preserve && initialized && ready) {
@@ -223,9 +231,9 @@
     activeChapter = index;
     counter.textContent = String(index + 1).padStart(2, '0');
     chapterName.textContent = index === 0 ? '序章' : panels[index-1].dataset.chapter;
-    root.classList.toggle('is-light-chrome', index > 0 && index <= 5 || index === 7);
-    root.classList.toggle('is-ink-footer', index === 6 || index === 8 || index === 9);
-    const group = index >= 1 && index <= 5 ? 'biomes' : index === 6 ? 'leaders' : index === 8 ? 'film' : '';
+    root.classList.toggle('is-light-chrome', index > 0 && index <= 6 || index === 8);
+    root.classList.toggle('is-ink-footer', index === 7 || index === 9 || index === 10);
+    const group = index >= 1 && index <= 5 ? 'biomes' : index === 7 ? 'leaders' : index === 9 ? 'film' : '';
     all('.chapter-nav button').forEach(button => {
       if (button.dataset.section === group) button.setAttribute('aria-current', 'true');
       else button.removeAttribute('aria-current');
@@ -246,6 +254,16 @@
     if (Math.abs(renderedScroll-desired) < .1) renderedScroll = desired;
     cursorX = lerp(cursorX, wantedX, .07); cursorY = lerp(cursorY, wantedY, .07);
     const scrolling = M.scroll(renderedScroll, lead, travel);
+    const bridgeState = M.bridgeScroll(scrolling.x, bridgeStart, bridgeDuration);
+    scrolling.x = bridgeState.x;
+    const shift = smooth(progress(bridgeState.phase,.12,.76));
+    const fade = smooth(progress(bridgeState.phase,.76,1));
+    orb.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*width*.95) + 'px,0,0) scale(' + lerp(1.1,.26,shift) + ')';
+    orb.style.opacity = reduced ? '.15' : String(1-smooth(progress(bridgeState.phase,.62,.82)));
+    bridgeFirst.style.opacity = reduced ? '0' : String(1-smooth(progress(bridgeState.phase,.24,.52)));
+    bridgeFirst.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*width*.28) + 'px,0,0)';
+    bridgeSecond.style.opacity = reduced ? '1' : String(smooth(progress(bridgeState.phase,.32,.65))*(1-fade*.6));
+    bridgeSecond.style.transform = reduced ? 'none' : 'translate3d(' + ((1-shift)*width*.14) + 'px,0,0) scale(' + (1+fade*.06) + ')';
     const entry = reduced ? scrolling.entry : smooth(scrolling.entry);
     applyIntro(state);
     track.style.transform = 'translate3d(' + (-scrolling.x) + 'px,0,0)';
@@ -344,6 +362,7 @@
     for (const element of [header,controls,hero,...panels]) { element.inert=false; element.style.opacity=''; }
     for (const element of [...heroLines,...introLines,heroCopy,eyebrow,cue,worldIndex]) element.style.cssText='';
     all('.biome-copy,.biome-visual,.leader-card>div').forEach(element => { element.style.transform=''; element.style.opacity=''; });
+    [orb,bridgeFirst,bridgeSecond].forEach(element => { element.style.transform=''; element.style.opacity=''; });
   }
 
   function goTo(value) {
@@ -354,7 +373,7 @@
     }
     if (!ready) return;
     const g = typeof value === 'string' ? geometry.find(g => g.panel.id===value) : null;
-    const destination = g ? lead+g.x : typeof value==='number' ? value : 0;
+    const destination = g ? scrollForX(g.x) : typeof value==='number' ? value : 0;
     scrollTo({top:clamp(destination,0,lead+travel),behavior:reduced?'instant':'smooth'});
     schedule();
   }

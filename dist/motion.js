@@ -29,7 +29,10 @@
       progress: clamp(position / Math.max(1, lead + travel))
     };
   }
-  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll });
+  function bridgeScroll(distance, start, duration) {
+    return { x: distance - clamp(distance - start, 0, duration), phase: progress(distance, start, start + duration) };
+  }
+  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll });
   if (typeof module === 'object' && module.exports) module.exports = api;
   else target.TwoNMotion = api;
 })(typeof window === 'object' ? window : this);

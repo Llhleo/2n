@@ -100,6 +100,18 @@ button:focus-visible,a:focus-visible,video:focus-visible { outline:2px solid cur
 .biome-copy>span { font-size:13px; letter-spacing:.17em; }
 .biome-copy h2 { margin:28px 0 40px; font-size:clamp(78px,13vw,208px); line-height:.92; letter-spacing:-.05em; font-weight:600; }
 .biome-copy p { font-size:16px; line-height:1.8; max-width:28em; margin:0; }
+.bridge { background:#191919; color:#fff; display:grid; place-items:center; isolation:isolate; }
+.bridge-orb { position:absolute; width: min(145vw, 145vh); aspect-ratio:1; border-radius:50%; background:linear-gradient(135deg,#a1e5c6 5%,#3980ed 90%); }
+.bridge-copy { position:relative; width:90%; display:grid; text-align:center; }
+.bridge-line { grid-area:1/1; align-self:center; margin:0; font-size:clamp(28px,4.6vw,76px); font-weight:850; line-height:1.45; letter-spacing:-.035em; }
+.bridge-second { opacity:0; color:#66b9d0; }
+.bridge-second span { background:linear-gradient(100deg,#3980ed,#9edfc7); background-clip:text; -webkit-background-clip:text; color:transparent; }
+.bridge-label { position:absolute; bottom:110px; font-size:14px; letter-spacing:.2em; opacity:.65; }
+.is-enhanced .bridge-orb { will-change:transform,opacity; }
+html:not(.is-enhanced) .bridge { min-height:85vh; padding:110px 20px; }
+html:not(.is-enhanced) .bridge-line { grid-area:auto; font-size:clamp(28px,4.6vw,76px); }
+html:not(.is-enhanced) .bridge-second { opacity:1; margin-top:28px; }
+html:not(.is-enhanced) .bridge-orb { opacity:.18; }
 .leaders { display:flex; background:#e5e2d8; }
 .is-enhanced .leaders { flex-basis:310vw; width:310vw; }
 .section-intro { flex:0 0 60vw; padding:18vh 6vw 16vh; display:flex; flex-direction:column; justify-content:space-between; border-right:1px solid var(--line); }
