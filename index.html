@@ -1,172 +1,118 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="is-intro-locked">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0a0a" />
-  <title>2ⁿ Guild · Florr</title>
-  <meta name="description" content="2ⁿ — Florr.io guild. Founded Feb 24." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f0e9">
+  <meta name="description" content="2n · Florr.io Guild，成立于 2 月 24 日。">
+  <title>2n · Florr.io Guild</title>
+  <link rel="icon" href="assets/florr-icon.webp">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-  <div class="noise"></div>
-  <header class="nav">
-    <a class="brand" href="#top">2<sup>n</sup></a>
-    <nav>
-      <a href="#about">About</a>
-      <a href="#world">World</a>
-      <a href="#leaders">Leaders</a>
-      <a href="#members">Members</a>
-      <a href="#history">History</a>
+  <a class="skip-link" href="#story">跳到主要内容</a>
+
+  <header class="site-header" aria-label="主导航">
+    <button class="brand-button" type="button" data-go="0" aria-label="返回开场">
+      <span class="brand-wordmark" aria-hidden="true">2<sup>n</sup></span>
+      <img class="brand-image" src="assets/guild-mark-candidate.png" alt="2n 公会候选标徽">
+    </button>
+    <nav class="chapter-nav" aria-label="章节">
+      <button type="button" data-section="biomes">生态</button>
+      <button type="button" data-section="leaders">管理层</button>
+      <button type="button" data-section="film">影像</button>
     </nav>
-    <a class="join" href="#join">Join</a>
+    <span class="chapter-count" aria-live="polite"><b>01</b> / 10</span>
   </header>
 
-  <main id="top">
-    <section class="hero">
-      <div class="hero-prelude" aria-hidden="true">
-        <div class="prelude-fog fog-a"></div>
-        <div class="prelude-fog fog-b"></div>
-        <div class="prelude-pulse p1"></div>
-        <div class="prelude-pulse p2"></div>
-        <div class="prelude-pulse p3"></div>
-        <div class="prelude-line"></div>
-        <p class="prelude-caption">SIGNAL / 02.24</p>
-      </div>
-      <div class="hero-bg hero-bg-gray"></div>
-      <div class="hero-bg hero-bg-color"></div>
-      <div class="hero-fog world-fog-a"></div>
-      <div class="hero-fog world-fog-b"></div>
-      <div class="hero-glow"></div>
-      <div class="hero-beam"></div>
-      <div class="hero-logo-layer">
-        <div class="logo-window">
-          <div class="logo-rise">
-            <div class="mark-echo mark-echo-a">2<sup>n</sup></div>
-            <div class="mark-echo mark-echo-b">2<sup>n</sup></div>
-            <h1 class="mark" id="heroMark"><span class="mark-two">2</span><span class="mark-exp">n</span></h1>
-            <div class="mark-sheen"></div>
+  <div class="progress" aria-hidden="true"><i></i></div>
+
+  <main id="story" class="story-shell">
+    <div class="story-viewport">
+      <div class="story-track">
+        <section class="panel hero" data-chapter="开场" data-nav="home">
+          <div class="hero-world" aria-hidden="true">
+            <i style="--image:url('assets/garden.png')"></i>
+            <i style="--image:url('assets/desert.png')"></i>
+            <i style="--image:url('assets/ocean.png')"></i>
+            <i style="--image:url('assets/jungle.png')"></i>
+            <i style="--image:url('assets/hell.png')"></i>
           </div>
-        </div>
-      </div>
-      <div class="hero-copy">
-        <p class="eyebrow">FLORR.IO GUILD · EST. FEB 24</p>
-        <div class="mark-spacer" aria-hidden="true"></div>
-        <p class="tagline">不是所有工会，<br>都叫 <strong>2n</strong>。</p>
-        <p class="hero-sub">我们因 Florr 相遇，也因彼此成为 2n。</p>
-      </div>
-      <div class="hero-horizon"></div>
-      <div class="hero-world-strip"></div>
-      <div class="scroll-hint"><span>向下探索</span><i></i></div>
-    </section>
+          <div class="hero-mark" aria-label="2n">
+            <span class="hero-wordmark">2<sup>n</sup></span>
+            <img class="hero-image-mark" src="assets/guild-mark-candidate.png" alt="2n 公会标徽">
+          </div>
+          <div class="hero-foreground" aria-hidden="true">
+            <i style="--image:url('assets/garden.png')"></i>
+            <i style="--image:url('assets/desert.png')"></i>
+            <i style="--image:url('assets/ocean.png')"></i>
+            <i style="--image:url('assets/jungle.png')"></i>
+            <i style="--image:url('assets/hell.png')"></i>
+          </div>
+          <div class="hero-copy">
+            <p>FLORR.IO GUILD · EST. FEB 24</p>
+            <h1>不是所有工会，<br>都叫 2n。</h1>
+          </div>
+          <p class="scroll-cue">SCROLL TO EXPLORE <span>→</span></p>
+        </section>
 
-    <section class="statement" id="about">
-      <div class="statement-ghost">2<sup>n</sup></div>
-      <div class="statement-core">
-        <p class="kicker">WE ARE 2ⁿ · 这就是 2n</p>
-        <h2><span class="statement-line">不只是一个</span><br><span class="statement-line muted-line">Florr 公会。</span></h2>
-        <p class="statement-lead">从 02.24 开始，我们把一次次上线、组队和共同经历，变成了属于 2n 的故事。</p>
-      </div>
-      <div class="stats">
-        <article><strong>≈100</strong><span>MEMBERS</span></article>
-        <article><strong>9</strong><span>BLOOD SACRIFICES</span></article>
-        <article><strong>02.24</strong><span>FOUNDED</span></article>
-      </div>
-    </section>
+        <section class="panel biome" id="biomes" data-chapter="花园" style="--image:url('assets/garden.png');--tone:#22a956">
+          <div class="biome-copy"><span>01 · GARDEN</span><h2>花园</h2><p>从最熟悉的绿色出发。这里保存相遇、成长与工会最早的记忆。</p></div>
+        </section>
+        <section class="panel biome" data-chapter="沙漠" style="--image:url('assets/desert.png');--tone:#c3a56a">
+          <div class="biome-copy"><span>02 · DESERT</span><h2>沙漠</h2><p>风沙让路线变得漫长，也让每一次并肩前进更有分量。</p></div>
+        </section>
+        <section class="panel biome" data-chapter="海洋" style="--image:url('assets/ocean.png');--tone:#397cae">
+          <div class="biome-copy"><span>03 · OCEAN</span><h2>海洋</h2><p>蓝色深处没有固定答案。探索、判断与协作让队伍保持方向。</p></div>
+        </section>
+        <section class="panel biome" data-chapter="丛林" style="--image:url('assets/jungle.png');--tone:#198f4e">
+          <div class="biome-copy"><span>04 · JUNGLE</span><h2>丛林</h2><p>密集的路径考验默契；真正可靠的成员，总能在复杂里找到彼此。</p></div>
+        </section>
+        <section class="panel biome" data-chapter="地狱" style="--image:url('assets/hell.png');--tone:#aa3034">
+          <div class="biome-copy"><span>05 · HELL</span><h2>地狱</h2><p>越过最后一道红色边界，留下的不只是战绩，也是共同承担。</p></div>
+        </section>
 
-    <section class="world-wrap" id="world">
-      <div class="world-pin">
-        <div class="world-ui" aria-hidden="true">
-          <div class="world-ui-title"><span>OUR WORLD</span><strong>五个生态 · 一个完整世界</strong></div>
-          <div class="world-ui-progress"><i id="worldProgress"></i></div>
-          <div class="world-ui-count"><b id="worldIndex">01</b><span>/ 05</span></div>
-        </div>
-        <div class="world-track">
-          <article class="biome garden" data-index="01">
-            <div class="biome-copy"><span class="biome-no">01 · 起点</span><h3>花园<em>GARDEN</em></h3><p>故事从这里开始。第一次组队、第一次并肩向前。</p><div class="biome-meta"><span>新手起点</span><span>协作入门</span><span>绿色生态</span></div></div>
-          </article>
-          <article class="biome desert" data-index="02">
-            <div class="biome-copy"><span class="biome-no">02 · 炙热</span><h3>沙漠<em>DESERT</em></h3><p>环境越严苛，越需要彼此照应。能走到这里，就已经不只是随便组队了。</p><div class="biome-meta"><span>耐力考验</span><span>炎热地带</span><span>继续深入</span></div></div>
-          </article>
-          <article class="biome ocean" data-index="03">
-            <div class="biome-copy"><span class="biome-no">03 · 深入</span><h3>海洋<em>OCEAN</em></h3><p>向更深处探索，也把默契带得更远。海洋是很多玩家真正开始形成配合的地方。</p><div class="biome-meta"><span>深海路线</span><span>节奏配合</span><span>蓝色生态</span></div></div>
-          </article>
-          <article class="biome jungle" data-index="04">
-            <div class="biome-copy"><span class="biome-no">04 · 同行</span><h3>丛林<em>JUNGLE</em></h3><p>复杂的路，不必一个人走。到了这里，比操作更重要的，是有人始终在旁边。</p><div class="biome-meta"><span>地形复杂</span><span>同行推进</span><span>绿色深处</span></div></div>
-          </article>
-          <article class="biome hel" data-index="05">
-            <div class="biome-copy"><span class="biome-no">05 · 极限</span><h3>地狱<em>HEL</em></h3><p>走到最危险的地方，仍然看得到 2n。真正的核心成员，往往也在这里被记住。</p><div class="biome-meta"><span>高风险</span><span>极限挑战</span><span>红色终点</span></div></div>
-          </article>
-        </div>
+        <section class="panel leaders" id="leaders" data-chapter="管理层">
+          <div class="section-intro">
+            <p>THE PEOPLE BEHIND 2n</p>
+            <h2>管理层</h2>
+            <span>不是头衔的陈列，<br>是一次次实际贡献。</span>
+          </div>
+          <div class="leader-list" id="leader-list"></div>
+        </section>
+
+        <section class="panel members" data-chapter="成员">
+          <div>
+            <p class="eyebrow">AROUND 100 MEMBERS</p>
+            <h2>名字组成工会，<br>行动留下共同历史。</h2>
+          </div>
+          <div class="member-cloud" id="member-cloud" aria-label="部分公会成员"></div>
+        </section>
+
+        <section class="panel film" id="film" data-chapter="影像">
+          <div class="film-copy">
+            <p class="eyebrow">HALF-YEAR FILM</p>
+            <h2>半周年纪念</h2>
+            <p>完整影像只在你主动播放时加载，避免拖慢开场。</p>
+          </div>
+          <video controls preload="metadata" playsinline poster="assets/ocean.png">
+            <source src="assets/half-year.mp4" type="video/mp4">
+            你的浏览器不支持视频播放。
+          </video>
+        </section>
+
+        <section class="panel closing" data-chapter="2n">
+          <img src="assets/florr-icon.webp" alt="Florr 游戏图标">
+          <p>FLORR.IO GUILD</p>
+          <h2>2<sup>n</sup></h2>
+          <span>EST. FEB 24</span>
+          <button type="button" data-go="0">回到开始 ↑</button>
+        </section>
       </div>
-    </section>
-
-    <section class="leaders-wrap" id="leaders">
-      <div class="leaders-pin">
-        <div class="leaders-ui" aria-hidden="true">
-          <div class="leaders-ui-title"><span>LEADERSHIP</span><strong>管理层 · 共同维护 2n</strong></div>
-          <div class="leaders-ui-progress"><i id="leadersProgress"></i></div>
-          <div class="leaders-ui-count"><b id="leadersIndex">01</b><span>/ 04</span></div>
-        </div>
-        <div class="leaders-track">
-          <article class="leader-panel leader-awdc" data-index="01">
-            <div class="leader-copy"><span class="leader-role">会长 · PRESIDENT</span><h3>awdc</h3><p class="leader-fact">2 个 Super</p><p class="leader-desc">作为 2n 的会长，负责带领整个公会向前推进，也是 2n 形象与组织的核心人物。</p></div>
-            <div class="leader-side"><div class="leader-badge">02 SUPER</div><img class="leader-emblem" src="./assets/petal-emblem.svg" alt="petal emblem"><div class="leader-mini">带队推进 · 核心统筹</div></div>
-          </article>
-          <article class="leader-panel leader-flower" data-index="02">
-            <div class="leader-copy"><span class="leader-role">副会长 · VICE PRESIDENT</span><h3>flowerwsr</h3><p class="leader-fact">精通计算机</p><p class="leader-desc">参与 Florr 维基的维护，也参与工会成员表格与相关信息的编写、整理和维护，是 2n 的重要信息中枢。</p></div>
-            <div class="leader-side"><div class="leader-badge">WIKI · DATA</div><div class="leader-quote">“把资料整理好，才能让工会跑得更远。”</div></div>
-          </article>
-          <article class="leader-panel leader-cnfly" data-index="03">
-            <div class="leader-copy"><span class="leader-role">副会长 · VICE PRESIDENT</span><h3>cnflydream</h3><p class="leader-fact">3 个 S</p><p class="leader-desc">拥有 3 个 S，是 2n 管理层中非常醒目的核心成员之一，在实力与存在感上都很突出。</p></div>
-            <div class="leader-side"><div class="leader-badge">03 S</div><div class="leader-statline"><span>CORE</span><span>STRONG</span><span>ACTIVE</span></div></div>
-          </article>
-          <article class="leader-panel leader-ss" data-index="04">
-            <div class="leader-copy"><span class="leader-role">副会长 · VICE PRESIDENT</span><h3>sschara</h3><p class="leader-fact">3 次血祭贡献</p><p class="leader-desc">曾为工会贡献 3 次血祭。真正重要的从来不只是头衔，而是愿意在关键时候为整个 2n 站出来。</p></div>
-            <div class="leader-side"><div class="leader-badge">×3 BLOOD SACRIFICE</div><div class="leader-quote">“关键时刻，得有人顶上去。”</div></div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="members" id="members">
-      <div class="section-head"><p>MEMBERS</p><h2>One guild.<br>Many names.</h2></div>
-      <div class="member-overview"><div class="member-total"><strong>100+</strong><span>公会成员</span></div><p>从核心队伍到日常上线成员，2n 不是一张名单，而是一群会在 Florr 里彼此照应的人。下面展示的是目前整理出的部分成员。</p></div>
-      <div class="member-wall">
-        <span>Llhleo</span><span>Hugo12168</span><span>ZHZ114514</span><span>zhy10</span><span>满</span><span>xtxsh</span><span>imstarry_01</span><span>Taurus</span><span>X-zero</span><span>MeteorFall</span><span>Fawudazheng</span><span>ILXN</span><span>citizens</span><span>dianlao</span><span>LTJ</span><span>grassland</span><span>LCY2024oO</span><span>jisizhe</span><span>fly-cy</span><span>bookshelf</span>
-      </div>
-      <a class="members-link" href="https://llhleo.github.io/2n-welcome/" rel="noopener">查看完整资料与旧站内容 →</a>
-    </section>
-
-    <section class="film" id="history">
-      <video class="film-video" src="./assets/half-year.mp4" muted loop playsinline preload="metadata"></video>
-      <div class="film-shade"></div>
-      <div class="film-copy"><p>2ⁿ · HALF-YEAR</p><h2>From a guild<br>to a story.</h2><p class="video-note">半周年纪念影像</p></div>
-    </section>
-
-    <section class="timeline">
-      <div class="section-head"><p>HISTORY</p><h2>Built together.</h2></div>
-      <div class="timeline-list">
-        <article><time>FEB 24</time><h3>2ⁿ founded</h3><p>公会成立。</p></article>
-        <article><time>2026</time><h3>Half-year anniversary</h3><p>留下第一段属于 2ⁿ 的纪念影像。</p></article>
-        <article><time>NOW</time><h3>≈100 members</h3><p>继续扩展 2ⁿ 的成员与故事。</p></article>
-      </div>
-    </section>
-
-    <section class="join-section" id="join">
-      <p>READY?</p>
-      <h2>JOIN<br><span>2<sup>n</sup></span></h2>
-      <a href="https://llhleo.github.io/2n-welcome/v0/joinus.html" rel="noopener">ENTER 2ⁿ →</a>
-    </section>
+    </div>
   </main>
 
-  <footer><span>2ⁿ GUILD</span><span>FLORR.IO</span><span>© 2026</span></footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
-  <script src="./app.js"></script>
+  <noscript><style>html.is-intro-locked,html.is-intro-locked body{overflow:auto!important}.story-viewport{position:static!important}.story-track{display:block!important;transform:none!important}.panel{min-height:100vh!important}.hero-copy,.hero-mark{opacity:1!important;transform:none!important}</style></noscript>
 </body>
 </html>
