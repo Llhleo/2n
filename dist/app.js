@@ -38,7 +38,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '23';
+  root.dataset.version = '24';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let userReduced = false;
@@ -57,7 +57,14 @@
   const bridgeFirst = one('.bridge-first');
   const bridgeSecond = one('.bridge-second');
   let bridgeStart = 0, bridgeDuration = 1;
-  const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0);
+  const members = one('.members');
+  const memberCore = one('.member-core');
+  const memberMessage = one('.member-message');
+  const memberResult = one('.member-result');
+  const memberCaption = one('.member-caption');
+  const memberBubbles = all('.member-cloud span');
+  let memberStart = 0, memberDuration = 1;
+  const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
 
   function setMotionPreference() {
     reduced = mediaQuery.matches || userReduced;
@@ -191,7 +198,9 @@
     }));
     bridgeStart = bridge.offsetLeft;
     bridgeDuration = Math.round(Math.max(width * 1.8, height * 2.2));
-    travel = Math.max(0, track.scrollWidth - width) + bridgeDuration;
+    memberStart = members.offsetLeft;
+    memberDuration = Math.round(Math.max(width*3, height*4.8));
+    travel = Math.max(0, track.scrollWidth - width) + bridgeDuration + memberDuration;
     shell.style.height = (lead + travel + height) + 'px';
     logoTop = mark.offsetTop;
     logoHeight = mark.offsetHeight;
@@ -200,6 +209,7 @@
       card, x:card.getBoundingClientRect().left - trackLeft, width:card.offsetWidth, content:card.lastElementChild
     }));
     stops = [0, ...geometry.map(g => scrollForX(g.x)), lead+bridgeStart+bridgeDuration, ...cardGeometry.map(g => scrollForX(g.x))];
+    stops.push(scrollForX(memberStart)+memberDuration*.5, scrollForX(memberStart)+memberDuration);
     stops = [...new Set(stops.map(value => Math.min(lead + travel, Math.round(value))))].sort((a,b) => a-b);
     if (scene) scene.resize();
     if (preserve && initialized && ready) {
@@ -240,6 +250,32 @@
     });
   }
 
+  function renderMembers(phase, x) {
+    const arriving = smooth(progress(x,memberStart-width,memberStart));
+    // The member scene occupies the viewport during the chapter dissolve.
+    members.style.transform = x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
+    members.style.opacity = String(arriving);
+    members.style.zIndex = '2';
+    one('.leaders').style.opacity = String(1-arriving);
+    if(x < memberStart-width || x > memberStart+width) return;
+    const growth = smooth(progress(phase,.06,.88));
+    memberCore.style.transform = 'scale(' + lerp(.12,1.2,growth) + ')';
+    memberMessage.style.opacity = reduced ? '0' : String(1-smooth(progress(phase,.52,.73)));
+    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(phase,.67,.9)));
+    memberCaption.style.opacity = reduced ? '1' : String(smooth(progress(phase,.84,1)));
+    memberBubbles.forEach((bubble,i) => {
+      const batch = Math.floor(i/4);
+      const start = .02 + batch*.115;
+      const local = progress(phase,start,start+.29);
+      const converge = smooth(progress(local,.24,1));
+      const angle = (i%4)*Math.PI/2 + Math.PI/4 + batch*.12;
+      const px = Math.cos(angle)*Math.max(80,width*.5-62)*(1-converge);
+      const py = Math.sin(angle)*height*.34*(1-converge);
+      bubble.style.transform = 'translate(-50%,-50%) translate3d('+px+'px,'+py+'px,0) scale('+lerp(1,.3,converge)+')';
+      bubble.style.opacity = String(smooth(progress(local,0,.12))*(1-smooth(progress(local,.68,.96))));
+    });
+  }
+
   function frame(now) {
     frameId = 0;
     if (!active || document.hidden) return;
@@ -256,6 +292,9 @@
     const scrolling = M.scroll(renderedScroll, lead, travel);
     const bridgeState = M.bridgeScroll(scrolling.x, bridgeStart, bridgeDuration);
     scrolling.x = bridgeState.x;
+    const memberState = M.bridgeScroll(scrolling.x, memberStart, memberDuration);
+    scrolling.x = memberState.x;
+    renderMembers(memberState.phase, scrolling.x);
     const shift = smooth(progress(bridgeState.phase,.12,.76));
     const fade = smooth(progress(bridgeState.phase,.76,1));
     orb.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*width*.95) + 'px,0,0) scale(' + lerp(1.1,.26,shift) + ')';
@@ -363,6 +402,7 @@
     for (const element of [...heroLines,...introLines,heroCopy,eyebrow,cue,worldIndex]) element.style.cssText='';
     all('.biome-copy,.biome-visual,.leader-card>div').forEach(element => { element.style.transform=''; element.style.opacity=''; });
     [orb,bridgeFirst,bridgeSecond].forEach(element => { element.style.transform=''; element.style.opacity=''; });
+    [members,one('.leaders'),memberCore,memberMessage,memberResult,memberCaption,...memberBubbles].forEach(element => { element.style.transform=''; element.style.opacity=''; });
   }
 
   function goTo(value) {
