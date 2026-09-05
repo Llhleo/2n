@@ -59,25 +59,29 @@
       gather:progress(phase,0,.30),
       resultFade:1-smooth(progress(phase,.315,.355)),
       split:smooth(progress(phase,.355,.43)),
-      title:smooth(progress(phase,.43,.48))*(1-smooth(progress(phase,.85,.96))),
-      order:smooth(progress(phase,.66,.76)),
-      turns:progress(phase,.43,.78)*Math.PI*6,
-      spiral:smooth(progress(phase,.78,1))
+      title:smooth(progress(phase,.43,.48))*(1-smooth(progress(phase,.70,.82))),
+      order:smooth(progress(phase,.52,.62)),
+      turns:progress(phase,.43,.66)*Math.PI*2.5,
+      spiral:smooth(progress(phase,.68,.84)),
+      collapse:smooth(progress(phase,.88,1))
     };
   }
   function anniversaryParticle(index,count,phase,width,height) {
     const s=anniversary(phase), fraction=index/count;
     const base=fraction*Math.PI*2;
-    const jitter=(noise(index+50)-.5)*.30*(1-s.order);
+    const orbit=progress(phase,.43,.62);
+    const breathing=Math.sin(orbit*Math.PI)*(1-s.order);
+    const jitter=(noise(index+50)-.5)*.30*(1-s.order)+Math.sin(s.turns*1.3+index*2.1)*.07*breathing;
     const radius=Math.min(width*.42,height*.32);
-    const irregular=lerp(.69+noise(index+80)*.29,1,s.order);
+    const irregular=lerp(.69+noise(index+80)*.29,1,s.order)+Math.sin(s.turns*1.7+index*1.9)*.045*breathing;
     const coil=s.spiral;
-    const angle=base+jitter+s.turns+coil*(Math.PI*4+fraction*Math.PI*4);
-    const r=radius*s.split*irregular*(1-coil)*(1-coil*fraction*.8);
+    const angle=base+jitter+s.turns+coil*fraction*Math.PI*3+s.collapse*Math.PI*2;
+    const r=radius*s.split*irregular*lerp(1,.13+.87*fraction,coil)*(1-s.collapse);
     return {
       x:Math.cos(angle)*r,y:Math.sin(angle)*r,
-      opacity:smooth(progress(phase,.355,.375))*(1-smooth(progress(coil,.78,1))),
-      scale:lerp(.45,1,s.split)*(1-coil*.8), angle,radius:r
+      opacity:smooth(progress(phase,.355,.375))*(1-smooth(progress(s.collapse,.72,1))),
+      scale:lerp(.45,1,s.split)*lerp(1,.74,coil)*(1-s.collapse*.8),
+      color:smooth(progress(s.split,.12,.94)), angle,radius:r
     };
   }
   const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll, memberPath, anniversary, anniversaryParticle });

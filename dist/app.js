@@ -38,7 +38,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '26';
+  root.dataset.version = '27';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let userReduced = false;
@@ -67,6 +67,7 @@
   const anniversaryParticles = memberBubbles.map((_,i)=> {
     const dot=document.createElement('i');
     dot.className='anniversary-particle';
+    dot.append(document.createElement('b'));
     dot.style.setProperty('--hue',String((i*137.508)%360));
     const size=16+(i%5)*3;
     dot.style.width=size+'px'; dot.style.height=size+'px';
@@ -209,7 +210,7 @@
     bridgeStart = bridge.offsetLeft;
     bridgeDuration = Math.round(Math.max(width * 1.8, height * 2.2));
     memberStart = members.offsetLeft;
-    memberDuration = Math.round(Math.max(width*9, height*15));
+    memberDuration = Math.round(Math.max(width*7.2, height*12));
     travel = Math.max(0, track.scrollWidth - width) + bridgeDuration + memberDuration;
     shell.style.height = (lead + travel + height) + 'px';
     logoTop = mark.offsetTop;
@@ -219,7 +220,7 @@
       card, x:card.getBoundingClientRect().left - trackLeft, width:card.offsetWidth, content:card.lastElementChild
     }));
     stops = [0, ...geometry.map(g => scrollForX(g.x)), lead+bridgeStart+bridgeDuration, ...cardGeometry.map(g => scrollForX(g.x))];
-    stops.push(...[.30,.43,.66,.78,1].map(p=>scrollForX(memberStart)+memberDuration*p));
+    stops.push(...[.30,.43,.62,.84,1].map(p=>scrollForX(memberStart)+memberDuration*p));
     stops = [...new Set(stops.map(value => Math.min(lead + travel, Math.round(value))))].sort((a,b) => a-b);
     if (scene) scene.resize();
     if (preserve && initialized && ready) {
@@ -284,6 +285,9 @@
       const particle=M.anniversaryParticle(i,anniversaryParticles.length,phase,width,height);
       dot.style.transform='translate(-50%,-50%) translate3d('+particle.x+'px,'+particle.y+'px,0) scale('+particle.scale+')';
       dot.style.opacity=String(particle.opacity);
+      dot.style.setProperty('--split-color',String(particle.color));
+      dot.style.setProperty('--color-mix',String(smooth(phase)));
+      dot.style.setProperty('--color-turn',(phase*155)+'deg');
     });
     memberBubbles.forEach((bubble,i) => {
       const path = paths[i];
