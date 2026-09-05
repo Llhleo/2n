@@ -32,7 +32,29 @@
   function bridgeScroll(distance, start, duration) {
     return { x: distance - clamp(distance - start, 0, duration), phase: progress(distance, start, start + duration) };
   }
-  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll });
+  // Stable per-member variation keeps reverse scrolling identical to forward scrolling.
+  const noise = seed => { const n = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return n - Math.floor(n); };
+  function memberPath(index, count, phase, width, height) {
+    const start = .015 + index / Math.max(1,count-1) * .61 + noise(index+4)*.025;
+    const duration = .23 + noise(index+15)*.10;
+    const local = progress(phase,start,start+duration);
+    const t = smooth(progress(local,.13,1));
+    const angle = index*2.399963 + noise(index+9)*.7;
+    const radius = .76 + noise(index+21)*.24;
+    const rx = Math.max(68,width*.5-62), ry = Math.max(90,height*.35-35);
+    const sx = Math.cos(angle)*rx*radius, sy = Math.sin(angle)*ry*radius;
+    const bend = (noise(index+2)>.5 ? 1 : -1)*(.3+noise(index+18)*.5);
+    const cx = clamp(sx*.6-Math.sin(angle)*rx*bend,-rx,rx);
+    const cy = clamp(sy*.6+Math.cos(angle)*ry*bend,-ry,ry);
+    const u = 1-t;
+    return {
+      x:u*u*sx+2*u*t*cx, y:u*u*sy+2*u*t*cy,
+      scale:lerp(.92+noise(index+7)*.12,.35,t),
+      opacity:smooth(progress(local,0,.16))*(1-smooth(progress(local,.74,1))),
+      mix:smooth(local), absorbed:smooth(progress(local,.64,1))
+    };
+  }
+  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll, memberPath });
   if (typeof module === 'object' && module.exports) module.exports = api;
   else target.TwoNMotion = api;
 })(typeof window === 'object' ? window : this);

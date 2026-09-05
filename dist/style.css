@@ -137,6 +137,10 @@ html:not(.is-enhanced) .bridge-orb { opacity:.18; }
 .is-enhanced .member-cloud { position:absolute; inset:0; display:block; pointer-events:none; }
 .is-enhanced .member-cloud span { position:absolute; left:50%; top:50%; margin:0; width:116px; height:116px; padding:12px; display:grid; place-items:center; text-align:center; overflow-wrap:anywhere; border:0; border-radius:50%; color:#101c28; background:linear-gradient(145deg,#a8ebcb,#4b94e5); font-size:14px; line-height:1.25; font-weight:650; }
 .is-enhanced .member-cloud span:nth-child(3n) { background:linear-gradient(145deg,#3b82f6,#8cdbd0); }
+.member-core,.is-enhanced .member-cloud span { isolation:isolate; overflow:hidden; }
+.member-core::before,.is-enhanced .member-cloud span::before { content:''; position:absolute; inset:-22%; z-index:-1; background:radial-gradient(ellipse at 26% 30%,#bef3cc 0%,#68c4ce 40%,#377bf0 78%); transform:rotate(var(--color-turn,0deg)); }
+.member-core::after,.is-enhanced .member-cloud span::after { content:''; position:absolute; inset:-22%; z-index:-1; background:radial-gradient(ellipse at 72% 25%,#a9eed4 0%,#489cdd 42%,#596bec 80%); opacity:var(--color-mix,0); transform:rotate(var(--color-turn,0deg)); }
+.is-reduced-motion .members span::before,.is-reduced-motion .members span::after { transform:none; opacity:.5; }
 .is-reduced-motion .members .member-cloud { display:flex; position:relative; flex-wrap:wrap; justify-content:center; gap:10px; padding:16px; }
 .is-reduced-motion .members .member-cloud span { position:static; transform:none!important; opacity:1!important; width:100px; height:100px; }
 .is-reduced-motion .members { overflow-y:auto; display:block; padding:100px 20px; }

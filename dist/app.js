@@ -38,7 +38,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '24';
+  root.dataset.version = '25';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let userReduced = false;
@@ -258,21 +258,21 @@
     members.style.zIndex = '2';
     one('.leaders').style.opacity = String(1-arriving);
     if(x < memberStart-width || x > memberStart+width) return;
-    const growth = smooth(progress(phase,.06,.88));
-    memberCore.style.transform = 'scale(' + lerp(.12,1.2,growth) + ')';
+    const paths = memberBubbles.map((_,i)=>M.memberPath(i,memberBubbles.length,phase,width,height));
+    const growth = paths.reduce((sum,path)=>sum+path.absorbed,0)/Math.max(1,paths.length);
+    memberCore.style.transform = 'scale(' + Math.sqrt(lerp(.12*.12,1.2*1.2,growth)) + ')';
+    memberCore.style.setProperty('--color-mix',String(smooth(phase)));
+    memberCore.style.setProperty('--color-turn',(phase*155)+'deg');
+    memberCore.style.opacity = String(lerp(.65,1,smooth(phase)));
     memberMessage.style.opacity = reduced ? '0' : String(1-smooth(progress(phase,.52,.73)));
     memberResult.style.opacity = reduced ? '1' : String(smooth(progress(phase,.67,.9)));
     memberCaption.style.opacity = reduced ? '1' : String(smooth(progress(phase,.84,1)));
     memberBubbles.forEach((bubble,i) => {
-      const batch = Math.floor(i/4);
-      const start = .02 + batch*.115;
-      const local = progress(phase,start,start+.29);
-      const converge = smooth(progress(local,.24,1));
-      const angle = (i%4)*Math.PI/2 + Math.PI/4 + batch*.12;
-      const px = Math.cos(angle)*Math.max(80,width*.5-62)*(1-converge);
-      const py = Math.sin(angle)*height*.34*(1-converge);
-      bubble.style.transform = 'translate(-50%,-50%) translate3d('+px+'px,'+py+'px,0) scale('+lerp(1,.3,converge)+')';
-      bubble.style.opacity = String(smooth(progress(local,0,.12))*(1-smooth(progress(local,.68,.96))));
+      const path = paths[i];
+      bubble.style.transform = 'translate(-50%,-50%) translate3d('+path.x+'px,'+path.y+'px,0) scale('+path.scale+')';
+      bubble.style.opacity = String(path.opacity);
+      bubble.style.setProperty('--color-mix',String(path.mix));
+      bubble.style.setProperty('--color-turn',(path.mix*110+i*37)+'deg');
     });
   }
 
