@@ -38,7 +38,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '25';
+  root.dataset.version = '26';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let userReduced = false;
@@ -63,6 +63,16 @@
   const memberResult = one('.member-result');
   const memberCaption = one('.member-caption');
   const memberBubbles = all('.member-cloud span');
+  const anniversaryTitle = one('.anniversary-title');
+  const anniversaryParticles = memberBubbles.map((_,i)=> {
+    const dot=document.createElement('i');
+    dot.className='anniversary-particle';
+    dot.style.setProperty('--hue',String((i*137.508)%360));
+    const size=16+(i%5)*3;
+    dot.style.width=size+'px'; dot.style.height=size+'px';
+    one('.anniversary-particles').append(dot);
+    return dot;
+  });
   let memberStart = 0, memberDuration = 1;
   const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
 
@@ -199,7 +209,7 @@
     bridgeStart = bridge.offsetLeft;
     bridgeDuration = Math.round(Math.max(width * 1.8, height * 2.2));
     memberStart = members.offsetLeft;
-    memberDuration = Math.round(Math.max(width*3, height*4.8));
+    memberDuration = Math.round(Math.max(width*9, height*15));
     travel = Math.max(0, track.scrollWidth - width) + bridgeDuration + memberDuration;
     shell.style.height = (lead + travel + height) + 'px';
     logoTop = mark.offsetTop;
@@ -209,7 +219,7 @@
       card, x:card.getBoundingClientRect().left - trackLeft, width:card.offsetWidth, content:card.lastElementChild
     }));
     stops = [0, ...geometry.map(g => scrollForX(g.x)), lead+bridgeStart+bridgeDuration, ...cardGeometry.map(g => scrollForX(g.x))];
-    stops.push(scrollForX(memberStart)+memberDuration*.5, scrollForX(memberStart)+memberDuration);
+    stops.push(...[.30,.43,.66,.78,1].map(p=>scrollForX(memberStart)+memberDuration*p));
     stops = [...new Set(stops.map(value => Math.min(lead + travel, Math.round(value))))].sort((a,b) => a-b);
     if (scene) scene.resize();
     if (preserve && initialized && ready) {
@@ -258,15 +268,23 @@
     members.style.zIndex = '2';
     one('.leaders').style.opacity = String(1-arriving);
     if(x < memberStart-width || x > memberStart+width) return;
-    const paths = memberBubbles.map((_,i)=>M.memberPath(i,memberBubbles.length,phase,width,height));
+    const stage=M.anniversary(phase);
+    const gather=stage.gather;
+    const paths = memberBubbles.map((_,i)=>M.memberPath(i,memberBubbles.length,gather,width,height));
     const growth = paths.reduce((sum,path)=>sum+path.absorbed,0)/Math.max(1,paths.length);
-    memberCore.style.transform = 'scale(' + Math.sqrt(lerp(.12*.12,1.2*1.2,growth)) + ')';
+    memberCore.style.transform = 'scale(' + Math.sqrt(lerp(.12*.12,1.2*1.2,growth))*(1-stage.split*.85) + ')';
     memberCore.style.setProperty('--color-mix',String(smooth(phase)));
     memberCore.style.setProperty('--color-turn',(phase*155)+'deg');
-    memberCore.style.opacity = String(lerp(.65,1,smooth(phase)));
-    memberMessage.style.opacity = reduced ? '0' : String(1-smooth(progress(phase,.52,.73)));
-    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(phase,.67,.9)));
-    memberCaption.style.opacity = reduced ? '1' : String(smooth(progress(phase,.84,1)));
+    memberCore.style.opacity = String(lerp(.65,1,smooth(gather))*(1-smooth(progress(stage.split,0,.45))));
+    memberMessage.style.opacity = reduced ? '0' : String(1-smooth(progress(gather,.52,.73)));
+    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(gather,.67,.9))*stage.resultFade);
+    memberCaption.style.opacity = reduced ? '1' : String(smooth(progress(gather,.84,1))*stage.resultFade);
+    anniversaryTitle.style.opacity = reduced ? '1' : String(stage.title);
+    anniversaryParticles.forEach((dot,i)=> {
+      const particle=M.anniversaryParticle(i,anniversaryParticles.length,phase,width,height);
+      dot.style.transform='translate(-50%,-50%) translate3d('+particle.x+'px,'+particle.y+'px,0) scale('+particle.scale+')';
+      dot.style.opacity=String(particle.opacity);
+    });
     memberBubbles.forEach((bubble,i) => {
       const path = paths[i];
       bubble.style.transform = 'translate(-50%,-50%) translate3d('+path.x+'px,'+path.y+'px,0) scale('+path.scale+')';
@@ -286,7 +304,8 @@
     const desired = ready ? clamp(scrollY, 0, lead + travel) : 0;
     // Native touch scrolling already carries momentum. A second interpolation
     // layer makes the fixed horizontal track feel as though it catches up late.
-    renderedScroll = reduced || touchFirst ? desired : lerp(renderedScroll, desired, 1-Math.exp(-dt/78));
+    const memberActive = desired >= scrollForX(memberStart)-width && desired <= scrollForX(memberStart)+memberDuration+width;
+    renderedScroll = reduced || touchFirst || memberActive ? desired : lerp(renderedScroll, desired, 1-Math.exp(-dt/78));
     if (Math.abs(renderedScroll-desired) < .1) renderedScroll = desired;
     cursorX = lerp(cursorX, wantedX, .07); cursorY = lerp(cursorY, wantedY, .07);
     const scrolling = M.scroll(renderedScroll, lead, travel);
@@ -402,7 +421,7 @@
     for (const element of [...heroLines,...introLines,heroCopy,eyebrow,cue,worldIndex]) element.style.cssText='';
     all('.biome-copy,.biome-visual,.leader-card>div').forEach(element => { element.style.transform=''; element.style.opacity=''; });
     [orb,bridgeFirst,bridgeSecond].forEach(element => { element.style.transform=''; element.style.opacity=''; });
-    [members,one('.leaders'),memberCore,memberMessage,memberResult,memberCaption,...memberBubbles].forEach(element => { element.style.transform=''; element.style.opacity=''; });
+    [members,one('.leaders'),memberCore,memberMessage,memberResult,memberCaption,anniversaryTitle,...memberBubbles,...anniversaryParticles].forEach(element => { element.style.transform=''; element.style.opacity=''; });
   }
 
   function goTo(value) {

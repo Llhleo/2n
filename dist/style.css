@@ -129,6 +129,12 @@ html:not(.is-enhanced) .bridge-orb { opacity:.18; }
 .member-heading { z-index:3; display:grid; text-align:center; pointer-events:none; }
 .member-heading h2 { grid-area:1/1; align-self:center; }
 .member-result { opacity:0; }
+.anniversary-title { opacity:0; max-width:78vw; }
+.anniversary-title span { display:block; background:linear-gradient(110deg,#a6ebc5,#66b8e6,#ad9bf4); background-clip:text; -webkit-background-clip:text; color:transparent; font-size:1.35em; }
+.anniversary-particles { position:absolute; inset:0; pointer-events:none; }
+.anniversary-particle { position:absolute; left:50%; top:50%; width:22px; height:22px; border-radius:50%; opacity:0; background:radial-gradient(circle at 30% 25%,hsl(var(--hue) 88% 85%),hsl(var(--hue) 76% 57%) 65%,hsl(var(--hue) 67% 43%)); }
+html:not(.is-enhanced) .anniversary-title,.is-reduced-motion .anniversary-title { opacity:1!important; grid-area:auto; margin-top:24px; }
+html:not(.is-enhanced) .anniversary-particles,.is-reduced-motion .anniversary-particles { display:none; }
 .member-result span { font:700 clamp(80px,15vw,180px)/1 Georgia,serif; }
 .member-result sup { font-size:.4em; }
 .member-core { position:absolute; width:min(72vw,65vh); aspect-ratio:1; border-radius:50%; background:linear-gradient(135deg,#a6ebc5,#64b7d0 50%,#2875f0); transform:scale(.12); }

@@ -54,7 +54,33 @@
       mix:smooth(local), absorbed:smooth(progress(local,.64,1))
     };
   }
-  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll, memberPath });
+  function anniversary(phase) {
+    return {
+      gather:progress(phase,0,.30),
+      resultFade:1-smooth(progress(phase,.315,.355)),
+      split:smooth(progress(phase,.355,.43)),
+      title:smooth(progress(phase,.43,.48))*(1-smooth(progress(phase,.85,.96))),
+      order:smooth(progress(phase,.66,.76)),
+      turns:progress(phase,.43,.78)*Math.PI*6,
+      spiral:smooth(progress(phase,.78,1))
+    };
+  }
+  function anniversaryParticle(index,count,phase,width,height) {
+    const s=anniversary(phase), fraction=index/count;
+    const base=fraction*Math.PI*2;
+    const jitter=(noise(index+50)-.5)*.30*(1-s.order);
+    const radius=Math.min(width*.42,height*.32);
+    const irregular=lerp(.69+noise(index+80)*.29,1,s.order);
+    const coil=s.spiral;
+    const angle=base+jitter+s.turns+coil*(Math.PI*4+fraction*Math.PI*4);
+    const r=radius*s.split*irregular*(1-coil)*(1-coil*fraction*.8);
+    return {
+      x:Math.cos(angle)*r,y:Math.sin(angle)*r,
+      opacity:smooth(progress(phase,.355,.375))*(1-smooth(progress(coil,.78,1))),
+      scale:lerp(.45,1,s.split)*(1-coil*.8), angle,radius:r
+    };
+  }
+  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll, memberPath, anniversary, anniversaryParticle });
   if (typeof module === 'object' && module.exports) module.exports = api;
   else target.TwoNMotion = api;
 })(typeof window === 'object' ? window : this);
