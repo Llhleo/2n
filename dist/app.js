@@ -38,7 +38,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '21';
+  root.dataset.version = '22';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let userReduced = false;
