@@ -2,7 +2,8 @@
   'use strict';
   const BRAND_MODE = 'wordmark'; // 'image' keeps the supplied candidate emblem available.
   const M = window.TwoNMotion;
-  if (!M) { window.twoNFallback(); return; }
+  const L = window.TwoNLiquid;
+  if (!M || !L) { window.twoNFallback(); return; }
   const { clamp, lerp, smooth, progress, easeOut } = M;
   const root = document.documentElement;
   const one = selector => document.querySelector(selector);
@@ -34,7 +35,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '33';
+  root.dataset.version = '34';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let reduced = mediaQuery.matches;
@@ -56,21 +57,16 @@
   const memberMessage = one('.member-message');
   const memberResult = one('.member-result');
   const memberBubbles = all('.member-cloud span');
+  const memberCloud=one('.member-cloud');
+  const memberHeading=one('.member-heading');
+  const leaders=one('.leaders');
+  const viewport=one('.story-viewport');
+  let gatherPlan,splitPlan,lastLiquidPhase=-1;
   const svgNS='http://www.w3.org/2000/svg';
   const fusion=document.createElementNS(svgNS,'svg');
   fusion.classList.add('member-fusion'); fusion.setAttribute('aria-hidden','true');
-  fusion.innerHTML='<defs><linearGradient id="fusion-color" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a6ebc5"/><stop offset=".5" stop-color="#64b7d0"/><stop offset="1" stop-color="#2875f0"/></linearGradient><filter id="fusion-liquid" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="9"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 20 -9"/></filter><mask id="fusion-mask" maskUnits="userSpaceOnUse" style="mask-type:alpha"><g fill="white" filter="url(#fusion-liquid)"></g></mask></defs><rect class="fusion-paint" fill="url(#fusion-color)" mask="url(#fusion-mask)"/>';
-  const fusionGroup=fusion.querySelector('g');
-  fusionGroup.removeAttribute('filter');
-  function fusionShape(tag) {const el=document.createElementNS(svgNS,tag);fusionGroup.append(el);return el;}
-  const fusionCore=fusionShape('circle');
-  const fusionParts=memberBubbles.map(()=> {
-    const group=fusionShape('g');
-    const core=document.createElementNS(svgNS,'circle');
-    const circle=document.createElementNS(svgNS,'circle');
-    group.append(core,circle);
-    return {group,core,circle};
-  });
+  fusion.innerHTML='<defs><linearGradient id="fusion-color" gradientUnits="userSpaceOnUse"><stop stop-color="#a6ebc5"/><stop offset=".5" stop-color="#64b7d0"/><stop offset="1" stop-color="#2875f0"/></linearGradient></defs><path fill="url(#fusion-color)" fill-rule="nonzero"/>';
+  const liquidPath=fusion.querySelector('path');
   members.prepend(fusion);
   const anniversaryTitle = one('.anniversary-title');
   const anniversaryParticles = memberBubbles.map((_,i)=> {
@@ -223,6 +219,13 @@
     bridgeStart = bridge.offsetLeft;
     bridgeDuration = Math.round(Math.max(width * 1.8, height * 2.2));
     memberStart = members.offsetLeft;
+    gatherPlan=L.buildGather(M,memberBubbles.length,width,height);
+    splitPlan=L.buildSplit(M,memberBubbles.length,width,height,gatherPlan.rows[gatherPlan.steps].radius);
+    lastLiquidPhase=-1;
+    fusion.setAttribute('viewBox',[-width/2,-height/2,width,height].join(' '));
+    const gradient=fusion.querySelector('linearGradient');
+    gradient.setAttribute('x1',-gatherPlan.finalRadius);gradient.setAttribute('y1',-gatherPlan.finalRadius);
+    gradient.setAttribute('x2',gatherPlan.finalRadius);gradient.setAttribute('y2',gatherPlan.finalRadius);
     memberDuration = Math.round(Math.max(width*7.2, height*12));
     travel = Math.max(0, track.scrollWidth - width) + bridgeDuration + memberDuration;
     shell.style.height = (lead + travel + height) + 'px';
@@ -233,7 +236,7 @@
       card, x:card.getBoundingClientRect().left - trackLeft, width:card.offsetWidth, content:card.lastElementChild
     }));
     stops = [0, ...geometry.map(g => scrollForX(g.x)), lead+bridgeStart+bridgeDuration, ...cardGeometry.map(g => scrollForX(g.x))];
-    stops.push(...[.30,.43,.62,.84,1].map(p=>scrollForX(memberStart)+memberDuration*p));
+    stops.push(...[.30,.47,.65,.86,1].map(p=>scrollForX(memberStart)+memberDuration*p));
     stops = [...new Set(stops.map(value => Math.min(lead + travel, Math.round(value))))].sort((a,b) => a-b);
     if (scene) scene.resize();
     if (preserve && initialized && ready) {
@@ -273,70 +276,62 @@
 
   function renderMembers(phase, x) {
     const arriving = smooth(progress(x,memberStart-width,memberStart));
-    // The member scene occupies the viewport during the chapter dissolve.
+    const crossing=x>=memberStart-width && x<memberStart;
+    // One dissolve over an opaque, uniform management-colored backing. Never
+    // fade both surfaces, which exposed a dark seam under the moving last card.
     members.style.transform = x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
     members.style.opacity = String(arriving);
     members.style.zIndex = '2';
-    one('.leaders').style.opacity = String(1-arriving);
+    leaders.style.opacity='1';
+    viewport.style.backgroundColor=crossing?'#e5e2d8':'';
+    memberHeading.style.opacity=String(smooth(progress(arriving,.6,1)));
+    fusion.style.opacity=String(smooth(progress(arriving,.6,1)));
     if(x < memberStart-width || x > memberStart+width) return;
-    const stage=M.anniversary(phase);
-    const gather=stage.gather;
-    const paths = memberBubbles.map((_,i)=>M.memberPath(i,memberBubbles.length,gather,width,height));
-    const growth = paths.reduce((sum,path)=>sum+path.absorbed,0)/Math.max(1,paths.length);
-    const coreRadius=Math.min(width*.72,height*.65)*.5*Math.sqrt(lerp(.12*.12,1.2*1.2,growth));
-    const reaction=M.recoil(paths,gather);
-    const coreTransform='translate('+reaction.x+' '+reaction.y+') scale('+(1+reaction.stretch)+' '+(1-reaction.stretch)+')';
-    const splitRadius=coreRadius*Math.sqrt(1-stage.split*.96);
-    fusion.setAttribute('viewBox',[-width/2,-height/2,width,height].join(' '));
-    for(const surface of [fusion.querySelector('mask'),fusion.querySelector('.fusion-paint')]) {
-      surface.setAttribute('x',-width/2); surface.setAttribute('y',-height/2);
-      surface.setAttribute('width',width); surface.setAttribute('height',height);
-    }
-    const fusionGradient=fusion.querySelector('linearGradient');
-    fusionGradient.setAttribute('gradientUnits','userSpaceOnUse');
-    fusionGradient.setAttribute('x1',-coreRadius); fusionGradient.setAttribute('y1',-coreRadius);
-    fusionGradient.setAttribute('x2',coreRadius); fusionGradient.setAttribute('y2',coreRadius);
-    fusionCore.setAttribute('r',splitRadius);
-    fusionCore.setAttribute('transform',coreTransform);
-    fusionCore.style.opacity='1';
-    fusion.querySelector('.fusion-paint').style.opacity=String(1-smooth(progress(stage.split,.55,1)));
-    memberCore.style.transform = 'scale(' + Math.sqrt(lerp(.12*.12,1.2*1.2,growth))*(1-stage.split*.85) + ')';
-    memberCore.style.setProperty('--color-mix',String(smooth(phase)));
-    memberCore.style.setProperty('--color-turn',(phase*155)+'deg');
-    memberCore.style.opacity = String(lerp(.65,1,smooth(gather))*(1-smooth(progress(stage.split,0,.45))));
+    if(lastLiquidPhase===phase && fusion.dataset.reduced===String(reduced)) return;
+    lastLiquidPhase=phase;fusion.dataset.reduced=String(reduced);
+    const mapped=phase<=.355?phase:phase<=.47?lerp(.355,.43,progress(phase,.355,.47)):lerp(.43,1,progress(phase,.47,1));
+    const stage=M.anniversary(mapped),gather=progress(phase,0,.30);
     memberMessage.style.opacity = reduced ? '0' : String(1-smooth(progress(gather,.52,.73)));
     memberResult.style.opacity = reduced ? '1' : String(smooth(progress(gather,.67,.9))*stage.resultFade);
     anniversaryTitle.style.opacity = reduced ? '1' : String(stage.title);
+    if(reduced) {
+      memberCloud.style.visibility='visible';
+      memberBubbles.forEach(b=>b.style.opacity='1');
+      return;
+    }
+    const gathering=phase<=.355, splitting=phase>.355 && phase<.47;
+    fusion.style.visibility=gathering||splitting?'visible':'hidden';
+    memberCloud.style.visibility=gathering?'visible':'hidden';
+    let splittingState=null;
+    if(gathering) {
+      const flow=L.gatherAt(M,gatherPlan,gather);
+      let outline=L.circle(flow.x,flow.y,flow.radius);
+      flow.drops.forEach((drop,i)=> {
+        if(drop.r>.1) outline+=L.circle(drop.x,drop.y,drop.r)+L.neck(flow.x,flow.y,flow.radius,drop.x,drop.y,drop.r);
+        const label=memberBubbles[i];
+        label.style.opacity=String(drop.label);
+        if(drop.label>.001) label.style.transform='translate(-50%,-50%) translate3d('+drop.x+'px,'+drop.y+'px,0) scale('+drop.scale+')';
+      });
+      liquidPath.setAttribute('d',outline);
+    } else if(splitting) {
+      splittingState=L.splitAt(splitPlan,progress(phase,.355,.47));
+      let outline=L.circle(0,0,splittingState.radius);
+      splittingState.drops.forEach(drop=> {
+        // Connected lobes belong to the mother silhouette; only detached drops
+        // transfer to the colored compositor layers.
+        const r=drop.r*Math.sqrt(1-drop.handoff);
+        outline+=L.circle(drop.x,drop.y,r)+L.neck(0,0,splittingState.radius,drop.x,drop.y,r);
+      });
+      liquidPath.setAttribute('d',outline);
+    }
     anniversaryParticles.forEach((dot,i)=> {
-      const particle=M.anniversaryParticle(i,anniversaryParticles.length,phase,width,height);
+      if(gathering) {dot.style.opacity='0';return;}
+      const particle=splitting?splittingState.drops[i]:M.anniversaryParticle(i,anniversaryParticles.length,mapped,width,height);
+      const opacity=splitting?particle.handoff:particle.opacity;
+      dot.style.opacity=String(opacity);
+      if(opacity<.001) return;
       dot.style.transform='translate(-50%,-50%) translate3d('+particle.x+'px,'+particle.y+'px,0) scale('+particle.scale+')';
-      dot.style.opacity=String(particle.opacity);
       dot.style.setProperty('--split-color',String(particle.color));
-      dot.style.setProperty('--color-mix',String(smooth(phase)));
-      dot.style.setProperty('--color-turn',(phase*155)+'deg');
-    });
-    memberBubbles.forEach((bubble,i) => {
-      const path = paths[i];
-      const bx=path.x+(reaction.x+Math.cos(path.heading)*coreRadius*.86)*path.approach;
-      const by=path.y+(reaction.y+Math.sin(path.heading)*coreRadius*.86)*path.approach;
-      // Opaque silhouettes combine before the gradient is applied: no transparent
-      // connector triangles or overlapping colored seams. The droplet contracts
-      // into the shared silhouette instead of fading as a separate disc.
-      const br=58*path.scale*Math.sqrt(path.opacity);
-      const part=fusionParts[i];
-      const pairActive=br>2 && Math.hypot(bx-reaction.x,by-reaction.y)<coreRadius+br+28;
-      // Each filter contains only this droplet and a copy of the core. No filter
-      // can see a second small droplet, so small-to-small necks cannot form.
-      part.group.setAttribute('filter',pairActive?'url(#fusion-liquid)':'none');
-      part.core.setAttribute('r',pairActive?splitRadius:0);
-      part.core.setAttribute('transform',coreTransform);
-      part.circle.setAttribute('cx',bx); part.circle.setAttribute('cy',by); part.circle.setAttribute('r',br);
-      const distance=Math.hypot(bx,by);
-      const labelClearance=smooth(progress(distance-coreRadius,br*.15,br*.9+1));
-      bubble.style.transform = 'translate(-50%,-50%) translate3d('+bx+'px,'+by+'px,0) scale('+path.scale+')';
-      bubble.style.opacity = String(path.opacity*labelClearance);
-      bubble.style.setProperty('--color-mix',String(path.mix));
-      bubble.style.setProperty('--color-turn',(path.mix*110+i*37)+'deg');
     });
   }
 
@@ -465,7 +460,8 @@
     for (const element of [...introLines,eyebrow,cue]) element.style.cssText='';
     all('.biome-copy,.biome-visual,.leader-card>div').forEach(element => { element.style.transform=''; element.style.opacity=''; });
     [orb,bridgeFirst,bridgeSecond].forEach(element => { element.style.transform=''; element.style.opacity=''; });
-    [members,one('.leaders'),memberCore,memberMessage,memberResult,anniversaryTitle,...memberBubbles,...anniversaryParticles].forEach(element => { element.style.transform=''; element.style.opacity=''; });
+    [members,leaders,memberCore,memberMessage,memberResult,anniversaryTitle,...memberBubbles,...anniversaryParticles].forEach(element => { element.style.transform=''; element.style.opacity=''; });
+    memberCloud.style.visibility='';memberHeading.style.opacity='';viewport.style.backgroundColor='';
   }
 
   function goTo(value) {
