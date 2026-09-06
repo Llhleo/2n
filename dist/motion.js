@@ -40,9 +40,10 @@
     const local = progress(phase,start,start+duration);
     const t = smooth(progress(local,.13,1));
     const angle = index*2.399963 + noise(index+9)*.7;
-    const radius = .76 + noise(index+21)*.24;
-    const rx = Math.max(68,width*.5-62), ry = Math.max(90,height*.35-35);
-    const sx = Math.cos(angle)*rx*radius, sy = Math.sin(angle)*ry*radius;
+    const radius = .94 + noise(index+21)*.06;
+    const rx = Math.max(68,width*.5-52), ry = Math.max(90,height*.5-100);
+    const edge=Math.max(Math.abs(Math.cos(angle)),Math.abs(Math.sin(angle)));
+    const sx = Math.cos(angle)/edge*rx*radius, sy = Math.sin(angle)/edge*ry*radius;
     const bend = (noise(index+2)>.5 ? 1 : -1)*(.3+noise(index+18)*.5);
     const cx = clamp(sx*.6-Math.sin(angle)*rx*bend,-rx,rx);
     const cy = clamp(sy*.6+Math.cos(angle)*ry*bend,-ry,ry);
@@ -73,18 +74,29 @@
     const breathing=Math.sin(orbit*Math.PI)*(1-s.order);
     const jitter=(noise(index+50)-.5)*.30*(1-s.order)+Math.sin(s.turns*1.3+index*2.1)*.07*breathing;
     const radius=Math.min(width*.42,height*.32);
-    const irregular=lerp(.69+noise(index+80)*.29,1,s.order)+Math.sin(s.turns*1.7+index*1.9)*.045*breathing;
+    const irregular=lerp(.88+noise(index+80)*.10,1,s.order)+Math.sin(s.turns*1.7+index*1.9)*.025*breathing;
     const coil=s.spiral;
     const angle=base+jitter+s.turns+coil*fraction*Math.PI*3;
-    const r=radius*s.split*irregular*lerp(1,.13+.87*fraction,coil)*(1-s.collapse);
+    const release=smooth(progress(phase,.355+fraction*.008,.43));
+    const sourceRadius=Math.min(width*.72,height*.65)*.6*.80;
+    const r=lerp(sourceRadius,radius*irregular,release)*lerp(1,.13+.87*fraction,coil)*(1-s.collapse);
     return {
       x:Math.cos(angle)*r,y:Math.sin(angle)*r,
-      opacity:smooth(progress(phase,.355,.375))*(1-smooth(progress(s.collapse,.72,1))),
+      opacity:smooth(progress(phase,.355+fraction*.008,.375+fraction*.008))*(1-smooth(progress(s.collapse,.72,1))),
       scale:lerp(.45,1,s.split)*lerp(1,.74,coil)*(1-s.collapse*.8),
       color:smooth(progress(s.split,.12,.94)), angle,radius:r
     };
   }
-  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll, memberPath, anniversary, anniversaryParticle });
+  function recoil(paths,gather) {
+    let x=0,y=0,stretch=0;
+    for(const p of paths) {
+      const impulse=Math.sin(progress(p.mix,.64,1)*Math.PI)*4;
+      x-=Math.cos(p.heading)*impulse; y-=Math.sin(p.heading)*impulse; stretch+=impulse*.003;
+    }
+    const envelope=Math.sin(clamp(gather)*Math.PI);
+    return {x:clamp(x,-7,7)+Math.sin(gather*15)*1.5*envelope,y:clamp(y,-7,7)+Math.cos(gather*12)*1.5*envelope,stretch:Math.min(.035,stretch)};
+  }
+  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll, memberPath, anniversary, anniversaryParticle, recoil });
   if (typeof module === 'object' && module.exports) module.exports = api;
   else target.TwoNMotion = api;
 })(typeof window === 'object' ? window : this);

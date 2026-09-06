@@ -34,7 +34,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '32';
+  root.dataset.version = '33';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let reduced = mediaQuery.matches;
@@ -61,9 +61,16 @@
   fusion.classList.add('member-fusion'); fusion.setAttribute('aria-hidden','true');
   fusion.innerHTML='<defs><linearGradient id="fusion-color" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a6ebc5"/><stop offset=".5" stop-color="#64b7d0"/><stop offset="1" stop-color="#2875f0"/></linearGradient><filter id="fusion-liquid" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="9"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 20 -9"/></filter><mask id="fusion-mask" maskUnits="userSpaceOnUse" style="mask-type:alpha"><g fill="white" filter="url(#fusion-liquid)"></g></mask></defs><rect class="fusion-paint" fill="url(#fusion-color)" mask="url(#fusion-mask)"/>';
   const fusionGroup=fusion.querySelector('g');
+  fusionGroup.removeAttribute('filter');
   function fusionShape(tag) {const el=document.createElementNS(svgNS,tag);fusionGroup.append(el);return el;}
   const fusionCore=fusionShape('circle');
-  const fusionParts=memberBubbles.map(()=>({circle:fusionShape('circle')}));
+  const fusionParts=memberBubbles.map(()=> {
+    const group=fusionShape('g');
+    const core=document.createElementNS(svgNS,'circle');
+    const circle=document.createElementNS(svgNS,'circle');
+    group.append(core,circle);
+    return {group,core,circle};
+  });
   members.prepend(fusion);
   const anniversaryTitle = one('.anniversary-title');
   const anniversaryParticles = memberBubbles.map((_,i)=> {
@@ -277,6 +284,9 @@
     const paths = memberBubbles.map((_,i)=>M.memberPath(i,memberBubbles.length,gather,width,height));
     const growth = paths.reduce((sum,path)=>sum+path.absorbed,0)/Math.max(1,paths.length);
     const coreRadius=Math.min(width*.72,height*.65)*.5*Math.sqrt(lerp(.12*.12,1.2*1.2,growth));
+    const reaction=M.recoil(paths,gather);
+    const coreTransform='translate('+reaction.x+' '+reaction.y+') scale('+(1+reaction.stretch)+' '+(1-reaction.stretch)+')';
+    const splitRadius=coreRadius*Math.sqrt(1-stage.split*.96);
     fusion.setAttribute('viewBox',[-width/2,-height/2,width,height].join(' '));
     for(const surface of [fusion.querySelector('mask'),fusion.querySelector('.fusion-paint')]) {
       surface.setAttribute('x',-width/2); surface.setAttribute('y',-height/2);
@@ -286,9 +296,10 @@
     fusionGradient.setAttribute('gradientUnits','userSpaceOnUse');
     fusionGradient.setAttribute('x1',-coreRadius); fusionGradient.setAttribute('y1',-coreRadius);
     fusionGradient.setAttribute('x2',coreRadius); fusionGradient.setAttribute('y2',coreRadius);
-    fusionCore.setAttribute('r',coreRadius*(1-stage.split*.85));
+    fusionCore.setAttribute('r',splitRadius);
+    fusionCore.setAttribute('transform',coreTransform);
     fusionCore.style.opacity='1';
-    fusion.querySelector('.fusion-paint').style.opacity=String(1-smooth(progress(stage.split,0,.45)));
+    fusion.querySelector('.fusion-paint').style.opacity=String(1-smooth(progress(stage.split,.55,1)));
     memberCore.style.transform = 'scale(' + Math.sqrt(lerp(.12*.12,1.2*1.2,growth))*(1-stage.split*.85) + ')';
     memberCore.style.setProperty('--color-mix',String(smooth(phase)));
     memberCore.style.setProperty('--color-turn',(phase*155)+'deg');
@@ -306,13 +317,19 @@
     });
     memberBubbles.forEach((bubble,i) => {
       const path = paths[i];
-      const bx=path.x+Math.cos(path.heading)*coreRadius*.86*path.approach;
-      const by=path.y+Math.sin(path.heading)*coreRadius*.86*path.approach;
+      const bx=path.x+(reaction.x+Math.cos(path.heading)*coreRadius*.86)*path.approach;
+      const by=path.y+(reaction.y+Math.sin(path.heading)*coreRadius*.86)*path.approach;
       // Opaque silhouettes combine before the gradient is applied: no transparent
       // connector triangles or overlapping colored seams. The droplet contracts
       // into the shared silhouette instead of fading as a separate disc.
       const br=58*path.scale*Math.sqrt(path.opacity);
       const part=fusionParts[i];
+      const pairActive=br>2 && Math.hypot(bx-reaction.x,by-reaction.y)<coreRadius+br+28;
+      // Each filter contains only this droplet and a copy of the core. No filter
+      // can see a second small droplet, so small-to-small necks cannot form.
+      part.group.setAttribute('filter',pairActive?'url(#fusion-liquid)':'none');
+      part.core.setAttribute('r',pairActive?splitRadius:0);
+      part.core.setAttribute('transform',coreTransform);
       part.circle.setAttribute('cx',bx); part.circle.setAttribute('cy',by); part.circle.setAttribute('r',br);
       const distance=Math.hypot(bx,by);
       const labelClearance=smooth(progress(distance-coreRadius,br*.15,br*.9+1));
