@@ -90,7 +90,10 @@
     const h=Math.min(strength*2.0,Math.hypot(p1[0]-p3[0],p1[1]-p3[1])/(R+r))*Math.min(1,2*d/(R+r));
     const h1=point(...p1,R*h,a1-Math.PI/2),h3=point(...p3,r*h,a3+Math.PI/2);
     const h4=point(...p4,r*h,a4-Math.PI/2),h2=point(...p2,R*h,a2+Math.PI/2);
-    return `M ${fmt(p1)} C ${fmt(h1)} ${fmt(h3)} ${fmt(p3)} L ${fmt(p4)} C ${fmt(h4)} ${fmt(h2)} ${fmt(p2)} Z `;
+    // Reverse the neck subpath so it has the same winding as every droplet.
+    // With a compound SVG path and fill-rule=nonzero, opposite winding turns
+    // overlaps into subtraction holes on Safari (the black wedges/cutouts).
+    return `M ${fmt(p1)} L ${fmt(p2)} C ${fmt(h2)} ${fmt(h4)} ${fmt(p4)} L ${fmt(p3)} C ${fmt(h3)} ${fmt(h1)} ${fmt(p1)} Z `;
   }
 
   function separateDrops(drops,gap=2.5,passes=4,maxPush=24) {
