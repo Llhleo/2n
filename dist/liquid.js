@@ -145,6 +145,33 @@
         const p=M.memberPath(i,count,phase,width,height);
         const r=sourceRadii[i];
         const targetRadius=Math.max(0,radius-r*.94);
+        if(dense) {
+          // Dense roster: use a small shared angular drift while a member is
+          // visible. This produces only a short ~15-20deg tangent arc before
+          // absorption. It is NOT an orbit and cannot approach half a turn.
+          // Sharing the same drift at each frame also preserves the golden-angle
+          // spacing between simultaneously visible droplets.
+          const theta=p.heading+phase*4.4;
+          const cs=Math.cos(theta),sn=Math.sin(theta);
+          const rx=Math.max(68,width*.5-46),ry=Math.max(90,height*.5-92);
+          const edgeBase=Math.min(
+            rx/Math.max(.06,Math.abs(Math.cos(p.heading))),
+            ry/Math.max(.06,Math.abs(Math.sin(p.heading)))
+          )*.975;
+          const gap=Math.max(54,r*3.2);
+          const startRadius=Math.max(edgeBase,targetRadius+gap);
+          const ringRadius=targetRadius+gap;
+          const enter=smooth(ramp(p.approach,0,.30));
+          const merge=smooth(ramp(p.approach,.68,1));
+          let radial=mix(startRadius,ringRadius,enter);
+          radial=mix(radial,targetRadius,merge);
+          return {
+            x:cs*radial,
+            y:sn*radial,
+            scale:p.scale,mix:p.mix,approach:p.approach,heading:theta,
+            collisionR:r*Math.sqrt(1-absorbed[i])*ramp(p.mix,0,.09)
+          };
+        }
         return {
           x:p.x+Math.cos(p.heading)*targetRadius*p.approach,
           y:p.y+Math.sin(p.heading)*targetRadius*p.approach,

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  // v35.6 compatibility layer for the existing app shell.
+  // v35.8 compatibility layer for the existing app shell.
   // Keep the complete member roster for gathering, but use stable one-way
   // trajectories for dense rosters and restore the original 23-particle split.
   const root=document.documentElement;
@@ -22,33 +22,27 @@
   motion.memberPath=function(index,count,phase,width,height){
     if(count<=48) return nativeMemberPath(index,count,phase,width,height);
 
-    // Consecutive arrivals use golden-angle lanes, so droplets that are active
-    // at the same time approach from widely separated directions instead of
-    // colliding and being pushed around each other by a frame-to-frame solver.
+    // Dense-roster paths keep a fixed golden-angle lane. The liquid engine adds
+    // a deterministic tangential bow around the growing mother drop, so every
+    // member follows one clean curved sweep instead of a straight chord or loop.
     const start=.012+index/Math.max(1,count-1)*.72;
-    const duration=.052+noise(index+15)*.012;
+    const duration=.060+noise(index+15)*.014;
     const local=progress(phase,start,start+duration);
-    const t=smooth(progress(local,.08,1));
+    const t=smooth(progress(local,.07,1));
     const angle=index*2.399963+noise(index+9)*.16;
     const radius=.955+noise(index+21)*.045;
     const rx=Math.max(68,width*.5-46),ry=Math.max(90,height*.5-92);
     const edge=Math.max(Math.abs(Math.cos(angle)),Math.abs(Math.sin(angle)));
-    const sx=Math.cos(angle)/edge*rx*radius,sy=Math.sin(angle)/edge*ry*radius;
-    // One shallow bend gives liquid-like inertia while remaining monotonic;
-    // there is no sign change or loop in the path.
-    const bend=(noise(index+2)-.5)*.12;
-    const cx=sx*.54-Math.sin(angle)*Math.min(rx,ry)*bend;
-    const cy=sy*.54+Math.cos(angle)*Math.min(rx,ry)*bend;
-    const u=1-t;
+    const falloff=(1-t)*(1-t);
     return {
-      x:u*u*sx+2*u*t*cx,
-      y:u*u*sy+2*u*t*cy,
+      x:Math.cos(angle)/edge*rx*radius*falloff,
+      y:Math.sin(angle)/edge*ry*radius*falloff,
       scale:lerp(.94+noise(index+7)*.08,.35,t),
       opacity:smooth(progress(local,0,.13))*(1-smooth(progress(local,.76,1))),
       mix:smooth(local),
       absorbed:smooth(progress(local,.66,1)),
       approach:t,
-      heading:Math.atan2(sy,sx)
+      heading:angle
     };
   };
 
@@ -69,6 +63,15 @@
       const steps=touchFirst?720:1080;
       const raw=clamp((distance-start)/duration);
       state.phase=Math.round(raw*steps)/steps;
+      // The mother radius reaches ~50% at gather≈.23 for the 95-member plan.
+      // Delay the first line until that point, then fade it before the result
+      // title takes over. CSS !important makes this override app.js' old inline
+      // opacity timing without changing the rest of the app shell.
+      const gather=progress(state.phase,0,.30);
+      const message=smooth(progress(gather,.235,.315))*(1-smooth(progress(gather,.68,.82)));
+      root.style.setProperty('--member-message-opacity',String(message));
+    } else if(duration>=4800) {
+      root.style.setProperty('--member-message-opacity','0');
     }
     return state;
   };
@@ -87,7 +90,7 @@
   nativeAdd.call(window,'DOMContentLoaded',()=>{
     booting=false;
     window.addEventListener=nativeAdd;
-    root.dataset.version='35.6';
+    root.dataset.version='35.8';
     document.querySelectorAll('.anniversary-particle').forEach((dot,i)=>{
       if(i>=SPLIT_COUNT){
         dot.style.display='none';
