@@ -126,6 +126,7 @@
   }
 
   function buildGather(M,count,width,height,steps=touchFirst?360:600) {
+    const dense=count>48;
     const seed=Math.min(width*.06,height*.045,28);
     const finalRadius=Math.min(width*.72,height*.65)*.6;
     const rawRadii=Array.from({length:count},(_,i)=>58*M.memberPath(i,count,0,width,height).scale);
@@ -151,7 +152,7 @@
           collisionR:r*Math.sqrt(1-absorbed[i])*ramp(p.mix,0,.09)
         };
       });
-      separateDrops(states,2.5,3,18);
+      if(!dense) separateDrops(states,2.5,3,18);
       for(let i=0;i<count;i++) {
         const p=states[i],r=sourceRadii[i];
         const overlap=radius+r-Math.hypot(p.x,p.y);
@@ -162,7 +163,7 @@
       rows.push({radius,absorbed:absorbed.slice(),samples:states.map(({x,y,scale,mix,approach,heading})=>({x,y,scale,mix,approach,heading}))});
     }
     return {
-      rows,steps,seed,finalRadius,count,width,height,sourceRadii,meanArea,
+      rows,steps,seed,finalRadius,count,width,height,sourceRadii,meanArea,dense,
       totalArea:seed*seed+targetArea,renderSteps:touchFirst?720:1080,
       cacheKey:-1,cacheValue:null
     };
@@ -205,13 +206,11 @@
         scale:renderedR/58,absorbed,collisionR:renderedR
       };
     });
-    separateDrops(drops,2.5,5,30);
-    const x=clamp(rx,-6,6),y=clamp(ry,-6,6);
+    if(!plan.dense) separateDrops(drops,2.5,5,30);
+    const recoilScale=plan.dense?.32:1;
+    const x=clamp(rx*recoilScale,-6,6),y=clamp(ry*recoilScale,-6,6);
     for(const drop of drops) {drop.x+=x*drop.absorbed;drop.y+=y*drop.absorbed;}
-    // Re-run a light collision pass after recoil. With 90+ members, applying
-    // slightly different absorbed recoil to neighbouring droplets can otherwise
-    // reintroduce sub-pixel overlaps after the first separation pass.
-    separateDrops(drops,2.5,3,8);
+    if(!plan.dense) separateDrops(drops,2.5,3,8);
     const speed=Math.hypot(x,y);
     const deform={lobes,axis:speed>.01?Math.atan2(y,x):0,stretch:Math.min(.022,speed*.0026)};
     const value={radius,x,y,drops,deform};
@@ -221,26 +220,25 @@
   }
 
   function buildSplit(M,count,width,height,radius) {
-    // Dense rosters need physically smaller orbit droplets. Keep the original
-    // size for small groups, then scale by sqrt(area/member-count) so 95 members
-    // can occupy the anniversary ring without becoming one continuous band.
-    const particleScale=Math.min(1,32/Math.max(1,count));
-    const dense=count>48;
-    const startSpan=dense?.82:.46;
-    const duration=dense?.18:.54;
-    const stride=dense?37:7;
-    const entries=Array.from({length:count},(_,i)=>({
-      start:((i*stride)%count)/count*startSpan,duration,
-      orbit:M.anniversaryParticle(i,count,.43,width,height),
-      orbitRadius:Math.max(3.5,(16+(i%5)*3)/2*particleScale),
-      tangent:(i%2?1:-1)*(.55+(i%5)*.08)
-    }));
-    const mother=s=>radius*Math.sqrt(Math.max(0,1-entries.reduce((sum,p)=>sum+ramp((s-p.start)/p.duration,.08,.46),0)/count));
+    const activeCount=Math.min(23,count);
+    const entries=Array.from({length:count},(_,i)=>{
+      if(i>=activeCount) return {active:false,start:2,duration:.54,orbitRadius:1,tangent:0};
+      return {
+        active:true,
+        start:((i*7)%activeCount)/activeCount*.46,
+        duration:.54,
+        orbit:M.anniversaryParticle(i,activeCount,.43,width,height),
+        orbitRadius:(16+(i%5)*3)/2,
+        tangent:(i%2?1:-1)*(.55+(i%5)*.08)
+      };
+    });
+    const mother=s=>radius*Math.sqrt(Math.max(0,1-entries.reduce((sum,p)=>sum+(p.active?ramp((s-p.start)/p.duration,.08,.46):0),0)/Math.max(1,activeCount)));
     for(const p of entries) {
+      if(!p.active) continue;
       p.birthRadius=mother(p.start+p.duration*.16)*.95;
-      p.volumeRadius=Math.max(p.orbitRadius,radius/Math.sqrt(count)*.92);
+      p.volumeRadius=Math.max(p.orbitRadius,radius/Math.sqrt(activeCount)*.92);
     }
-    return {plan:entries,mother,dense,renderSteps:touchFirst?540:900,cacheKey:-1,cacheValue:null};
+    return {plan:entries,mother,activeCount,renderSteps:touchFirst?540:900,cacheKey:-1,cacheValue:null};
   }
 
   function splitAt(plan,s) {
@@ -252,12 +250,11 @@
     const q=renderKey/plan.renderSteps;
     const lobes=[];
     const drops=plan.plan.map((p,i)=> {
+      if(!p.active) return {x:0,y:0,r:0,collisionR:0,handoff:0,color:0,scale:0,local:0};
       const local=clamp((q-p.start)/p.duration);
-      const grow=ramp(local,0,plan.dense?.22:.24);
-      const flight=ramp(local,plan.dense?.10:.20,plan.dense?.78:1);
-      // Keep the full-volume lobe only around the actual neck break for dense
-      // rosters. Small rosters retain the v35.4 timing exactly.
-      const shrink=ramp(local,plan.dense?.18:.48,plan.dense?.64:1);
+      const grow=ramp(local,0,.24);
+      const flight=ramp(local,.20,1);
+      const shrink=ramp(local,.48,1);
       const angle=p.orbit.angle+Math.sin(flight*Math.PI)*.14;
       const distance=mix(p.birthRadius,p.orbit.radius,flight);
       const r=mix(p.volumeRadius,p.orbitRadius,shrink)*grow;
@@ -267,32 +264,18 @@
       const bulge=Math.sin(ramp(local,0,.52)*Math.PI)*(1-ramp(local,.52,.82));
       if(bulge>.02) lobes.push({angle,weight:bulge*(.7+(i%4)*.08)});
       return {
-        x,y,r,collisionR:plan.dense?r*ramp(local,.05,.20):r*(1-ramp(local,.02,.24)),
-        handoff:ramp(local,plan.dense?.58:.66,plan.dense?.86:1),
-        color:ramp(local,plan.dense?.46:.5,plan.dense?.88:1),
+        x,y,r,collisionR:r*(1-ramp(local,.02,.24)),
+        handoff:ramp(local,.66,1),color:ramp(local,.5,1),
         scale:r/Math.max(.001,p.orbitRadius),local
       };
     });
-    if(plan.dense) {
-      // Separate neighbouring lobes as soon as they have a meaningful radius.
-      // The correction fades out again before handoff completes, so the end
-      // state still lands exactly on M.anniversaryParticle().
-      const detached=drops.map(d=>({...d,collisionR:d.r*ramp(d.local,.05,.20)}));
-      separateDrops(detached,1.6,7,26);
-      for(let i=0;i<drops.length;i++) {
-        const local=drops[i].local;
-        const blend=ramp(local,.06,.24)*(1-ramp(local,.62,.92));
-        drops[i].x=mix(drops[i].x,detached[i].x,blend);
-        drops[i].y=mix(drops[i].y,detached[i].y,blend);
-      }
-    } else {
-      const detached=drops.map(d=>({...d,collisionR:d.r*ramp(d.local,.28,.55)}));
-      separateDrops(detached,2.0,3,20);
-      for(let i=0;i<drops.length;i++) {
-        const blend=ramp(drops[i].local,.28,.55);
-        drops[i].x=mix(drops[i].x,detached[i].x,blend);
-        drops[i].y=mix(drops[i].y,detached[i].y,blend);
-      }
+    const detached=drops.map(d=>({...d,collisionR:d.r*ramp(d.local,.28,.55)}));
+    separateDrops(detached,2.0,3,20);
+    for(let i=0;i<drops.length;i++) {
+      if(!plan.plan[i].active) continue;
+      const blend=ramp(drops[i].local,.28,.55);
+      drops[i].x=mix(drops[i].x,detached[i].x,blend);
+      drops[i].y=mix(drops[i].y,detached[i].y,blend);
     }
     const deform={lobes,axis:0,stretch:Math.min(.014,lobes.reduce((s,l)=>s+l.weight,0)*.0018)};
     const value={radius:plan.mother(q),drops,deform};
