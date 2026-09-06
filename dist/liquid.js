@@ -15,7 +15,11 @@
   let pendingMother=null;
 
   function plainCircle(x,y,r) {
-    return `M ${fmt([x+r,y])} A ${Number(r.toFixed(precision))} ${Number(r.toFixed(precision))} 0 1 0 ${fmt([x-r,y])} A ${Number(r.toFixed(precision))} ${Number(r.toFixed(precision))} 0 1 0 ${fmt([x+r,y])} Z `;
+    if(r<.05) return '';
+    // Keep the winding direction consistent with softMother(). The previous arc-
+    // based circle used the opposite winding, so when it overlapped the mother
+    // drop under fill-rule=nonzero Safari rendered subtraction holes/cutouts.
+    return softMother(x,y,r,null);
   }
 
   function softMother(x,y,r,deform) {
