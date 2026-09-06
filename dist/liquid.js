@@ -80,22 +80,27 @@
     // A compact tangent bridge reads as a high-surface-tension neck rather than
     // a metaball/goo connector. It vanishes quickly once the drop separates.
     const strength=.50*(1-ramp(d,R+r,R+r+gap));
-    if(strength<.002) return '';
+    if(strength<.10) return '';
     const a1=theta+u+(outer-u)*strength;
     const a2=theta-u-(outer-u)*strength;
     const a3=theta+Math.PI-v-(Math.PI-v-outer)*strength;
     const a4=theta-Math.PI+v+(Math.PI-v-outer)*strength;
-    // Slightly overshoot into both circles. Safari was leaving a visible slit
-    // because the bridge touched the two subpaths exactly instead of overlapping
-    // them, especially once the mother drop had soft deformations applied.
-    const seamPad=Math.min(3.2,Math.max(.9,Math.min(R,r)*.075));
-    const RR=R+seamPad, rr=r+seamPad;
-    const p1=point(x,y,RR,a1),p2=point(x,y,RR,a2);
-    const p3=point(bx,by,rr,a3),p4=point(bx,by,rr,a4);
-    const h=Math.min(strength*2.0,Math.hypot(p1[0]-p3[0],p1[1]-p3[1])/(RR+rr))*Math.min(1,2*d/(RR+rr));
-    const h1=point(...p1,RR*h,a1-Math.PI/2),h3=point(...p3,rr*h,a3+Math.PI/2);
-    const h4=point(...p4,rr*h,a4-Math.PI/2),h2=point(...p2,RR*h,a2+Math.PI/2);
-    return `M ${fmt(p1)} C ${fmt(h1)} ${fmt(h3)} ${fmt(p3)} L ${fmt(p4)} C ${fmt(h4)} ${fmt(h2)} ${fmt(p2)} Z `;
+    // Put the bridge endpoints *inside* both silhouettes rather than merely
+    // touching their mathematical circumferences. The mother surface can deform
+    // inward by a few pixels, and Safari exposes a hairline slit when two SVG
+    // subpaths only meet at an edge. This overlap hides that seam without making
+    // the neck look thick or gooey.
+    const motherInset=Math.min(18,Math.max(3,R*.045));
+    const dropInset=Math.min(4.5,Math.max(1.8,r*.07));
+    const innerR=Math.max(1,R-motherInset),innerR2=Math.max(1,r-dropInset);
+    const p1=point(x,y,innerR,a1),p2=point(x,y,innerR,a2);
+    const p3=point(bx,by,innerR2,a3),p4=point(bx,by,innerR2,a4);
+    const h=Math.min(strength*2.0,Math.hypot(p1[0]-p3[0],p1[1]-p3[1])/(innerR+innerR2))*Math.min(1,2*d/(innerR+innerR2));
+    const h1=point(...p1,innerR*h,a1-Math.PI/2),h3=point(...p3,innerR2*h,a3+Math.PI/2);
+    const h4=point(...p4,innerR2*h,a4-Math.PI/2),h2=point(...p2,innerR*h,a2+Math.PI/2);
+    // Keep the bridge winding identical to the droplet paths. Opposite winding
+    // inside one compound path is interpreted as subtraction by Safari.
+    return `M ${fmt(p1)} L ${fmt(p2)} C ${fmt(h2)} ${fmt(h4)} ${fmt(p4)} L ${fmt(p3)} C ${fmt(h3)} ${fmt(h1)} ${fmt(p1)} Z `;
   }
 
   function separateDrops(drops,gap=2.5,passes=4,maxPush=24) {
