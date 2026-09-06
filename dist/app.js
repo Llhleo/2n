@@ -34,7 +34,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '30';
+  root.dataset.version = '31';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let reduced = mediaQuery.matches;
@@ -56,6 +56,15 @@
   const memberMessage = one('.member-message');
   const memberResult = one('.member-result');
   const memberBubbles = all('.member-cloud span');
+  const svgNS='http://www.w3.org/2000/svg';
+  const fusion=document.createElementNS(svgNS,'svg');
+  fusion.classList.add('member-fusion'); fusion.setAttribute('aria-hidden','true');
+  fusion.innerHTML='<defs><linearGradient id="fusion-color" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a6ebc5"/><stop offset=".5" stop-color="#64b7d0"/><stop offset="1" stop-color="#2875f0"/></linearGradient></defs><g fill="url(#fusion-color)"></g>';
+  const fusionGroup=fusion.querySelector('g');
+  function fusionShape(tag) {const el=document.createElementNS(svgNS,tag);fusionGroup.append(el);return el;}
+  const fusionCore=fusionShape('circle');
+  const fusionParts=memberBubbles.map(()=>({neck:fusionShape('path'),circle:fusionShape('circle')}));
+  members.prepend(fusion);
   const anniversaryTitle = one('.anniversary-title');
   const anniversaryParticles = memberBubbles.map((_,i)=> {
     const dot=document.createElement('i');
@@ -267,6 +276,14 @@
     const gather=stage.gather;
     const paths = memberBubbles.map((_,i)=>M.memberPath(i,memberBubbles.length,gather,width,height));
     const growth = paths.reduce((sum,path)=>sum+path.absorbed,0)/Math.max(1,paths.length);
+    const coreRadius=Math.min(width*.72,height*.65)*.5*Math.sqrt(lerp(.12*.12,1.2*1.2,growth));
+    fusion.setAttribute('viewBox',[-width/2,-height/2,width,height].join(' '));
+    const fusionGradient=fusion.querySelector('linearGradient');
+    fusionGradient.setAttribute('gradientUnits','userSpaceOnUse');
+    fusionGradient.setAttribute('x1',-coreRadius); fusionGradient.setAttribute('y1',-coreRadius);
+    fusionGradient.setAttribute('x2',coreRadius); fusionGradient.setAttribute('y2',coreRadius);
+    fusionCore.setAttribute('r',coreRadius*(1-stage.split*.85));
+    fusionCore.style.opacity=String(1-smooth(progress(stage.split,0,.45)));
     memberCore.style.transform = 'scale(' + Math.sqrt(lerp(.12*.12,1.2*1.2,growth))*(1-stage.split*.85) + ')';
     memberCore.style.setProperty('--color-mix',String(smooth(phase)));
     memberCore.style.setProperty('--color-turn',(phase*155)+'deg');
@@ -284,7 +301,22 @@
     });
     memberBubbles.forEach((bubble,i) => {
       const path = paths[i];
-      bubble.style.transform = 'translate(-50%,-50%) translate3d('+path.x+'px,'+path.y+'px,0) scale('+path.scale+')';
+      const bx=path.x+Math.cos(path.heading)*coreRadius*.86*path.approach;
+      const by=path.y+Math.sin(path.heading)*coreRadius*.86*path.approach;
+      const br=58*path.scale;
+      const part=fusionParts[i];
+      part.circle.setAttribute('cx',bx); part.circle.setAttribute('cy',by); part.circle.setAttribute('r',br);
+      part.circle.style.opacity=String(path.opacity);
+      const distance=Math.hypot(bx,by), angle=Math.atan2(by,bx);
+      const contact=1-smooth(progress(distance-coreRadius-br,0,38));
+      const point=(r,a)=>[Math.cos(a)*r,Math.sin(a)*r];
+      const a=point(coreRadius,angle-.32), b=point(coreRadius,angle+.32);
+      const nx=-Math.sin(angle)*br*.7, ny=Math.cos(angle)*br*.7;
+      const c=[bx+nx,by+ny],d=[bx-nx,by-ny];
+      const mid=[Math.cos(angle)*(coreRadius+Math.max(0,distance-coreRadius)*.5),Math.sin(angle)*(coreRadius+Math.max(0,distance-coreRadius)*.5)];
+      part.neck.setAttribute('d','M '+a+' Q '+mid+' '+d+' L '+c+' Q '+mid+' '+b+' Z');
+      part.neck.style.opacity=String(path.opacity*contact);
+      bubble.style.transform = 'translate(-50%,-50%) translate3d('+bx+'px,'+by+'px,0) scale('+path.scale+')';
       bubble.style.opacity = String(path.opacity);
       bubble.style.setProperty('--color-mix',String(path.mix));
       bubble.style.setProperty('--color-turn',(path.mix*110+i*37)+'deg');
@@ -320,6 +352,7 @@
     bridgeSecond.style.opacity = reduced ? '1' : String(smooth(progress(bridgeState.phase,.32,.65))*(1-fade*.6));
     bridgeSecond.style.transform = reduced ? 'none' : 'translate3d(' + ((1-shift)*width*.14) + 'px,0,0) scale(' + (1+fade*.06) + ')';
     const entry = reduced ? scrolling.entry : smooth(scrolling.entry);
+    root.classList.toggle('is-breathing',ready && !reduced && renderedScroll<2);
     applyIntro(state);
     track.style.transform = 'translate3d(' + (-scrolling.x) + 'px,0,0)';
     meter.style.transform = 'scaleX(' + scrolling.progress + ')';

@@ -51,7 +51,7 @@
       x:u*u*sx+2*u*t*cx, y:u*u*sy+2*u*t*cy,
       scale:lerp(.92+noise(index+7)*.12,.35,t),
       opacity:smooth(progress(local,0,.16))*(1-smooth(progress(local,.74,1))),
-      mix:smooth(local), absorbed:smooth(progress(local,.64,1))
+      mix:smooth(local), absorbed:smooth(progress(local,.64,1)), approach:t, heading:Math.atan2(sy,sx)
     };
   }
   function anniversary(phase) {
