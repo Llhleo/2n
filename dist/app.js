@@ -3,6 +3,7 @@
   const BRAND_MODE = 'wordmark'; // 'image' keeps the supplied candidate emblem available.
   const M = window.TwoNMotion;
   const L = window.TwoNLiquid;
+  const P=window.TwoNPerf;
   if (!M || !L) { window.twoNFallback(); return; }
   const { clamp, lerp, smooth, progress, easeOut } = M;
   const root = document.documentElement;
@@ -198,6 +199,7 @@
       this.front.style.transform = 'translate3d(' + (amount*width*.12) + 'px,' + (-amount*height*.025) + 'px,0) scale(' + (1+amount*.42) + ')';
     }
     draw(state, entry, now) {
+      const worldStart=P?P.start():0;
       const { bg, fg } = this;
       const key=[state.world,entry,touchFirst?0:cursorX,touchFirst?0:cursorY,touchFirst||reduced?0:now].join(':');
       if(key===this.drawKey) return;
@@ -221,6 +223,7 @@
       const frontBase = base - centralWave;
       this.sheet(fg, frontBase, .035, 2.5, pointerX * .85, rise * .5 + pointerY * .42 + drift * .6 - entry * height * .04, '#09180915', entry);
       fg.fillStyle = this.shade; fg.fillRect(0, height * .62, width, height * .38);
+      if(P) P.end('world',worldStart);
     }
   }
 
@@ -351,6 +354,7 @@
       labelOpacity.fill(-1);
       return;
     }
+    const liquidStart=P?P.start():0;
     const gathering=phase<=.355, splitting=phase>.355 && phase<.47;
     fusion.style.visibility=gathering||splitting?'visible':'hidden';
     memberCloud.style.visibility=gathering?'visible':'hidden';
@@ -385,11 +389,14 @@
       dot.style.transform='translate(-50%,-50%) translate3d('+particle.x+'px,'+particle.y+'px,0) scale('+particle.scale+')';
       dot.style.setProperty('--split-color',String(particle.color));
     });
+    if(P) P.end('liquid',liquidStart);
   }
 
   function frame(now) {
+    const frameStart=P?P.start():0;
     frameId = 0;
     if (!active || !initialized || document.hidden) return;
+    if(P) P.values.active=ready?'story':'intro';
     const dt = Math.min(60, Math.max(1, now - (lastFrame || now-16)));
     lastFrame = now;
     if (playing) time = Math.min(M.DURATION, now - startedAt);
@@ -476,6 +483,7 @@
     if (playing && state.complete) finishIntro();
     const unsettled = Math.abs(desired-renderedScroll)>.1;
     const pointerUnsettled = !touchFirst && (Math.abs(cursorX-wantedX)>.1 || Math.abs(cursorY-wantedY)>.1);
+    if(P) P.end('frame',frameStart);
     if (playing || unsettled || pointerUnsettled || Math.abs(visualLiquid-liquidTarget)>.00001) schedule();
   }
 
