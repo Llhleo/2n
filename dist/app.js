@@ -235,7 +235,16 @@
   function setupMobile() {
     if(!touchFirst) return;
     mobile=new window.TwoNMobileStory({shell,track,hero,bridge,members,leaders,panels,
-      onChapter:index=>{if(geometry.length) updateChapter(index);},wake:schedule,perf:P});
+      onChapter:(index,position,max)=>{
+        if(geometry.length) updateChapter(index);
+        meter.style.transform='scaleX('+(position/Math.max(1,max))+')';
+        previousButton.disabled=position<2;nextButton.disabled=position>=max-2;
+        if(ready && Math.abs(position-controlScrollAnchor)>12) {
+          showControls(position<controlScrollAnchor);controlScrollAnchor=position;
+          controls.style.opacity=controlsShown?'1':'0';
+          controls.style.transform=controlsShown?'translateY(0)':'translateY(110%)';
+        }
+      },wake:schedule,perf:P});
     shell.tabIndex=0;shell.setAttribute('aria-label','左右滑动，依次浏览完整故事');
     one('.cue-direction').textContent='左右滑动探索 →';
     shell.addEventListener('scroll',onStoryScroll,{passive:true});

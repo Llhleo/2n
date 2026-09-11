@@ -29,5 +29,16 @@ html.is-enhanced[data-input='touch'] .leader-card.is-native-visible>div {
   opacity:1;transform:none;
 }
 html.is-enhanced[data-input='touch'] .biome-visual {transform:none;}
+html.is-enhanced[data-input='touch'] .leaders {
+  flex:0 0 auto;width:max-content;contain:layout paint;
+}
+html.is-enhanced[data-input='touch'] .leaders .section-intro,
+html.is-enhanced[data-input='touch'] .leaders .leader-card {
+  flex:0 0 100vw;width:100vw;
+}
+html.is-enhanced[data-input='touch'] .leaders .leader-list {flex:none;}
+html.is-enhanced[data-input='touch'] .native-chapter:has(.bridge) {background:#191919;}
+html.is-enhanced[data-input='touch'] .native-chapter:has(.members) {background:#191919;}
+html.is-enhanced[data-input='touch'] .member-cloud span {opacity:0;}
 html.is-enhanced[data-input='touch'].is-reduced-motion .biome-copy,
 html.is-enhanced[data-input='touch'].is-reduced-motion .leader-card>div {opacity:1;transform:none;}

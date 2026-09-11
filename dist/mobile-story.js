@@ -63,7 +63,7 @@ window.TwoNMobileStory=class {
     const center=this.latest+this.width*.5;
     let index=0;
     this.panels.forEach((p,i)=>{if(this.bounds.get(p).x<=center) index=i+1;});
-    this.onChapter(index);
+    this.onChapter(index,this.latest,this.max);
     const section=this.heavy()||(index>=1&&index<=5?'biomes':index===7?'leaders':index===9?'film':'ending');
     if(this.perf) this.perf.section(section);
   }
