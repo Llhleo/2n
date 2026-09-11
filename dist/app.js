@@ -65,6 +65,7 @@
   const viewport=one('.story-viewport');
   let gatherPlan,splitPlan,lastLiquidPhase=-1;
   let visualLiquid=0, liquidTarget=0;
+  let touchTimeline=null;
   const svgNS='http://www.w3.org/2000/svg';
   const fusion=document.createElementNS(svgNS,'svg');
   fusion.classList.add('member-fusion'); fusion.setAttribute('aria-hidden','true');
@@ -266,6 +267,16 @@
     if(gatherPlan && gatherPlan.width===width && gatherPlan.height===height) return;
     gatherPlan=L.buildGather(M,memberBubbles.length,width,height);
     splitPlan=L.buildSplit(M,memberBubbles.length,width,height,gatherPlan.rows[gatherPlan.steps].radius);
+    if(touchFirst) {
+      const events=[{type:'release-neck',phase:.395},{type:'break',phase:.449}];
+      for(let i=0;i<memberBubbles.length;i++) {
+        for(const [type,approach] of [['contact',.55],['absorb',.82]]) {
+          const k=gatherPlan.rows.findIndex(row=>row.samples[i].approach>=approach);
+          if(k>=0) events.push({type,phase:k/gatherPlan.steps*.30});
+        }
+      }
+      touchTimeline=new window.TwoNTouchTimeline(events);
+    }
     anniversaryParticles.forEach((dot,i)=> {
       const p=splitPlan.plan[i];
       if(p.active) { dot.style.width=p.orbitRadius*2+'px';dot.style.height=p.orbitRadius*2+'px'; }
@@ -430,8 +441,12 @@
     if(section==='members') {
       measureLiquid();
       liquidTarget=mobile.phase(members);
-      visualLiquid=liquidTarget;
+      visualLiquid=reduced?liquidTarget:touchTimeline.tick(liquidTarget,now);
       renderMembers(visualLiquid,memberStart);
+      if(!reduced && touchTimeline.pending) schedule();
+    } else if(touchTimeline) {
+      // No offscreen liquid work or deferred animation after leaving this chapter.
+      touchTimeline.reset(mobile.phase(members));
     }
     if(P) P.values.active=playing?'intro':section||'native';
     if(playing&&state.complete) finishIntro();

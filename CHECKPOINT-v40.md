@@ -13,3 +13,7 @@ independent. Debug overrides are local-only.
 No invisible extent, no touch track-translation render calls.
 4. Leaders are full-width native cards, with observer/CSS reveals; bridge is a
 real wide section with a sticky local visual. Ordinary scroll does not wake RAF.
+
+5. Members use a native long section and sticky stage. Touch catch-up is capped
+at four representative contact/absorb/release/break states and 96 ms. It never
+pins the track or changes scroll position; leaving the section clears catch-up.
