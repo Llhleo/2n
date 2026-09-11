@@ -96,7 +96,15 @@
     const envelope=Math.sin(clamp(gather)*Math.PI);
     return {x:clamp(x,-7,7)+Math.sin(gather*15)*1.5*envelope,y:clamp(y,-7,7)+Math.cos(gather*12)*1.5*envelope,stretch:Math.min(.035,stretch)};
   }
-  const api = Object.freeze({ clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll, memberPath, anniversary, anniversaryParticle, recoil });
+  // Symmetric and frame-bounded: even a delayed Safari frame cannot skip the
+  // whole contact interval. Slow scrolling remains effectively direct.
+  function liquidProgress(current,target,dt) {
+    const delta=target-current;
+    const limit=current<.30 || target<.30 ? .003 : current<.47 || target<.47 ? .0045 : .035;
+    const step=Math.min(limit,Math.max(.00025,Math.abs(delta)*(1-Math.exp(-dt/28))));
+    return Math.abs(delta)<=step?target:current+Math.sign(delta)*step;
+  }
+  const api = Object.freeze({ liquidProgress, clamp, lerp, progress, smooth, easeOut, DURATION, intro, scroll, bridgeScroll, memberPath, anniversary, anniversaryParticle, recoil });
   if (typeof module === 'object' && module.exports) module.exports = api;
   else target.TwoNMotion = api;
 })(typeof window === 'object' ? window : this);

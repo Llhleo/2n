@@ -11,15 +11,15 @@
     target.matchMedia('(pointer:coarse)').matches || (target.navigator&&target.navigator.maxTouchPoints>0)
   ));
   const precision=touchFirst?2:3;
-  const fmt=p=>p.map(v=>Number(v.toFixed(precision))).join(' ');
+  const num=v=>Number(v.toFixed(precision));
+  const fmt=p=>num(p[0])+' '+num(p[1]);
+  const motherPoints=Array.from({length:28},()=>[0,0]);
   let pendingMother=null;
 
   function plainCircle(x,y,r) {
     if(r<.05) return '';
-    // Keep the winding direction consistent with softMother(). The previous arc-
-    // based circle used the opposite winding, so when it overlapped the mother
-    // drop under fill-rule=nonzero Safari rendered subtraction holes/cutouts.
-    return softMother(x,y,r,null);
+    // Two clockwise arcs share the positive winding of softMother and neck.
+    return `M ${num(x+r)} ${num(y)} A ${num(r)} ${num(r)} 0 1 1 ${num(x-r)} ${num(y)} A ${num(r)} ${num(r)} 0 1 1 ${num(x+r)} ${num(y)} Z `;
   }
 
   function softMother(x,y,r,deform) {
@@ -28,7 +28,7 @@
     const totalWeight=lobes.reduce((sum,l)=>sum+l.weight,0);
     const stretch=clamp(deform&&deform.stretch||0,0,.028);
     const axis=deform&&Number.isFinite(deform.axis)?deform.axis:0;
-    const points=[];
+    const points=motherPoints;
     for(let i=0;i<segments;i++) {
       const a=i/segments*Math.PI*2;
       let local=0;
@@ -42,7 +42,7 @@
       const bulge=clamp(local*.025,-.018,.038);
       const inertia=stretch*Math.cos(2*(a-axis));
       const rr=r*(1+bulge+inertia);
-      points.push([x+Math.cos(a)*rr,y+Math.sin(a)*rr]);
+      points[i][0]=x+Math.cos(a)*rr;points[i][1]=y+Math.sin(a)*rr;
     }
     const tension=.92;
     let d=`M ${fmt(points[0])} `;
@@ -70,7 +70,7 @@
 
   function neck(x,y,R,bx,by,r) {
     const d=Math.hypot(bx-x,by-y);
-    const gap=Math.min(24,r*.82);
+    const gap=Math.max(10,Math.min(28,r*1.15));
     if(R<1 || r<1 || d<=Math.abs(R-r)+.01 || d>=R+r+gap) return '';
     const theta=Math.atan2(by-y,bx-x);
     const intersect=d<R+r;
@@ -80,7 +80,7 @@
     // A compact tangent bridge reads as a high-surface-tension neck rather than
     // a metaball/goo connector. It vanishes quickly once the drop separates.
     const strength=.50*(1-ramp(d,R+r,R+r+gap));
-    if(strength<.10) return '';
+    if(strength<.001) return '';
     const a1=theta+u+(outer-u)*strength;
     const a2=theta-u-(outer-u)*strength;
     const a3=theta+Math.PI-v-(Math.PI-v-outer)*strength;
@@ -125,7 +125,7 @@
     }
   }
 
-  function buildGather(M,count,width,height,steps=touchFirst?360:600) {
+  function buildGather(M,count,width,height,steps=720) {
     const dense=count>48;
     const seed=Math.min(width*.06,height*.045,28);
     const finalRadius=Math.min(width*.72,height*.65)*.6;
@@ -136,62 +136,35 @@
     const sourceRadii=rawRadii.map(r=>r*areaScale);
     const meanArea=targetArea/Math.max(1,count);
     const rows=[];
-    let radius=seed;
-    const absorbed=Array(count).fill(0);
-
+    // Transfer is a function of local progress, never of the previous mother's
+    // radius. A growing neighbour cannot trigger an absorption avalanche.
     for(let k=0;k<=steps;k++) {
       const phase=k/steps;
-      const states=Array.from({length:count},(_,i)=> {
-        const p=M.memberPath(i,count,phase,width,height);
-        const r=sourceRadii[i];
-        const targetRadius=Math.max(0,radius-r*.94);
-        if(dense) {
-          // Dense roster: use a small shared angular drift while a member is
-          // visible. This produces only a short ~15-20deg tangent arc before
-          // absorption. It is NOT an orbit and cannot approach half a turn.
-          // Sharing the same drift at each frame also preserves the golden-angle
-          // spacing between simultaneously visible droplets.
-          const theta=p.heading+phase*4.4;
-          const cs=Math.cos(theta),sn=Math.sin(theta);
-          const rx=Math.max(68,width*.5-46),ry=Math.max(90,height*.5-92);
-          const edgeBase=Math.min(
-            rx/Math.max(.06,Math.abs(Math.cos(p.heading))),
-            ry/Math.max(.06,Math.abs(Math.sin(p.heading)))
-          )*.975;
-          const gap=Math.max(54,r*3.2);
-          const startRadius=Math.max(edgeBase,targetRadius+gap);
-          const ringRadius=targetRadius+gap;
-          const enter=smooth(ramp(p.approach,0,.30));
-          const merge=smooth(ramp(p.approach,.68,1));
-          let radial=mix(startRadius,ringRadius,enter);
-          radial=mix(radial,targetRadius,merge);
-          return {
-            x:cs*radial,
-            y:sn*radial,
-            scale:p.scale,mix:p.mix,approach:p.approach,heading:theta,
-            collisionR:r*Math.sqrt(1-absorbed[i])*ramp(p.mix,0,.09)
-          };
-        }
-        return {
-          x:p.x+Math.cos(p.heading)*targetRadius*p.approach,
-          y:p.y+Math.sin(p.heading)*targetRadius*p.approach,
-          scale:p.scale,mix:p.mix,approach:p.approach,heading:p.heading,
-          collisionR:r*Math.sqrt(1-absorbed[i])*ramp(p.mix,0,.09)
-        };
+      const paths=Array.from({length:count},(_,i)=>M.memberPath(i,count,phase,width,height));
+      const absorbed=paths.map(p=>ramp(p.approach,.64,1));
+      const radius=Math.sqrt(seed*seed+sourceRadii.reduce((sum,r,i)=>sum+r*r*absorbed[i],0));
+      const states=paths.map((p,i)=> {
+        const source=sourceRadii[i], amount=absorbed[i];
+        const r=source*Math.sqrt(1-amount);
+        const heading=p.heading+(dense?phase*1.8:0);
+        const cs=Math.cos(heading),sn=Math.sin(heading);
+        const edge=Math.min(Math.max(68,width*.5-46)/Math.max(.06,Math.abs(cs)),
+          Math.max(90,height*.5-92)/Math.max(.06,Math.abs(sn)));
+        const gap=Math.max(10,Math.min(28,source*1.15));
+        const waiting=radius+source+gap+Math.max(24,source);
+        // .48-.64 is a real contact dwell, before any area is transferred.
+        let radial=mix(Math.max(edge,waiting),radius+source+gap*.72,ramp(p.approach,0,.48));
+        radial=mix(radial,radius+source*.80,ramp(p.approach,.48,.64));
+        radial=mix(radial,Math.max(0,radius-r*.96),ramp(amount,0,1));
+        return {x:cs*radial,y:sn*radial,scale:p.scale,mix:p.mix,
+          approach:p.approach,heading,collisionR:r*(1-ramp(p.approach,.40,.64))};
       });
       if(!dense) separateDrops(states,2.5,3,18);
-      for(let i=0;i<count;i++) {
-        const p=states[i],r=sourceRadii[i];
-        const overlap=radius+r-Math.hypot(p.x,p.y);
-        const entered=ramp(overlap,0,1.65*r);
-        absorbed[i]=Math.max(absorbed[i],entered);
-      }
-      radius=Math.sqrt(seed*seed+sourceRadii.reduce((sum,r,i)=>sum+r*r*absorbed[i],0));
-      rows.push({radius,absorbed:absorbed.slice(),samples:states.map(({x,y,scale,mix,approach,heading})=>({x,y,scale,mix,approach,heading}))});
+      rows.push({radius,absorbed,samples:states});
     }
     return {
       rows,steps,seed,finalRadius,count,width,height,sourceRadii,meanArea,dense,
-      totalArea:seed*seed+targetArea,renderSteps:touchFirst?720:1080,
+      totalArea:seed*seed+targetArea,renderSteps:2400,
       cacheKey:-1,cacheValue:null
     };
   }
@@ -205,10 +178,11 @@
     const q=renderKey/plan.renderSteps;
     const sample=q*plan.steps,k=Math.floor(sample),t=sample-k;
     const a=plan.rows[k],b=plan.rows[Math.min(k+1,plan.steps)];
-    const radius=mix(a.radius,b.radius,t);
+    let radius=plan.seed*plan.seed;
     let rx=0,ry=0;
     const lobes=[];
-    const drops=Array.from({length:plan.count},(_,i)=> {
+    const drops=plan.drops||(plan.drops=Array.from({length:plan.count},()=>({})));
+    for(let i=0;i<plan.count;i++) {
       const pa=a.samples[i],pb=b.samples[i];
       const p={
         x:mix(pa.x,pb.x,t),y:mix(pa.y,pb.y,t),scale:mix(pa.scale,pb.scale,t),
@@ -217,6 +191,7 @@
       };
       const absorbed=mix(a.absorbed[i],b.absorbed[i],t);
       const source=plan.sourceRadii[i];
+      radius+=source*source*absorbed;
       const areaR=source*Math.sqrt(Math.max(0,1-absorbed));
       const reveal=Math.sqrt(ramp(p.mix,0,.09));
       const pulse=Math.sin(absorbed*Math.PI)*clamp(source*source/plan.meanArea,.55,1.7);
@@ -224,20 +199,21 @@
       rx-=Math.cos(p.heading)*impulse;ry-=Math.sin(p.heading)*impulse;
       if(pulse>.025) lobes.push({angle:Math.atan2(p.y,p.x),weight:Math.min(1.4,pulse)});
       const renderedR=areaR*reveal;
-      return {
+      Object.assign(drops[i], {
         x:p.x,y:p.y,r:renderedR,areaR,
         label:ramp(p.mix,0,.10)*(1-ramp(absorbed,.03,.45)),
         // The DOM member bubble is 116px wide (58px radius). Scale it to the
         // exact SVG radius so large rosters do not leave oversized label circles
         // floating over the smaller area-conserving liquid droplets.
         scale:renderedR/58,absorbed,collisionR:renderedR
-      };
-    });
-    if(!plan.dense) separateDrops(drops,2.5,5,30);
+      });
+    }
+    radius=Math.sqrt(radius);
     const recoilScale=plan.dense?.32:1;
     const x=clamp(rx*recoilScale,-6,6),y=clamp(ry*recoilScale,-6,6);
     for(const drop of drops) {drop.x+=x*drop.absorbed;drop.y+=y*drop.absorbed;}
-    if(!plan.dense) separateDrops(drops,2.5,3,8);
+
+    if(!plan.dense) separateDrops(drops,2.5,5,30);
     const speed=Math.hypot(x,y);
     const deform={lobes,axis:speed>.01?Math.atan2(y,x):0,stretch:Math.min(.022,speed*.0026)};
     const value={radius,x,y,drops,deform};
@@ -259,13 +235,13 @@
         tangent:(i%2?1:-1)*(.55+(i%5)*.08)
       };
     });
-    const mother=s=>radius*Math.sqrt(Math.max(0,1-entries.reduce((sum,p)=>sum+(p.active?ramp((s-p.start)/p.duration,.08,.46):0),0)/Math.max(1,activeCount)));
+    const weights=entries.reduce((sum,p)=>sum+(p.active?p.orbitRadius*p.orbitRadius:0),0);
     for(const p of entries) {
-      if(!p.active) continue;
-      p.birthRadius=mother(p.start+p.duration*.16)*.95;
-      p.volumeRadius=Math.max(p.orbitRadius,radius/Math.sqrt(activeCount)*.92);
+      if(p.active) p.orbitRadius*=radius/Math.sqrt(weights);
     }
-    return {plan:entries,mother,activeCount,renderSteps:touchFirst?540:900,cacheKey:-1,cacheValue:null};
+    const mother=s=>Math.sqrt(Math.max(0,radius*radius-entries.reduce((sum,p)=>
+      sum+(p.active?p.orbitRadius*p.orbitRadius*ramp((s-p.start)/p.duration,.04,.50):0),0)));
+    return {plan:entries,mother,activeCount,totalArea:radius*radius,renderSteps:1800,cacheKey:-1,cacheValue:null};
   }
 
   function splitAt(plan,s) {
@@ -279,31 +255,25 @@
     const drops=plan.plan.map((p,i)=> {
       if(!p.active) return {x:0,y:0,r:0,collisionR:0,handoff:0,color:0,scale:0,local:0};
       const local=clamp((q-p.start)/p.duration);
-      const grow=ramp(local,0,.24);
-      const flight=ramp(local,.20,1);
-      const shrink=ramp(local,.48,1);
-      const angle=p.orbit.angle+Math.sin(flight*Math.PI)*.14;
-      const distance=mix(p.birthRadius,p.orbit.radius,flight);
-      const r=mix(p.volumeRadius,p.orbitRadius,shrink)*grow;
-      const drift=Math.sin(local*Math.PI)*p.tangent*4;
+      const transferred=ramp(local,.04,.50);
+      const r=p.orbitRadius*Math.sqrt(transferred);
+      const release=ramp(local,.48,.68);
+      const flight=ramp(local,.64,1);
+      const angle=p.orbit.angle+Math.sin(flight*Math.PI)*.09;
+      const gap=Math.max(10,Math.min(28,r*1.15));
+      const contact=plan.mother(q)+r*mix(.35,.94,ramp(local,.04,.48));
+      const distance=mix(contact+release*gap*1.35,p.orbit.radius,flight);
+      const drift=Math.sin(flight*Math.PI)*p.tangent*3;
       const x=Math.cos(angle)*distance-Math.sin(angle)*drift;
       const y=Math.sin(angle)*distance+Math.cos(angle)*drift;
       const bulge=Math.sin(ramp(local,0,.52)*Math.PI)*(1-ramp(local,.52,.82));
       if(bulge>.02) lobes.push({angle,weight:bulge*(.7+(i%4)*.08)});
       return {
         x,y,r,collisionR:r*(1-ramp(local,.02,.24)),
-        handoff:ramp(local,.66,1),color:ramp(local,.5,1),
+        handoff:ramp(local,.74,1),color:ramp(local,.5,1),
         scale:r/Math.max(.001,p.orbitRadius),local
       };
     });
-    const detached=drops.map(d=>({...d,collisionR:d.r*ramp(d.local,.28,.55)}));
-    separateDrops(detached,2.0,3,20);
-    for(let i=0;i<drops.length;i++) {
-      if(!plan.plan[i].active) continue;
-      const blend=ramp(drops[i].local,.28,.55);
-      drops[i].x=mix(drops[i].x,detached[i].x,blend);
-      drops[i].y=mix(drops[i].y,detached[i].y,blend);
-    }
     const deform={lobes,axis:0,stretch:Math.min(.014,lobes.reduce((s,l)=>s+l.weight,0)*.0018)};
     const value={radius:plan.mother(q),drops,deform};
     plan.cacheKey=renderKey;plan.cacheValue=value;

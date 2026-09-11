@@ -26,7 +26,7 @@
     // a deterministic tangential bow around the growing mother drop, so every
     // member follows one clean curved sweep instead of a straight chord or loop.
     const start=.012+index/Math.max(1,count-1)*.72;
-    const duration=.060+noise(index+15)*.014;
+    const duration=.095+noise(index+15)*.020;
     const local=progress(phase,start,start+duration);
     const t=smooth(progress(local,.07,1));
     const angle=index*2.399963+noise(index+9)*.16;
@@ -57,49 +57,7 @@
     return nativeAnniversaryParticle(index,SPLIT_COUNT,phase,width,height);
   };
 
-  motion.bridgeScroll=function(distance,start,duration){
-    const state=nativeBridgeScroll(distance,start,duration);
-    if(duration>=4800&&state.phase>0&&state.phase<1){
-      const steps=touchFirst?720:1080;
-      const raw=clamp((distance-start)/duration);
-      state.phase=Math.round(raw*steps)/steps;
-      // The mother radius reaches ~50% at gather≈.23 for the 95-member plan.
-      // Delay the first line until that point, then fade it before the result
-      // title takes over. CSS !important makes this override app.js' old inline
-      // opacity timing without changing the rest of the app shell.
-      const gather=progress(state.phase,0,.30);
-      const message=smooth(progress(gather,.235,.315))*(1-smooth(progress(gather,.68,.82)));
-      root.style.setProperty('--member-message-opacity',String(message));
-    } else if(duration>=4800) {
-      root.style.setProperty('--member-message-opacity','0');
-    }
-    return state;
-  };
   window.TwoNMotion=Object.freeze(motion);
 
-  // Let iOS Safari keep native momentum; suppress the old custom horizontal
-  // touch interception while app.js registers its bootstrap handlers.
-  const nativeAdd=window.addEventListener;
-  const blocked=new Set(['touchstart','touchmove','touchend']);
-  let booting=true;
-  window.addEventListener=function(type,listener,options){
-    if(booting&&blocked.has(type)) return;
-    return nativeAdd.call(this,type,listener,options);
-  };
-
-  nativeAdd.call(window,'DOMContentLoaded',()=>{
-    booting=false;
-    window.addEventListener=nativeAdd;
-    root.dataset.version='35.8';
-    document.querySelectorAll('.anniversary-particle').forEach((dot,i)=>{
-      if(i>=SPLIT_COUNT){
-        dot.style.display='none';
-        return;
-      }
-      // Restore the original pre-dense-roster particle size.
-      const size=16+(i%5)*3;
-      dot.style.width=size+'px';
-      dot.style.height=size+'px';
-    });
-  },{once:true});
+  // Event routing belongs to app.js; do not monkey-patch window listeners.
 })();

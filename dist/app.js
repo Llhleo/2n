@@ -22,6 +22,8 @@
   const meter = one('.progress i');
   const counter = one('.chapter-count b');
   const chapterName = one('.chapter-name');
+  const previousButton=one('.previous-chapter'),nextButton=one('.next-chapter');
+  const themeMeta=one('meta[name="theme-color"]');
   const panels = all('.panel');
   const mediaQuery = matchMedia('(prefers-reduced-motion: reduce)');
   const qaTouch = location.hostname === 'terminal.local' && new URLSearchParams(location.search).has('qa-touch');
@@ -35,7 +37,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '34';
+  root.dataset.version = '39';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let reduced = mediaQuery.matches;
@@ -62,12 +64,21 @@
   const leaders=one('.leaders');
   const viewport=one('.story-viewport');
   let gatherPlan,splitPlan,lastLiquidPhase=-1;
+  let visualLiquid=0, liquidTarget=0;
   const svgNS='http://www.w3.org/2000/svg';
   const fusion=document.createElementNS(svgNS,'svg');
   fusion.classList.add('member-fusion'); fusion.setAttribute('aria-hidden','true');
   fusion.innerHTML='<defs><linearGradient id="fusion-color" gradientUnits="userSpaceOnUse"><stop stop-color="#a6ebc5"/><stop offset=".5" stop-color="#64b7d0"/><stop offset="1" stop-color="#2875f0"/></linearGradient></defs><path fill="url(#fusion-color)" fill-rule="nonzero"/>';
   const liquidPath=fusion.querySelector('path');
   members.prepend(fusion);
+  let lastOutline='';
+  function writeLiquid(outline) {
+    if(outline!==lastOutline) {liquidPath.setAttribute('d',outline);lastOutline=outline;}
+  }
+  const labelOpacity=new Float64Array(memberBubbles.length).fill(-1);
+  memberBubbles.forEach(label=> {
+    label.style.fontSize=(label.textContent.length>10?22:28)+'px';
+  });
   const anniversaryTitle = one('.anniversary-title');
   const anniversaryParticles = memberBubbles.map((_,i)=> {
     const dot=document.createElement('i');
@@ -86,7 +97,7 @@
     controls.classList.toggle('is-shown',shown);
     controls.inert=!shown || !ready;
   }
-  const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
+  const scrollForX = x => touchFirst ? x : lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
 
   function setMotionPreference() {
     reduced = mediaQuery.matches;
@@ -103,6 +114,7 @@
       this.fg = this.front.getContext('2d');
       if (!this.bg || !this.fg) throw new Error('Canvas unavailable');
       this.atlas = document.createElement('canvas');
+      this.terrain=new Map();this.sizeKey='';this.drawKey='';
     }
     makeAtlas() {
       // Match the painted aspect ratio; retain game-texture proportions on phones.
@@ -133,6 +145,9 @@
       });
     }
     resize() {
+      const key=[width,height,touchFirst?1:Math.min(devicePixelRatio||1,1.5)].join(':');
+      if(this.sizeKey===key) return;
+      this.sizeKey=key;this.drawKey='';this.terrain.clear();
       this.makeAtlas();
       // A 1x canvas is enough beneath the textured artwork on touch screens and
       // avoids pushing two retina-sized canvases through every scroll frame.
@@ -141,6 +156,10 @@
         canvas.width = Math.round(width * this.dpr);
         canvas.height = Math.round(height * this.dpr);
       }
+      this.sky=this.bg.createLinearGradient(0,0,0,height);
+      this.sky.addColorStop(0,'#f3f2ec');this.sky.addColorStop(.53,'#e9ece1');this.sky.addColorStop(1,'#c3d2bc');
+      this.shade=this.fg.createLinearGradient(0,height*.60,0,height);
+      this.shade.addColorStop(0,'transparent');this.shade.addColorStop(1,'#0a100950');
     }
     ridge(x, base, amplitude, phase) {
       return base + height * amplitude * (
@@ -154,15 +173,20 @@
       ctx.translate(width * .5, height * .5);
       ctx.scale(zoom, zoom);
       ctx.translate(-width * .5 + width * .30 * entry, -height * .5 + height * .035 * entry);
-      ctx.beginPath();
-      const sample = Math.max(touchFirst ? 9 : 5, width / (touchFirst ? 54 : 100));
-      for (let x = -width; x <= width * 2; x += sample) {
-        const y = this.ridge(x, base + offsetY, amplitude, phase);
-        if (x === -width) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      const key=[base,amplitude,phase].join(':');
+      let contour=this.terrain.get(key);
+      if(!contour) {
+        contour=new Path2D();
+        const sample=Math.max(touchFirst?9:5,width/(touchFirst?54:100));
+        for(let x=-width;x<=width*2;x+=sample) {
+          const y=this.ridge(x,base,amplitude,phase);
+          if(x===-width) contour.moveTo(x,y);else contour.lineTo(x,y);
+        }
+        contour.lineTo(width*2,height*3);contour.lineTo(-width,height*3);contour.closePath();
+        this.terrain.set(key,contour);
       }
-      ctx.lineTo(width * 2, height * 3); ctx.lineTo(-width, height * 3); ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(this.atlas, -width * .08 + offsetX, base - height * .19 + offsetY, width * 1.16, height * 1.25);
+      ctx.translate(0,offsetY);ctx.clip(contour);
+      ctx.drawImage(this.atlas,-width*.08+offsetX,base-height*.19,width*1.16,height*1.25);
       if (wash) {
         ctx.fillStyle = wash; ctx.fillRect(-width, -height, width * 3, height * 4);
       }
@@ -175,15 +199,16 @@
     }
     draw(state, entry, now) {
       const { bg, fg } = this;
+      const key=[state.world,entry,touchFirst?0:cursorX,touchFirst?0:cursorY,touchFirst||reduced?0:now].join(':');
+      if(key===this.drawKey) return;
+      this.drawKey=key;
       this.back.style.transform='none';
       this.front.style.transform='none';
       for (const ctx of [bg, fg]) {
         ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         ctx.clearRect(0, 0, width, height);
       }
-      const sky = bg.createLinearGradient(0, 0, 0, height);
-      sky.addColorStop(0, '#f3f2ec'); sky.addColorStop(.53, '#e9ece1'); sky.addColorStop(1, '#c3d2bc');
-      bg.fillStyle = sky; bg.fillRect(0, 0, width, height);
+      bg.fillStyle = this.sky; bg.fillRect(0, 0, width, height);
       const drift = reduced || touchFirst ? 0 : Math.sin(now / 7800) * 2;
       const base = logoTop + logoHeight * .67;
       const rise = (1 - state.world) * height * .24;
@@ -195,10 +220,73 @@
       const centralWave = this.ridge(width * .5, 0, .035, 2.5);
       const frontBase = base - centralWave;
       this.sheet(fg, frontBase, .035, 2.5, pointerX * .85, rise * .5 + pointerY * .42 + drift * .6 - entry * height * .04, '#09180915', entry);
-      const shade = fg.createLinearGradient(0, height * .60, 0, height);
-      shade.addColorStop(0, 'transparent'); shade.addColorStop(1, '#0a100950');
-      fg.fillStyle = shade; fg.fillRect(0, height * .62, width, height * .38);
+      fg.fillStyle = this.shade; fg.fillRect(0, height * .62, width, height * .38);
     }
+  }
+
+  let biomeRail=null, bridgeHold=null, memberHold=null;
+  let mobileBridgeTop=0,mobileMemberTop=0,biomeScroll=0,leaderScroll=0;
+  const leaderCards=all('.leader-card');
+  function setupMobile() {
+    if(!touchFirst) return;
+    biomeRail=document.createElement('div');biomeRail.className='biome-rail native-rail';
+    biomeRail.setAttribute('role','region');biomeRail.setAttribute('aria-label','五境，左右滑动');
+    biomeRail.tabIndex=0;
+    track.prepend(biomeRail);
+    all('.biome').forEach(panel=>biomeRail.append(panel));
+    for(const panel of [bridge,members]) {
+      const hold=document.createElement('div');hold.className='chapter-hold';
+      panel.before(hold);hold.append(panel);
+      if(panel===bridge) bridgeHold=hold;else memberHold=hold;
+    }
+    biomeRail.addEventListener('scroll',()=>{biomeScroll=biomeRail.scrollLeft;schedule();},{passive:true});
+    leaders.classList.add('native-rail');leaders.tabIndex=0;
+    leaders.setAttribute('aria-label','管理层，左右滑动');
+    leaders.addEventListener('scroll',()=>{leaderScroll=leaders.scrollLeft;schedule();},{passive:true});
+  }
+  function measureLiquid() {
+    if(gatherPlan && gatherPlan.width===width && gatherPlan.height===height) return;
+    gatherPlan=L.buildGather(M,memberBubbles.length,width,height);
+    splitPlan=L.buildSplit(M,memberBubbles.length,width,height,gatherPlan.rows[gatherPlan.steps].radius);
+    anniversaryParticles.forEach((dot,i)=> {
+      const p=splitPlan.plan[i];
+      if(p.active) { dot.style.width=p.orbitRadius*2+'px';dot.style.height=p.orbitRadius*2+'px'; }
+    });
+    lastLiquidPhase=-1;
+    fusion.setAttribute('viewBox',[-width/2,-height/2,width,height].join(' '));
+    const gradient=fusion.querySelector('linearGradient');
+    gradient.setAttribute('x1',-gatherPlan.finalRadius);gradient.setAttribute('y1',-gatherPlan.finalRadius);
+    gradient.setAttribute('x2',gatherPlan.finalRadius);gradient.setAttribute('y2',gatherPlan.finalRadius);
+  }
+  function measureMobile(preserve,oldY,oldLead,oldTravel) {
+    bridgeDuration=Math.round(height*2.2);
+    memberDuration=Math.round(Math.max(width*7.2,height*12));
+    track.style.paddingTop=lead+'px';
+    bridgeHold.style.height=(height+bridgeDuration)+'px';
+    memberHold.style.height=(height+memberDuration)+'px';
+    shell.style.height='auto';
+    // All layout reads are confined to this measurement pass.
+    const top=element=>element.getBoundingClientRect().top+scrollY;
+    mobileBridgeTop=top(bridgeHold);mobileMemberTop=top(memberHold);
+    const biomeTop=top(biomeRail);
+    geometry=panels.map((panel,i)=>({panel,x:i<5?biomeTop:top(panel===bridge?bridgeHold:panel===members?memberHold:panel),
+      width,copy:panel.querySelector('.biome-copy'),visual:panel.querySelector('.biome-visual'),
+      railOffset:i<5?i*width:0,surface:getComputedStyle(panel).backgroundColor}));
+    const leaderLeft=leaders.getBoundingClientRect().left;
+    cardGeometry=leaderCards.map(card=>({card,x:card.getBoundingClientRect().left-leaderLeft+leaders.scrollLeft,width,content:card.lastElementChild}));
+    bridgeStart=mobileBridgeTop;memberStart=mobileMemberTop;
+    travel=Math.max(0,shell.offsetHeight-height-lead);
+    logoTop=mark.offsetTop;logoHeight=mark.offsetHeight;
+    measureLiquid();
+    stops=[0,...geometry.map(g=>g.x),mobileBridgeTop+bridgeDuration,
+      ...[.30,.47,.65,.86,1].map(p=>mobileMemberTop+memberDuration*p)];
+    stops=[...new Set(stops)].sort((a,b)=>a-b);
+    if(scene) scene.resize();
+    if(preserve&&initialized&&ready) {
+      const next=oldY<=oldLead?oldY/oldLead*lead:lead+(oldY-oldLead)/Math.max(1,oldTravel)*travel;
+      scrollTo({top:clamp(next,0,lead+travel),behavior:'instant'});renderedScroll=scrollY;
+    }
+    schedule();
   }
 
   function measure(preserve = true) {
@@ -209,23 +297,19 @@
     height = innerHeight;
     root.style.setProperty('--view-height', height + 'px');
     lead = Math.round(Math.max(width * .94, height * .78));
+    if(touchFirst) {measureMobile(preserve,oldY,oldLead,oldTravel);return;}
     geometry = panels.map(panel => ({
       panel,
       x:panel.offsetLeft,
       width:panel.offsetWidth,
       copy:panel.querySelector('.biome-copy'),
+      surface:getComputedStyle(panel).backgroundColor,
       visual:panel.querySelector('.biome-visual')
     }));
     bridgeStart = bridge.offsetLeft;
     bridgeDuration = Math.round(Math.max(width * 1.8, height * 2.2));
     memberStart = members.offsetLeft;
-    gatherPlan=L.buildGather(M,memberBubbles.length,width,height);
-    splitPlan=L.buildSplit(M,memberBubbles.length,width,height,gatherPlan.rows[gatherPlan.steps].radius);
-    lastLiquidPhase=-1;
-    fusion.setAttribute('viewBox',[-width/2,-height/2,width,height].join(' '));
-    const gradient=fusion.querySelector('linearGradient');
-    gradient.setAttribute('x1',-gatherPlan.finalRadius);gradient.setAttribute('y1',-gatherPlan.finalRadius);
-    gradient.setAttribute('x2',gatherPlan.finalRadius);gradient.setAttribute('y2',gatherPlan.finalRadius);
+    measureLiquid();
     memberDuration = Math.round(Math.max(width*7.2, height*12));
     travel = Math.max(0, track.scrollWidth - width) + bridgeDuration + memberDuration;
     shell.style.height = (lead + travel + height) + 'px';
@@ -269,17 +353,17 @@
     chapterName.textContent = index === 0 ? '序章' : panels[index-1].dataset.chapter;
     root.classList.toggle('is-light-chrome', index > 0 && index <= 6 || index === 8);
     root.classList.toggle('is-ink-footer', index === 7 || index === 9 || index === 10);
-    const surface = index === 0 ? '#f3f2ec' : getComputedStyle(panels[index-1]).backgroundColor;
+    const surface = index === 0 ? '#f3f2ec' : geometry[index-1].surface;
     root.style.setProperty('--surface-color',surface);
-    one('meta[name="theme-color"]').content=surface;
+    themeMeta.content=surface;
   }
 
   function renderMembers(phase, x) {
-    const arriving = smooth(progress(x,memberStart-width,memberStart));
+    const arriving = touchFirst ? 1 : smooth(progress(x,memberStart-width,memberStart));
     const crossing=x>=memberStart-width && x<memberStart;
     // One dissolve over an opaque, uniform management-colored backing. Never
     // fade both surfaces, which exposed a dark seam under the moving last card.
-    members.style.transform = x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
+    members.style.transform = !touchFirst && x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
     members.style.opacity = String(arriving);
     members.style.zIndex = '2';
     leaders.style.opacity='1';
@@ -291,12 +375,13 @@
     lastLiquidPhase=phase;fusion.dataset.reduced=String(reduced);
     const mapped=phase<=.355?phase:phase<=.47?lerp(.355,.43,progress(phase,.355,.47)):lerp(.43,1,progress(phase,.47,1));
     const stage=M.anniversary(mapped),gather=progress(phase,0,.30);
-    memberMessage.style.opacity = reduced ? '0' : String(1-smooth(progress(gather,.52,.73)));
+    memberMessage.style.opacity = reduced ? '0' : String(smooth(progress(gather,.235,.315))*(1-smooth(progress(gather,.68,.82))));
     memberResult.style.opacity = reduced ? '1' : String(smooth(progress(gather,.67,.9))*stage.resultFade);
     anniversaryTitle.style.opacity = reduced ? '1' : String(stage.title);
     if(reduced) {
       memberCloud.style.visibility='visible';
       memberBubbles.forEach(b=>b.style.opacity='1');
+      labelOpacity.fill(-1);
       return;
     }
     const gathering=phase<=.355, splitting=phase>.355 && phase<.47;
@@ -309,20 +394,20 @@
       flow.drops.forEach((drop,i)=> {
         if(drop.r>.1) outline+=L.circle(drop.x,drop.y,drop.r)+L.neck(flow.x,flow.y,flow.radius,drop.x,drop.y,drop.r);
         const label=memberBubbles[i];
-        label.style.opacity=String(drop.label);
+        if(labelOpacity[i]!==drop.label) {label.style.opacity=String(drop.label);labelOpacity[i]=drop.label;}
         if(drop.label>.001) label.style.transform='translate(-50%,-50%) translate3d('+drop.x+'px,'+drop.y+'px,0) scale('+drop.scale+')';
       });
-      liquidPath.setAttribute('d',outline);
+      writeLiquid(outline);
     } else if(splitting) {
       splittingState=L.splitAt(splitPlan,progress(phase,.355,.47));
       let outline=L.circle(0,0,splittingState.radius);
       splittingState.drops.forEach(drop=> {
         // Connected lobes belong to the mother silhouette; only detached drops
         // transfer to the colored compositor layers.
-        const r=drop.r*Math.sqrt(1-drop.handoff);
-        outline+=L.circle(drop.x,drop.y,r)+L.neck(0,0,splittingState.radius,drop.x,drop.y,r);
+        const r=drop.r;
+        if(drop.handoff<1) outline+=L.circle(drop.x,drop.y,r)+L.neck(0,0,splittingState.radius,drop.x,drop.y,r);
       });
-      liquidPath.setAttribute('d',outline);
+      writeLiquid(outline);
     }
     anniversaryParticles.forEach((dot,i)=> {
       if(gathering) {dot.style.opacity='0';return;}
@@ -337,7 +422,7 @@
 
   function frame(now) {
     frameId = 0;
-    if (!active || document.hidden) return;
+    if (!active || !initialized || document.hidden) return;
     const dt = Math.min(60, Math.max(1, now - (lastFrame || now-16)));
     lastFrame = now;
     if (playing) time = Math.min(M.DURATION, now - startedAt);
@@ -350,11 +435,21 @@
     if (Math.abs(renderedScroll-desired) < .1) renderedScroll = desired;
     cursorX = lerp(cursorX, wantedX, .07); cursorY = lerp(cursorY, wantedY, .07);
     const scrolling = M.scroll(renderedScroll, lead, travel);
-    const bridgeState = M.bridgeScroll(scrolling.x, bridgeStart, bridgeDuration);
+    const bridgeState = touchFirst ? {x:scrolling.x,phase:progress(desired,mobileBridgeTop,mobileBridgeTop+bridgeDuration)} : M.bridgeScroll(scrolling.x, bridgeStart, bridgeDuration);
     scrolling.x = bridgeState.x;
-    const memberState = M.bridgeScroll(scrolling.x, memberStart, memberDuration);
+    const memberState = touchFirst ? {x:memberStart+clamp((desired-mobileMemberTop)/height,-2,2)*width,phase:progress(desired,mobileMemberTop,mobileMemberTop+memberDuration)} : M.bridgeScroll(scrolling.x, memberStart, memberDuration);
+    if(touchFirst && desired>=mobileMemberTop && desired<=mobileMemberTop+memberDuration) memberState.x=memberStart;
     scrolling.x = memberState.x;
-    renderMembers(memberState.phase, scrolling.x);
+    liquidTarget=memberState.phase;
+    visualLiquid=reduced?liquidTarget:M.liquidProgress(visualLiquid,liquidTarget,dt);
+    // Keep the stage in view while its bounded visual progress catches up.
+    if(Math.abs(visualLiquid-liquidTarget)>.00001) scrolling.x=memberStart;
+    if(touchFirst) {
+      const catching=Math.abs(visualLiquid-liquidTarget)>.00001 && visualLiquid>0 && visualLiquid<.47 &&
+        (desired<mobileMemberTop || desired>mobileMemberTop+memberDuration);
+      members.classList.toggle('is-catching',catching);
+    }
+    renderMembers(visualLiquid, scrolling.x);
     const shift = smooth(progress(bridgeState.phase,.12,.76));
     const fade = smooth(progress(bridgeState.phase,.76,1));
     orb.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*width*.95) + 'px,0,0) scale(' + lerp(1.1,.26,shift) + ')';
@@ -366,7 +461,7 @@
     const entry = reduced ? scrolling.entry : smooth(scrolling.entry);
     root.classList.toggle('is-breathing',ready && !reduced && renderedScroll<2);
     applyIntro(state);
-    track.style.transform = 'translate3d(' + (-scrolling.x) + 'px,0,0)';
+    track.style.transform = touchFirst ? 'none' : 'translate3d(' + (-scrolling.x) + 'px,0,0)';
     meter.style.transform = 'scaleX(' + scrolling.progress + ')';
     hero.style.opacity = 1 - smooth(progress(entry, .68, 1));
     hero.style.visibility = entry >= 1 ? 'hidden' : 'visible';
@@ -381,16 +476,18 @@
     if (scene && entry < 1) {
       // After the intro, mobile moves the finished layers on the compositor.
       // Desktop keeps the richer per-frame canvas camera.
-      if (touchFirst && ready && !reduced) scene.transform(entry);
+      if (touchFirst && ready && !reduced) {scene.draw(state,0,now);scene.transform(entry);}
       else scene.draw(state, reduced ? 0 : entry, now);
     }
     let chapter = 0;
     for (let i=0; i<geometry.length; i++) {
       const g = geometry[i];
-      const relative = g.x - scrolling.x;
-      const visible = relative < width && relative + g.width > 0 && entry > .7;
-      g.panel.inert = !ready || !visible;
-      if (entry >= .86 && relative <= width*.5) chapter = i+1;
+      const vertical=g.x-desired;
+      const relative = touchFirst ? (g.copy?g.railOffset-biomeScroll:vertical) : g.x-scrolling.x;
+      const chapterHeight=g.panel===members?height+memberDuration:g.panel===bridge?height+bridgeDuration:height;
+      const visible = touchFirst ? vertical<height && vertical+chapterHeight>0 && (!g.copy || relative<width && relative+width>0) : relative < width && relative + g.width > 0 && entry > .7;
+      g.panel.inert = !ready || (!visible && !(g.panel===members && members.classList.contains('is-catching')));
+      if (entry >= .86 && (touchFirst ? vertical<=height*.5 && (!g.copy || relative<=width*.5) : relative<=width*.5)) chapter=i+1;
       const copy = g.copy;
       if (copy) {
         // Only the current and neighbouring ecosystem need per-frame styling.
@@ -407,19 +504,20 @@
       }
     }
     cardGeometry.forEach(g => {
-      if (g.x-scrolling.x > width*1.15 || g.x+g.width-scrolling.x < -width*.15) return;
-      const reveal = reduced ? 1 : easeOut(progress(1-(g.x-scrolling.x)/width,.04,.85));
+      const relative=touchFirst?g.x-leaderScroll:g.x-scrolling.x;
+      if (relative > width*1.15 || relative+g.width < -width*.15) return;
+      const reveal = reduced ? 1 : easeOut(progress(1-relative/width,.04,.85));
       g.content.style.opacity = reveal;
       g.content.style.transform = reduced ? 'none' : 'translateY(' + (1-reveal)*65 + 'px)';
     });
     updateChapter(chapter);
-    one('.previous-chapter').disabled = renderedScroll < 2;
-    one('.next-chapter').disabled = renderedScroll >= lead+travel-2;
+    previousButton.disabled = renderedScroll < 2;
+    nextButton.disabled = renderedScroll >= lead+travel-2;
     root.dataset.introTime = String(Math.round(ready ? M.DURATION : time));
     if (playing && state.complete) finishIntro();
     const unsettled = Math.abs(desired-renderedScroll)>.1;
     const pointerUnsettled = !touchFirst && (Math.abs(cursorX-wantedX)>.1 || Math.abs(cursorY-wantedY)>.1);
-    if (playing || unsettled || pointerUnsettled) schedule();
+    if (playing || unsettled || pointerUnsettled || Math.abs(visualLiquid-liquidTarget)>.00001) schedule();
   }
 
   function schedule() {
@@ -453,8 +551,11 @@
     clearTimeout(window.twoNBootTimer);
     if (frameId) cancelAnimationFrame(frameId);
     root.classList.remove('is-booting','is-enhanced','is-intro-locked');
+    members.classList.remove('is-catching');
     root.classList.add('motion-fallback');
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
+    track.style.cssText='';
+    if(bridgeHold) {bridgeHold.style.height='auto';memberHold.style.height='auto';}
     introScreen.classList.add('is-finished'); introScreen.inert=true;
     for (const element of [header,controls,hero,...panels]) { element.inert=false; element.style.opacity=''; }
     for (const element of [...introLines,eyebrow,cue]) element.style.cssText='';
@@ -478,6 +579,17 @@
   }
   function nextStop(direction) {
     const current = scrollY;
+    if(touchFirst) {
+      const rail=current>=geometry[6].x-height*.25 && current<geometry[6].x+height*.75?leaders:
+        current>=geometry[0].x-height*.25 && current<geometry[0].x+height*.75?biomeRail:null;
+      if(rail) {
+        const index=Math.round((rail===leaders?leaderScroll:biomeScroll)/width);
+        const last=rail===leaders?leaderCards.length:4;
+        if(index+direction>=0 && index+direction<=last) {
+          rail.scrollTo({left:(index+direction)*width,behavior:reduced?'instant':'smooth'});return;
+        }
+      }
+    }
     const candidates = direction>0 ? stops.filter(x=>x>current+4) : stops.filter(x=>x<current-4).reverse();
     if (candidates.length) goTo(candidates[0]);
   }
@@ -506,7 +618,7 @@
     schedule();
   }, {passive:true});
   addEventListener('wheel', event => {
-    if (!active || event.ctrlKey) return;
+    if (!active || event.ctrlKey || (touchFirst && event.target.closest?.('.native-rail'))) return;
     if (!ready) { event.preventDefault(); return; }
     if (!isControl(event.target) && Math.abs(event.deltaX)>Math.abs(event.deltaY)) {
       event.preventDefault();
@@ -521,6 +633,7 @@
       else if(scrollKeys.includes(event.key) && !isControl(event.target)) event.preventDefault();
       return;
     }
+    if(touchFirst && event.target.closest?.('.native-rail') && ['ArrowLeft','ArrowRight'].includes(event.key)) return;
     if(isControl(event.target) || event.metaKey || event.ctrlKey || event.altKey) return;
     if(!scrollKeys.includes(event.key)) return;
     event.preventDefault();
@@ -530,6 +643,7 @@
     else if(event.key==='PageUp' || (event.key===' '&&event.shiftKey)) nextStop(-1);
     else goTo(scrollY+(['ArrowRight','ArrowDown'].includes(event.key)?1:-1)*width*.55);
   });
+  if(!touchFirst) {
   addEventListener('touchstart', event=>{
     if(!active || event.touches.length!==1 || isControl(event.target)) {touch=null;return;}
     touch={x:event.touches[0].clientX,y:event.touches[0].clientY,lastX:event.touches[0].clientX,mode:null};
@@ -544,6 +658,7 @@
     touch.lastX=x;
   },{passive:false});
   addEventListener('touchend',()=>{touch=null;},{passive:true});
+  }
   addEventListener('pointermove', event=>{
     if(event.pointerType!=='mouse' || !active || reduced) return;
     wantedX=(event.clientX/width-.5)*24; wantedY=(event.clientY/height-.5)*14; schedule();
@@ -551,16 +666,15 @@
   addEventListener('blur',()=>{wantedX=0;wantedY=0;});
   let resizeTimer;
   addEventListener('resize',()=>{
-    // Update the visible surface when Safari retracts its toolbar, while keeping
-    // scroll distances and the expensive canvas atlas stable during the gesture.
-    if (touchFirst && Math.abs(document.documentElement.clientWidth-width)<2) {
-      if(window.visualViewport && Math.abs(window.visualViewport.scale-1)>.01) return;
-      root.style.setProperty('--view-height',innerHeight+'px');
-      if(active && initialized) shell.style.height=(lead+travel+innerHeight)+'px';
-      schedule();
-      return;
-    }
-    clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>measure(),160);
+    if(!active) return;
+    if(window.visualViewport && Math.abs(window.visualViewport.scale-1)>.01) return;
+    // Address-bar changes do not resize sticky chapters, canvases or liquid plans.
+    const sameWidth=Math.abs(document.documentElement.clientWidth-width)<3;
+    if(touchFirst && sameWidth && Math.abs(innerHeight-height)<Math.max(180,height*.25)) return;
+    clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>measure(),180);
+  },{passive:true});
+  addEventListener('orientationchange',()=>{
+    clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(active) measure();},240);
   },{passive:true});
   addEventListener('pageshow',event=>{
     if(event.persisted && initialized) {finishIntro();measure();}
@@ -603,6 +717,7 @@
       }));
       if(!active) return;
       scene=new WorldScene(images);
+      setupMobile();
       root.classList.add('is-enhanced');
       root.classList.remove('is-booting');
       measure(false); initialized=true;

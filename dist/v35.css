@@ -13,3 +13,27 @@ html.is-enhanced .member-cloud span {
   font-size:28px;
   padding:10px;
 }
+
+/* v39: native touch chapters. No touchmove interception or scroll trapping. */
+html.is-enhanced[data-input='touch'] .story-viewport { position:relative; inset:auto; height:auto; min-height:0; overflow:visible; }
+html.is-enhanced[data-input='touch'] .story-track { display:block; height:auto; will-change:auto; }
+html.is-enhanced[data-input='touch'] .panel { height:var(--view-height); width:100%; min-height:0; }
+html.is-enhanced[data-input='touch'] .native-rail { display:flex; width:100%; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x proximity; touch-action:pan-x pan-y pinch-zoom; overscroll-behavior-x:contain; scrollbar-width:none; }
+html.is-enhanced[data-input='touch'] .native-rail::-webkit-scrollbar { display:none; }
+html.is-enhanced[data-input='touch'] .biome-rail>.biome { flex:0 0 100%; scroll-snap-align:start; }
+html.is-enhanced[data-input='touch'] .chapter-hold>.panel { position:sticky; top:0; }
+html.is-enhanced[data-input='touch'] .leaders { display:block; height:auto; }
+html.is-enhanced[data-input='touch'] .leader-list { display:block; }
+html.is-enhanced[data-input='touch'] .section-intro,
+html.is-enhanced[data-input='touch'] .leader-card { width:100%; height:var(--view-height); }
+html:not(.is-enhanced) .biome-rail { display:block; }
+html:not(.is-enhanced) .chapter-hold { height:auto!important; }
+html.is-enhanced[data-input='touch'].is-reduced-motion .members { height:auto; min-height:var(--view-height); position:relative; }
+
+html.is-enhanced[data-input='touch'] .leaders.native-rail { display:flex; height:var(--view-height); }
+html.is-enhanced[data-input='touch'] .leaders .leader-list { display:flex; flex:0 0 auto; }
+html.is-enhanced[data-input='touch'] .leaders .section-intro,
+html.is-enhanced[data-input='touch'] .leaders .leader-card { flex:0 0 100vw; width:100vw; scroll-snap-align:start; }
+
+html.is-enhanced[data-input='touch'] .chapter-hold>.members.is-catching { position:fixed; inset:0; z-index:20!important; }
+html.is-enhanced[data-input='touch'] .biome-visual { contain:paint; }
