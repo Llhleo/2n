@@ -27,8 +27,7 @@
   const themeMeta=one('meta[name="theme-color"]');
   const panels = all('.panel');
   const mediaQuery = matchMedia('(prefers-reduced-motion: reduce)');
-  const qaTouch = location.hostname === 'terminal.local' && new URLSearchParams(location.search).has('qa-touch');
-  const touchFirst = qaTouch || matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
+  let touchFirst=window.TwoNProfile.input==='touch';
   const imagePaths = ['garden', 'desert', 'ocean', 'jungle', 'hell'].map(name => 'assets/' + name + '.png');
   const tones = ['#239450', '#dfca91', '#4c8fb9', '#339a48', '#b53d3b'];
   // Content lives in HTML, so members and contributions survive script failure.
@@ -39,7 +38,7 @@
   });
   root.dataset.brand = BRAND_MODE;
   root.dataset.version = '39.1';
-  root.dataset.input = touchFirst ? 'touch' : 'pointer';
+  root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
   let width = innerWidth, height = innerHeight, lead = 1, travel = 0;

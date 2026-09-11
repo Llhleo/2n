@@ -15,7 +15,7 @@
   const nativeBridgeScroll=source.bridgeScroll;
   const nativeMemberPath=source.memberPath;
   const nativeAnniversaryParticle=source.anniversaryParticle;
-  const touchFirst=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;
+
   const SPLIT_COUNT=23;
   const motion={...source};
 

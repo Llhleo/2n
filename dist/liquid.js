@@ -7,9 +7,7 @@
   const ramp=(x,a,b)=>smooth(clamp((x-a)/(b-a)));
   const point=(x,y,r,a)=>[x+Math.cos(a)*r,y+Math.sin(a)*r];
   const angleDelta=(a,b)=>Math.atan2(Math.sin(a-b),Math.cos(a-b));
-  const touchFirst=!!(target&&target.matchMedia&&(
-    target.matchMedia('(pointer:coarse)').matches || (target.navigator&&target.navigator.maxTouchPoints>0)
-  ));
+  const touchFirst=!!(target&&target.TwoNProfile&&target.TwoNProfile.input==='touch');
   const precision=touchFirst?2:3;
   const num=v=>Number(v.toFixed(precision));
   const fmt=p=>num(p[0])+' '+num(p[1]);
