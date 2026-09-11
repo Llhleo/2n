@@ -97,7 +97,7 @@
     controls.classList.toggle('is-shown',shown);
     controls.inert=!shown || !ready;
   }
-  const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
+  const scrollForX = x => touchFirst ? x : lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
 
   function setMotionPreference() {
     reduced = mediaQuery.matches;
@@ -226,8 +226,7 @@
     }
   }
 
-  let horizontalExtent=null;
-  // One native scroll axis for the ENTIRE narrative, not per-section carousels.
+  let mobile=null;
   const storyPosition=()=>touchFirst?shell.scrollLeft:scrollY;
   function scrollStory(top,behavior='instant') {
     if(touchFirst) shell.scrollTo({left:top,top:0,behavior});
@@ -235,14 +234,24 @@
   }
   function setupMobile() {
     if(!touchFirst) return;
-    horizontalExtent=document.createElement('div');
-    horizontalExtent.className='story-scroll-extent';
-    horizontalExtent.setAttribute('aria-hidden','true');
-    shell.append(horizontalExtent);
-    shell.setAttribute('aria-label','左右滑动，依次浏览完整故事');
-    shell.tabIndex=0;
+    mobile=new window.TwoNMobileStory({shell,track,hero,bridge,members,leaders,panels,
+      onChapter:index=>{if(geometry.length) updateChapter(index);},wake:schedule,perf:P});
+    shell.tabIndex=0;shell.setAttribute('aria-label','左右滑动，依次浏览完整故事');
     one('.cue-direction').textContent='左右滑动探索 →';
     shell.addEventListener('scroll',onStoryScroll,{passive:true});
+  }
+  function measureMobile(preserve,oldPosition) {
+    bridgeDuration=Math.round(Math.max(width*1.8,height*2.2));
+    memberDuration=Math.round(Math.max(width*7.2,height*12));
+    mobile.measure(width,height,bridgeDuration,memberDuration);
+    lead=0;travel=mobile.max;
+    geometry=panels.map(panel=>({...mobile.bounds.get(panel),panel,surface:getComputedStyle(panel).backgroundColor}));
+    bridgeStart=mobile.bounds.get(bridge).x;memberStart=mobile.bounds.get(members).x;
+    stops=[...new Set([...mobile.stops,...[.30,.47,.65,.86,1].map(p=>memberStart+memberDuration*p)])].sort((a,b)=>a-b);
+    logoTop=mark.offsetTop;logoHeight=mark.offsetHeight;
+    if(scene) scene.resize();
+    if(preserve&&initialized) scrollStory(clamp(oldPosition,0,travel));
+    mobile.latest=shell.scrollLeft;mobile.publish();schedule();
   }
   function measureLiquid() {
     if(gatherPlan && gatherPlan.width===width && gatherPlan.height===height) return;
@@ -265,6 +274,7 @@
     width = document.documentElement.clientWidth;
     height = innerHeight;
     root.style.setProperty('--view-height', height + 'px');
+    if(touchFirst) {measureMobile(preserve,oldY);return;}
     lead = Math.round(Math.max(width * .94, height * .78));
     geometry = panels.map(panel => ({
       panel,
@@ -280,8 +290,7 @@
     measureLiquid();
     memberDuration = Math.round(Math.max(width*7.2, height*12));
     travel = Math.max(0, track.scrollWidth - width) + bridgeDuration + memberDuration;
-    if(touchFirst) horizontalExtent.style.width=(lead+travel+width)+'px';
-    else shell.style.height=(lead+travel+height)+'px';
+    shell.style.height=(lead+travel+height)+'px';
     logoTop = mark.offsetTop;
     logoHeight = mark.offsetHeight;
     const trackLeft = track.getBoundingClientRect().left;
@@ -328,11 +337,11 @@
   }
 
   function renderMembers(phase, x) {
-    const arriving = smooth(progress(x,memberStart-width,memberStart));
+    const arriving = touchFirst?1:smooth(progress(x,memberStart-width,memberStart));
     const crossing=x>=memberStart-width && x<memberStart;
     // One dissolve over an opaque, uniform management-colored backing. Never
     // fade both surfaces, which exposed a dark seam under the moving last card.
-    members.style.transform = x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
+    members.style.transform = !touchFirst && x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
     members.style.opacity = String(arriving);
     members.style.zIndex = '2';
     leaders.style.opacity='1';
@@ -391,11 +400,50 @@
     if(P) P.end('liquid',liquidStart);
   }
 
+  function frameMobile(now) {
+    if(!mobile) return;
+    const section=mobile.heavy();
+    if(playing) time=Math.min(M.DURATION,now-startedAt);
+    const state=M.intro(ready?M.DURATION:time);
+    if(playing||!ready||section==='hero') {
+      applyIntro(state);
+      const entry=ready?clamp(mobile.latest/width):0;
+      mark.style.transform='translateX(-50%) translateY('+((1-state.logo)*logoHeight*1.12-entry*height*.12)+'px) scale('+(1+entry*.25)+')';
+      mark.style.opacity=1-smooth(progress(entry,.30,.72));
+      eyebrow.style.opacity=state.eyebrow*(1-smooth(progress(entry,.10,.5)));
+      cue.style.opacity=state.controls*(1-progress(entry,0,.22));
+      if(scene) {
+        if(!ready) scene.draw(state,0,now);
+        else {scene.draw(state,0,now);scene.transform(entry);}
+      }
+    }
+    if(section==='together') renderBridge(mobile.phase(bridge));
+    if(section==='members') {
+      measureLiquid();
+      liquidTarget=mobile.phase(members);
+      visualLiquid=liquidTarget;
+      renderMembers(visualLiquid,memberStart);
+    }
+    if(P) P.values.active=playing?'intro':section||'native';
+    if(playing&&state.complete) finishIntro();
+    if(playing) schedule();
+  }
+  function renderBridge(phase) {
+    const shift=smooth(progress(phase,.12,.76)),fade=smooth(progress(phase,.76,1));
+    orb.style.transform=reduced?'none':'translate3d('+(-shift*width*.95)+'px,0,0) scale('+lerp(1.1,.26,shift)+')';
+    orb.style.opacity=reduced?'.15':String(1-smooth(progress(phase,.62,.82)));
+    bridgeFirst.style.opacity=reduced?'0':String(1-smooth(progress(phase,.24,.52)));
+    bridgeFirst.style.transform=reduced?'none':'translate3d('+(-shift*width*.28)+'px,0,0)';
+    bridgeSecond.style.opacity=reduced?'1':String(smooth(progress(phase,.32,.65))*(1-fade*.6));
+    bridgeSecond.style.transform=reduced?'none':'translate3d('+((1-shift)*width*.14)+'px,0,0) scale('+(1+fade*.06)+')';
+  }
+
   function frame(now) {
     const frameStart=P?P.start():0;
     frameId = 0;
     if (!active || !initialized || document.hidden) return;
     if(P) P.values.active=ready?'story':'intro';
+    if(touchFirst) {frameMobile(now);if(P) P.end('frame',frameStart);return;}
     const dt = Math.min(60, Math.max(1, now - (lastFrame || now-16)));
     lastFrame = now;
     if (playing) time = Math.min(M.DURATION, now - startedAt);
@@ -520,7 +568,7 @@
     root.classList.add('motion-fallback');
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
     track.style.cssText='';
-    if(horizontalExtent) horizontalExtent.remove();
+    if(mobile) {mobile.destroy();mobile=null;}
     introScreen.classList.add('is-finished'); introScreen.inert=true;
     for (const element of [header,controls,hero,...panels]) { element.inert=false; element.style.opacity=''; }
     for (const element of [...introLines,eyebrow,cue]) element.style.cssText='';
@@ -563,6 +611,7 @@
   addEventListener('2n:fallback', fallback);
   addEventListener('error', () => { if (!ready && active) window.twoNFallback(); });
   function onStoryScroll() {
+    if(touchFirst) {if(mobile) mobile.scroll();return;}
     const position=clamp(storyPosition(),0,lead+travel);
     if(ready && active) {
       const delta=position-controlScrollAnchor;
@@ -615,7 +664,7 @@
   addEventListener('touchend',()=>{touch=null;},{passive:true});
   }
   addEventListener('pointermove', event=>{
-    if(event.pointerType!=='mouse' || !active || reduced) return;
+    if(touchFirst || event.pointerType!=='mouse' || !active || reduced) return;
     wantedX=(event.clientX/width-.5)*24; wantedY=(event.clientY/height-.5)*14; schedule();
   },{passive:true});
   addEventListener('blur',()=>{wantedX=0;wantedY=0;});
