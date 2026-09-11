@@ -37,7 +37,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '39';
+  root.dataset.version = '39.1';
   root.dataset.input = touchFirst ? 'touch' : 'pointer';
 
   let reduced = mediaQuery.matches;
@@ -97,7 +97,7 @@
     controls.classList.toggle('is-shown',shown);
     controls.inert=!shown || !ready;
   }
-  const scrollForX = x => touchFirst ? x : lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
+  const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
 
   function setMotionPreference() {
     reduced = mediaQuery.matches;
@@ -224,25 +224,23 @@
     }
   }
 
-  let biomeRail=null, bridgeHold=null, memberHold=null;
-  let mobileBridgeTop=0,mobileMemberTop=0,biomeScroll=0,leaderScroll=0;
-  const leaderCards=all('.leader-card');
+  let horizontalExtent=null;
+  // One native scroll axis for the ENTIRE narrative, not per-section carousels.
+  const storyPosition=()=>touchFirst?shell.scrollLeft:scrollY;
+  function scrollStory(top,behavior='instant') {
+    if(touchFirst) shell.scrollTo({left:top,top:0,behavior});
+    else scrollTo({top,behavior});
+  }
   function setupMobile() {
     if(!touchFirst) return;
-    biomeRail=document.createElement('div');biomeRail.className='biome-rail native-rail';
-    biomeRail.setAttribute('role','region');biomeRail.setAttribute('aria-label','五境，左右滑动');
-    biomeRail.tabIndex=0;
-    track.prepend(biomeRail);
-    all('.biome').forEach(panel=>biomeRail.append(panel));
-    for(const panel of [bridge,members]) {
-      const hold=document.createElement('div');hold.className='chapter-hold';
-      panel.before(hold);hold.append(panel);
-      if(panel===bridge) bridgeHold=hold;else memberHold=hold;
-    }
-    biomeRail.addEventListener('scroll',()=>{biomeScroll=biomeRail.scrollLeft;schedule();},{passive:true});
-    leaders.classList.add('native-rail');leaders.tabIndex=0;
-    leaders.setAttribute('aria-label','管理层，左右滑动');
-    leaders.addEventListener('scroll',()=>{leaderScroll=leaders.scrollLeft;schedule();},{passive:true});
+    horizontalExtent=document.createElement('div');
+    horizontalExtent.className='story-scroll-extent';
+    horizontalExtent.setAttribute('aria-hidden','true');
+    shell.append(horizontalExtent);
+    shell.setAttribute('aria-label','左右滑动，依次浏览完整故事');
+    shell.tabIndex=0;
+    one('.cue-direction').textContent='左右滑动探索 →';
+    shell.addEventListener('scroll',onStoryScroll,{passive:true});
   }
   function measureLiquid() {
     if(gatherPlan && gatherPlan.width===width && gatherPlan.height===height) return;
@@ -258,46 +256,14 @@
     gradient.setAttribute('x1',-gatherPlan.finalRadius);gradient.setAttribute('y1',-gatherPlan.finalRadius);
     gradient.setAttribute('x2',gatherPlan.finalRadius);gradient.setAttribute('y2',gatherPlan.finalRadius);
   }
-  function measureMobile(preserve,oldY,oldLead,oldTravel) {
-    bridgeDuration=Math.round(height*2.2);
-    memberDuration=Math.round(Math.max(width*7.2,height*12));
-    track.style.paddingTop=lead+'px';
-    bridgeHold.style.height=(height+bridgeDuration)+'px';
-    memberHold.style.height=(height+memberDuration)+'px';
-    shell.style.height='auto';
-    // All layout reads are confined to this measurement pass.
-    const top=element=>element.getBoundingClientRect().top+scrollY;
-    mobileBridgeTop=top(bridgeHold);mobileMemberTop=top(memberHold);
-    const biomeTop=top(biomeRail);
-    geometry=panels.map((panel,i)=>({panel,x:i<5?biomeTop:top(panel===bridge?bridgeHold:panel===members?memberHold:panel),
-      width,copy:panel.querySelector('.biome-copy'),visual:panel.querySelector('.biome-visual'),
-      railOffset:i<5?i*width:0,surface:getComputedStyle(panel).backgroundColor}));
-    const leaderLeft=leaders.getBoundingClientRect().left;
-    cardGeometry=leaderCards.map(card=>({card,x:card.getBoundingClientRect().left-leaderLeft+leaders.scrollLeft,width,content:card.lastElementChild}));
-    bridgeStart=mobileBridgeTop;memberStart=mobileMemberTop;
-    travel=Math.max(0,shell.offsetHeight-height-lead);
-    logoTop=mark.offsetTop;logoHeight=mark.offsetHeight;
-    measureLiquid();
-    stops=[0,...geometry.map(g=>g.x),mobileBridgeTop+bridgeDuration,
-      ...[.30,.47,.65,.86,1].map(p=>mobileMemberTop+memberDuration*p)];
-    stops=[...new Set(stops)].sort((a,b)=>a-b);
-    if(scene) scene.resize();
-    if(preserve&&initialized&&ready) {
-      const next=oldY<=oldLead?oldY/oldLead*lead:lead+(oldY-oldLead)/Math.max(1,oldTravel)*travel;
-      scrollTo({top:clamp(next,0,lead+travel),behavior:'instant'});renderedScroll=scrollY;
-    }
-    schedule();
-  }
-
   function measure(preserve = true) {
-    const oldLead = lead, oldTravel = travel, oldY = scrollY;
+    const oldLead = lead, oldTravel = travel, oldY = storyPosition();
     const previousEntry = oldLead ? oldY / oldLead : 0;
     const previousTrackRatio = oldTravel ? (oldY - oldLead) / oldTravel : 0;
     width = document.documentElement.clientWidth;
     height = innerHeight;
     root.style.setProperty('--view-height', height + 'px');
     lead = Math.round(Math.max(width * .94, height * .78));
-    if(touchFirst) {measureMobile(preserve,oldY,oldLead,oldTravel);return;}
     geometry = panels.map(panel => ({
       panel,
       x:panel.offsetLeft,
@@ -312,7 +278,8 @@
     measureLiquid();
     memberDuration = Math.round(Math.max(width*7.2, height*12));
     travel = Math.max(0, track.scrollWidth - width) + bridgeDuration + memberDuration;
-    shell.style.height = (lead + travel + height) + 'px';
+    if(touchFirst) horizontalExtent.style.width=(lead+travel+width)+'px';
+    else shell.style.height=(lead+travel+height)+'px';
     logoTop = mark.offsetTop;
     logoHeight = mark.offsetHeight;
     const trackLeft = track.getBoundingClientRect().left;
@@ -325,8 +292,8 @@
     if (scene) scene.resize();
     if (preserve && initialized && ready) {
       const next = oldY <= oldLead ? previousEntry * lead : lead + previousTrackRatio * travel;
-      scrollTo({ top:clamp(next, 0, lead + travel), behavior:'instant' });
-      renderedScroll = scrollY;
+      scrollStory(clamp(next,0,lead+travel));
+      renderedScroll = storyPosition();
     }
     schedule();
   }
@@ -359,11 +326,11 @@
   }
 
   function renderMembers(phase, x) {
-    const arriving = touchFirst ? 1 : smooth(progress(x,memberStart-width,memberStart));
+    const arriving = smooth(progress(x,memberStart-width,memberStart));
     const crossing=x>=memberStart-width && x<memberStart;
     // One dissolve over an opaque, uniform management-colored backing. Never
     // fade both surfaces, which exposed a dark seam under the moving last card.
-    members.style.transform = !touchFirst && x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
+    members.style.transform = x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
     members.style.opacity = String(arriving);
     members.style.zIndex = '2';
     leaders.style.opacity='1';
@@ -427,7 +394,7 @@
     lastFrame = now;
     if (playing) time = Math.min(M.DURATION, now - startedAt);
     const state = M.intro(ready ? M.DURATION : time);
-    const desired = ready ? clamp(scrollY, 0, lead + travel) : 0;
+    const desired = ready ? clamp(storyPosition(), 0, lead + travel) : 0;
     // Native touch scrolling already carries momentum. A second interpolation
     // layer makes the fixed horizontal track feel as though it catches up late.
     const memberActive = desired >= scrollForX(memberStart)-width && desired <= scrollForX(memberStart)+memberDuration+width;
@@ -435,20 +402,14 @@
     if (Math.abs(renderedScroll-desired) < .1) renderedScroll = desired;
     cursorX = lerp(cursorX, wantedX, .07); cursorY = lerp(cursorY, wantedY, .07);
     const scrolling = M.scroll(renderedScroll, lead, travel);
-    const bridgeState = touchFirst ? {x:scrolling.x,phase:progress(desired,mobileBridgeTop,mobileBridgeTop+bridgeDuration)} : M.bridgeScroll(scrolling.x, bridgeStart, bridgeDuration);
+    const bridgeState = M.bridgeScroll(scrolling.x, bridgeStart, bridgeDuration);
     scrolling.x = bridgeState.x;
-    const memberState = touchFirst ? {x:memberStart+clamp((desired-mobileMemberTop)/height,-2,2)*width,phase:progress(desired,mobileMemberTop,mobileMemberTop+memberDuration)} : M.bridgeScroll(scrolling.x, memberStart, memberDuration);
-    if(touchFirst && desired>=mobileMemberTop && desired<=mobileMemberTop+memberDuration) memberState.x=memberStart;
+    const memberState = M.bridgeScroll(scrolling.x, memberStart, memberDuration);
     scrolling.x = memberState.x;
     liquidTarget=memberState.phase;
     visualLiquid=reduced?liquidTarget:M.liquidProgress(visualLiquid,liquidTarget,dt);
     // Keep the stage in view while its bounded visual progress catches up.
     if(Math.abs(visualLiquid-liquidTarget)>.00001) scrolling.x=memberStart;
-    if(touchFirst) {
-      const catching=Math.abs(visualLiquid-liquidTarget)>.00001 && visualLiquid>0 && visualLiquid<.47 &&
-        (desired<mobileMemberTop || desired>mobileMemberTop+memberDuration);
-      members.classList.toggle('is-catching',catching);
-    }
     renderMembers(visualLiquid, scrolling.x);
     const shift = smooth(progress(bridgeState.phase,.12,.76));
     const fade = smooth(progress(bridgeState.phase,.76,1));
@@ -461,7 +422,7 @@
     const entry = reduced ? scrolling.entry : smooth(scrolling.entry);
     root.classList.toggle('is-breathing',ready && !reduced && renderedScroll<2);
     applyIntro(state);
-    track.style.transform = touchFirst ? 'none' : 'translate3d(' + (-scrolling.x) + 'px,0,0)';
+    track.style.transform = 'translate3d(' + (-scrolling.x) + 'px,0,0)';
     meter.style.transform = 'scaleX(' + scrolling.progress + ')';
     hero.style.opacity = 1 - smooth(progress(entry, .68, 1));
     hero.style.visibility = entry >= 1 ? 'hidden' : 'visible';
@@ -482,12 +443,10 @@
     let chapter = 0;
     for (let i=0; i<geometry.length; i++) {
       const g = geometry[i];
-      const vertical=g.x-desired;
-      const relative = touchFirst ? (g.copy?g.railOffset-biomeScroll:vertical) : g.x-scrolling.x;
-      const chapterHeight=g.panel===members?height+memberDuration:g.panel===bridge?height+bridgeDuration:height;
-      const visible = touchFirst ? vertical<height && vertical+chapterHeight>0 && (!g.copy || relative<width && relative+width>0) : relative < width && relative + g.width > 0 && entry > .7;
-      g.panel.inert = !ready || (!visible && !(g.panel===members && members.classList.contains('is-catching')));
-      if (entry >= .86 && (touchFirst ? vertical<=height*.5 && (!g.copy || relative<=width*.5) : relative<=width*.5)) chapter=i+1;
+      const relative=g.x-scrolling.x;
+      const visible=relative<width && relative+g.width>0 && entry>.7;
+      g.panel.inert=!ready || !visible;
+      if(entry>=.86 && relative<=width*.5) chapter=i+1;
       const copy = g.copy;
       if (copy) {
         // Only the current and neighbouring ecosystem need per-frame styling.
@@ -504,7 +463,7 @@
       }
     }
     cardGeometry.forEach(g => {
-      const relative=touchFirst?g.x-leaderScroll:g.x-scrolling.x;
+      const relative=g.x-scrolling.x;
       if (relative > width*1.15 || relative+g.width < -width*.15) return;
       const reveal = reduced ? 1 : easeOut(progress(1-relative/width,.04,.85));
       g.content.style.opacity = reveal;
@@ -529,7 +488,7 @@
     root.dataset.state = 'ready';
     root.classList.remove('is-booting','is-intro-locked');
     introScreen.classList.add('is-finished'); introScreen.inert = true;
-    header.inert = false; showControls(false); controlScrollAnchor=scrollY;
+    header.inert = false; showControls(false); controlScrollAnchor=storyPosition();
     clearTimeout(window.twoNBootTimer);
     if (focusAfterIntro || introScreen.contains(document.activeElement)) {
       one('.brand-button').focus({ preventScroll:true }); focusAfterIntro=false;
@@ -540,7 +499,7 @@
     if (!initialized || !active) return;
     one('.film video').pause();
     ready = false; playing = !reduced; time = 0; startedAt = performance.now();
-    scrollTo({ top:0, behavior:'instant' }); renderedScroll=0;
+    scrollStory(0); renderedScroll=0;visualLiquid=0;liquidTarget=0;
     root.dataset.state = 'intro'; root.classList.add('is-intro-locked');
     introScreen.classList.remove('is-finished'); introScreen.inert=false;
     header.inert=true; showControls(false); controlScrollAnchor=0;
@@ -551,11 +510,10 @@
     clearTimeout(window.twoNBootTimer);
     if (frameId) cancelAnimationFrame(frameId);
     root.classList.remove('is-booting','is-enhanced','is-intro-locked');
-    members.classList.remove('is-catching');
     root.classList.add('motion-fallback');
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
     track.style.cssText='';
-    if(bridgeHold) {bridgeHold.style.height='auto';memberHold.style.height='auto';}
+    if(horizontalExtent) horizontalExtent.remove();
     introScreen.classList.add('is-finished'); introScreen.inert=true;
     for (const element of [header,controls,hero,...panels]) { element.inert=false; element.style.opacity=''; }
     for (const element of [...introLines,eyebrow,cue]) element.style.cssText='';
@@ -574,22 +532,11 @@
     if (!ready) return;
     const g = typeof value === 'string' ? geometry.find(g => g.panel.id===value) : null;
     const destination = g ? scrollForX(g.x) : typeof value==='number' ? value : 0;
-    scrollTo({top:clamp(destination,0,lead+travel),behavior:reduced?'instant':'smooth'});
+    scrollStory(clamp(destination,0,lead+travel),reduced?'instant':'smooth');
     schedule();
   }
   function nextStop(direction) {
-    const current = scrollY;
-    if(touchFirst) {
-      const rail=current>=geometry[6].x-height*.25 && current<geometry[6].x+height*.75?leaders:
-        current>=geometry[0].x-height*.25 && current<geometry[0].x+height*.75?biomeRail:null;
-      if(rail) {
-        const index=Math.round((rail===leaders?leaderScroll:biomeScroll)/width);
-        const last=rail===leaders?leaderCards.length:4;
-        if(index+direction>=0 && index+direction<=last) {
-          rail.scrollTo({left:(index+direction)*width,behavior:reduced?'instant':'smooth'});return;
-        }
-      }
-    }
+    const current = storyPosition();
     const candidates = direction>0 ? stops.filter(x=>x>current+4) : stops.filter(x=>x<current-4).reverse();
     if (candidates.length) goTo(candidates[0]);
   }
@@ -608,18 +555,20 @@
   mediaQuery.addEventListener('change', () => { setMotionPreference(); if(reduced && playing) finishIntro(); schedule(); });
   addEventListener('2n:fallback', fallback);
   addEventListener('error', () => { if (!ready && active) window.twoNFallback(); });
-  addEventListener('scroll', () => {
-    const position=clamp(scrollY,0,lead+travel);
+  function onStoryScroll() {
+    const position=clamp(storyPosition(),0,lead+travel);
     if(ready && active) {
       const delta=position-controlScrollAnchor;
       if(position<=2) { showControls(false); controlScrollAnchor=position; }
       else if(Math.abs(delta)>=12) { showControls(delta<0); controlScrollAnchor=position; }
     }
     schedule();
-  }, {passive:true});
+  }
+  addEventListener('scroll',onStoryScroll,{passive:true});
   addEventListener('wheel', event => {
-    if (!active || event.ctrlKey || (touchFirst && event.target.closest?.('.native-rail'))) return;
+    if (!active || event.ctrlKey) return;
     if (!ready) { event.preventDefault(); return; }
+    if(touchFirst) return; // Native horizontal momentum owns touch-device scrolling.
     if (!isControl(event.target) && Math.abs(event.deltaX)>Math.abs(event.deltaY)) {
       event.preventDefault();
       scrollBy({top:event.deltaX*(event.deltaMode===1?16:event.deltaMode===2?height:1),behavior:'instant'});
@@ -633,7 +582,6 @@
       else if(scrollKeys.includes(event.key) && !isControl(event.target)) event.preventDefault();
       return;
     }
-    if(touchFirst && event.target.closest?.('.native-rail') && ['ArrowLeft','ArrowRight'].includes(event.key)) return;
     if(isControl(event.target) || event.metaKey || event.ctrlKey || event.altKey) return;
     if(!scrollKeys.includes(event.key)) return;
     event.preventDefault();
@@ -641,7 +589,7 @@
     else if(event.key==='End') goTo(lead+travel);
     else if(event.key==='PageDown' || (event.key===' '&&!event.shiftKey)) nextStop(1);
     else if(event.key==='PageUp' || (event.key===' '&&event.shiftKey)) nextStop(-1);
-    else goTo(scrollY+(['ArrowRight','ArrowDown'].includes(event.key)?1:-1)*width*.55);
+    else goTo(storyPosition()+(['ArrowRight','ArrowDown'].includes(event.key)?1:-1)*width*.55);
   });
   if(!touchFirst) {
   addEventListener('touchstart', event=>{

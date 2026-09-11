@@ -1,5 +1,11 @@
 # v39 checkpoints
 
+## v39.1 correction
+
+User clarified that touch should replace the whole vertical progress axis with horizontal input, not use independent carousels in a vertical page. Removed mobile chapter wrappers and rails. One native horizontal shell now drives the same sequential desktop story mapping, bridge holds and liquid holds. Sticky scene layers remain inside the scroll container; all 95 members and v39 liquid/Canvas optimizations are unchanged. Document vertical scrolling is disabled only while touch enhancement is active; fallback remains readable. Cache version is 39.1.
+
+Static checks and 7 geometry/timing tests passed. Chrome forced-touch startup and horizontal chapter navigation passed; synthetic browser gestures timed out, so real iPhone touch gestures still need device verification.
+
 Base: main f9ba99e (v38). GitHub branch creation: integration 403.
 
 1. Read current entrypoints, liquid/motion/runtime, styles and Canvas.
