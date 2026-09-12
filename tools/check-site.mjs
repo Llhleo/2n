@@ -19,7 +19,7 @@ assert.equal((html.match(/class="leader-card"/g)||[]).length,5);
 assert.equal((html.match(/class="panel /g)||[]).length,10);
 for(const name of ['CNFlyDream','sschara','awdc','flowerwsr','20180333']) assert.ok(html.includes(name));
 assert.ok(html.indexOf('motion.js?v=40')<html.indexOf('v35-runtime.js?v=40'),'v35 runtime must load after motion.js');
-assert.ok(html.indexOf('v35-runtime.js?v=40')<html.indexOf('app.js?v=40'),'v35 runtime must load before app.js');
+assert.ok(html.indexOf('v35-runtime.js?v=40')<html.indexOf('app.js?v=41'),'v35 runtime must load before app.js');
 assert.ok(html.includes('liquid.js?v=40'));
 assert.ok(html.includes('v35.css?v=40'));
 assert.ok(html.includes('preload="none"'));

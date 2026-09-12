@@ -142,7 +142,15 @@
       this.fg = this.front.getContext('2d');
       if (!this.bg || !this.fg) throw new Error('Canvas unavailable');
       this.atlas = document.createElement('canvas');
-      this.terrain=new Map();this.sizeKey='';this.drawKey='';
+      this.sizeKey='';this.drawKey='';this.lastPaint=-Infinity;
+      // wavelength / weight / angular speed / phase / horizontal steepness.
+      // Shared swell language, with two quiet detail components on desktop.
+      this.waves=[
+        [1.04,.62,.52,.3,.42], [.47,.25,.83,1.9,.30],
+        [.22,.10,1.17,4.1,.20], [.137,.02,1.43,.7,.12],
+        [.31,.01,-.37,2.8,.10]
+      ];
+      this.waveCount=touchFirst?3:5;
     }
     makeAtlas() {
       // Match the painted aspect ratio; retain game-texture proportions on phones.
@@ -175,7 +183,7 @@
     resize() {
       const key=[width,height,touchFirst?1:Math.min(devicePixelRatio||1,1.5)].join(':');
       if(this.sizeKey===key) return;
-      this.sizeKey=key;this.drawKey='';this.terrain.clear();
+      this.sizeKey=key;this.drawKey='';this.lastPaint=-Infinity;
       this.makeAtlas();
       // A 1x canvas is enough beneath the textured artwork on touch screens and
       // avoids pushing two retina-sized canvases through every scroll frame.
@@ -189,31 +197,38 @@
       this.shade=this.fg.createLinearGradient(0,height*.60,0,height);
       this.shade.addColorStop(0,'transparent');this.shade.addColorStop(1,'#0a100950');
     }
-    ridge(x, base, amplitude, phase) {
-      return base + height * amplitude * (
-        Math.sin(x / width * Math.PI * 2.35 + phase) * .72 +
-        Math.cos(x / width * Math.PI * 4.7 + phase * .7) * .28
-      );
+    wavePoint(x, base, amplitude, phase, seconds, gain, layer) {
+      let dx=0,dy=0;
+      const span=1.18-layer*.09, speed=.72+layer*.14;
+      for(let i=0;i<this.waveCount;i++) {
+        const w=this.waves[i];
+        const angle=x/width*Math.PI*2/(w[0]*span)-seconds*w[2]*speed+phase+w[3];
+        const a=height*amplitude*w[1]*gain;
+        // Horizontal compression concentrates crests; troughs remain broad.
+        // Conservative steepness keeps x monotonic, with no curling/self-crossing.
+        dx-=Math.sin(angle)*a*w[4];
+        dy-=Math.cos(angle)*a;
+      }
+      this.waveX=x+dx;this.waveY=base+dy;
     }
-    sheet(ctx, base, amplitude, phase, offsetX, offsetY, wash, entry) {
+    sheet(ctx, base, amplitude, phase, offsetX, offsetY, wash, entry, seconds, gain, layer) {
       ctx.save();
       const zoom = 1 + easeOut(entry) * 1.35;
       ctx.translate(width * .5, height * .5);
       ctx.scale(zoom, zoom);
       ctx.translate(-width * .5 + width * .30 * entry, -height * .5 + height * .035 * entry);
-      const key=[base,amplitude,phase].join(':');
-      let contour=this.terrain.get(key);
-      if(!contour) {
-        contour=new Path2D();
-        const sample=Math.max(touchFirst?9:5,width/(touchFirst?54:100));
-        for(let x=-width;x<=width*2;x+=sample) {
-          const y=this.ridge(x,base,amplitude,phase);
-          if(x===-width) contour.moveTo(x,y);else contour.lineTo(x,y);
-        }
-        contour.lineTo(width*2,height*3);contour.lineTo(-width,height*3);contour.closePath();
-        this.terrain.set(key,contour);
+      ctx.translate(0,offsetY);
+      // Draw directly into the reusable context path. Time-varying contours must
+      // not accumulate in the old static Path2D cache.
+      ctx.beginPath();
+      const samples=touchFirst?192:336;
+      for(let i=0;i<=samples;i++) {
+        const x=-width+i/samples*width*3;
+        this.wavePoint(x,base,amplitude,phase,seconds,gain,layer);
+        if(i===0) ctx.moveTo(this.waveX,this.waveY);
+        else ctx.lineTo(this.waveX,this.waveY);
       }
-      ctx.translate(0,offsetY);ctx.clip(contour);
+      ctx.lineTo(width*2,height*3);ctx.lineTo(-width,height*3);ctx.closePath();ctx.clip();
       ctx.drawImage(this.atlas,-width*.08+offsetX,base-height*.19,width*1.16,height*1.25);
       if (wash) {
         ctx.fillStyle = wash; ctx.fillRect(-width, -height, width * 3, height * 4);
@@ -228,9 +243,11 @@
     draw(state, entry, now) {
       const worldStart=P?P.start():0;
       const { bg, fg } = this;
-      const key=[state.world,entry,touchFirst?0:cursorX,touchFirst?0:cursorY,touchFirst||reduced?0:now].join(':');
+      // Cap touch canvas work near 30 fps, including scroll-driven calls.
+      if(touchFirst && !reduced && now-this.lastPaint<32) return;
+      const key=[state.world,entry,touchFirst?0:cursorX,touchFirst?0:cursorY,reduced?0:now].join(':');
       if(key===this.drawKey) return;
-      this.drawKey=key;
+      this.drawKey=key;this.lastPaint=now;
       this.back.style.transform='none';
       this.front.style.transform='none';
       for (const ctx of [bg, fg]) {
@@ -238,17 +255,18 @@
         ctx.clearRect(0, 0, width, height);
       }
       bg.fillStyle = this.sky; bg.fillRect(0, 0, width, height);
-      const drift = reduced || touchFirst ? 0 : Math.sin(now / 7800) * 2;
+      const seconds=reduced?0:now/1000;
+      const gain=reduced?1:1+.22*(1-state.world);
       const base = logoTop + logoHeight * .67;
       const rise = (1 - state.world) * height * .24;
       const pointerX = reduced ? 0 : cursorX;
       const pointerY = reduced ? 0 : cursorY;
-      this.sheet(bg, base - height * .12, .047, .2, -pointerX * .35, rise - pointerY * .3, '#f3f2ec66', entry);
-      this.sheet(bg, base - height * .047, .041, 1.4, pointerX * .32, rise * .7 + drift, '#151d1510', entry);
+      this.sheet(bg, base - height * .12, .022, .2, -pointerX * .35, rise - pointerY * .3, '#f3f2ec66', entry, seconds, gain, 0);
+      this.sheet(bg, base - height * .047, .028, 1.4, pointerX * .32, rise * .7, '#151d1510', entry, seconds, gain, 1);
       // Solve the front contour against the measured logo, including the center wave.
-      const centralWave = this.ridge(width * .5, 0, .035, 2.5);
-      const frontBase = base - centralWave;
-      this.sheet(fg, frontBase, .035, 2.5, pointerX * .85, rise * .5 + pointerY * .42 + drift * .6 - entry * height * .04, '#09180915', entry);
+      this.wavePoint(width*.5,0,.035,2.5,0,1,2);
+      const frontBase = base - this.waveY;
+      this.sheet(fg, frontBase, .035, 2.5, pointerX * .85, rise * .5 + pointerY * .42 - entry * height * .04, '#09180915', entry, seconds, gain, 2);
       fg.fillStyle = this.shade; fg.fillRect(0, height * .62, width, height * .38);
       if(P) P.end('world',worldStart);
     }
@@ -500,7 +518,7 @@
     }
     if(P) P.values.active=playing?'intro':section||'native';
     if(playing&&state.complete) finishIntro();
-    if(playing) schedule();
+    if(playing || (!reduced && section==='hero')) schedule();
   }
   function renderBridge(phase) {
     const shift=smooth(progress(phase,.12,.76)),fade=smooth(progress(phase,.76,1));
@@ -548,7 +566,7 @@
     bridgeSecond.style.opacity = reduced ? '1' : String(smooth(progress(bridgeState.phase,.32,.65))*(1-fade*.6));
     bridgeSecond.style.transform = reduced ? 'none' : 'translate3d(' + ((1-shift)*width*.14) + 'px,0,0) scale(' + (1+fade*.06) + ')';
     const entry = reduced ? scrolling.entry : smooth(scrolling.entry);
-    root.classList.toggle('is-breathing',ready && !reduced && renderedScroll<2);
+    // WorldScene now carries the breathing motion in its contour, not CSS translation.
     applyIntro(state);
     track.style.transform = 'translate3d(' + (-scrolling.x) + 'px,0,0)';
     meter.style.transform = 'scaleX(' + scrolling.progress + ')';
@@ -605,7 +623,7 @@
     const unsettled = Math.abs(desired-renderedScroll)>.1;
     const pointerUnsettled = !touchFirst && (Math.abs(cursorX-wantedX)>.1 || Math.abs(cursorY-wantedY)>.1);
     if(P) P.end('frame',frameStart);
-    if (playing || unsettled || pointerUnsettled || Math.abs(visualLiquid-liquidTarget)>.00001) schedule();
+    if (playing || (!reduced && entry<1) || unsettled || pointerUnsettled || Math.abs(visualLiquid-liquidTarget)>.00001) schedule();
   }
 
   function schedule() {
