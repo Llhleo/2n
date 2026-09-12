@@ -82,10 +82,26 @@
   fusion.classList.add('member-fusion'); fusion.setAttribute('aria-hidden','true');
   fusion.innerHTML='<defs><linearGradient id="fusion-color" gradientUnits="userSpaceOnUse"><stop stop-color="#a6ebc5"/><stop offset=".5" stop-color="#64b7d0"/><stop offset="1" stop-color="#2875f0"/></linearGradient></defs><path fill="url(#fusion-color)" fill-rule="nonzero"/>';
   const liquidPath=fusion.querySelector('path');
+  // Touch Safari can subtract overlapping subpaths from one compound SVG path.
+  // Paint the mother, then overlapping bridges, then children as separate fills.
+  // Desktop keeps its existing compound path and its exact rendering order.
+  const neckPath=touchFirst?document.createElementNS(svgNS,'path'):null;
+  const childPath=touchFirst?document.createElementNS(svgNS,'path'):null;
+  if(touchFirst) {
+    for(const path of [neckPath,childPath]) {
+      path.setAttribute('fill','url(#fusion-color)');
+      path.setAttribute('fill-rule','nonzero');
+      fusion.append(path);
+    }
+  }
   members.prepend(fusion);
-  let lastOutline='';
-  function writeLiquid(outline) {
+  let lastOutline='',lastNecks='',lastChildren='';
+  function writeLiquid(outline,necks='',children='') {
     if(outline!==lastOutline) {liquidPath.setAttribute('d',outline);lastOutline=outline;}
+    if(touchFirst) {
+      if(necks!==lastNecks) {neckPath.setAttribute('d',necks);lastNecks=necks;}
+      if(children!==lastChildren) {childPath.setAttribute('d',children);lastChildren=children;}
+    }
   }
   const labelOpacity=new Float64Array(memberBubbles.length).fill(-1);
   memberBubbles.forEach(label=> {
@@ -405,25 +421,37 @@
     let splittingState=null;
     if(gathering) {
       let outline=L.circle(flow.x,flow.y,flow.radius);
+      let necks='',children='';
       flow.drops.forEach((drop,i)=> {
-        if(drop.r>.1) outline+=L.circle(drop.x,drop.y,drop.r)+L.neck(flow.x,flow.y,flow.radius,drop.x,drop.y,drop.r);
+        if(drop.r>.1) {
+          const child=L.circle(drop.x,drop.y,drop.r);
+          const bridge=L.neck(flow.x,flow.y,flow.radius,drop.x,drop.y,drop.r);
+          if(touchFirst) {children+=child;necks+=bridge;}
+          else outline+=child+bridge;
+        }
         if(touchFirst && drop.label<=.001 && !activeLabels.has(i)) return;
         const label=memberBubbles[i];
         if(drop.label>.001) activeLabels.add(i);else activeLabels.delete(i);
         if(labelOpacity[i]!==drop.label) {label.style.opacity=String(drop.label);labelOpacity[i]=drop.label;}
         if(drop.label>.001) label.style.transform='translate(-50%,-50%) translate3d('+drop.x+'px,'+drop.y+'px,0) scale('+drop.scale+')';
       });
-      writeLiquid(outline);
+      writeLiquid(outline,necks,children);
     } else if(splitting) {
       splittingState=L.splitAt(splitPlan,progress(phase,.355,.47));
       let outline=L.circle(0,0,splittingState.radius);
+      let necks='',children='';
       splittingState.drops.forEach(drop=> {
         // Connected lobes belong to the mother silhouette; only detached drops
         // transfer to the colored compositor layers.
         const r=drop.r;
-        if(drop.handoff<1) outline+=L.circle(drop.x,drop.y,r)+L.neck(0,0,splittingState.radius,drop.x,drop.y,r);
+        if(drop.handoff<1) {
+          const child=L.circle(drop.x,drop.y,r);
+          const bridge=L.neck(0,0,splittingState.radius,drop.x,drop.y,r);
+          if(touchFirst) {children+=child;necks+=bridge;}
+          else outline+=child+bridge;
+        }
       });
-      writeLiquid(outline);
+      writeLiquid(outline,necks,children);
     }
     anniversaryParticles.forEach((dot,i)=> {
       if(gathering) {dot.style.opacity='0';return;}
