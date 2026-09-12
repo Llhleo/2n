@@ -363,7 +363,7 @@
     if(!touchFirst) return;
     mobile=new window.TwoNMobileStory({shell,track,hero,bridge,members,leaders,panels,
       onChapter:(index,position,max)=>{
-        if(geometry.length) updateChapter(index);
+        if(geometry.length) updateChapter(index,position);
         meter.style.transform='scaleX('+(position/Math.max(1,max))+')';
         previousButton.disabled=position<2;nextButton.disabled=position>=max-2;
         if(ready && Math.abs(position-controlScrollAnchor)>12) {
@@ -475,7 +475,17 @@
     cue.style.opacity = state.controls;
   }
 
-  function updateChapter(index) {
+  function updateChapter(index, nativePosition) {
+    // The docked mark sits near the left edge, ahead of the chapter center.
+    if (touchFirst && Number.isFinite(nativePosition) && geometry.length) {
+      const atMark=nativePosition+width*.10;
+      let markChapter=0;
+      for(let i=0;i<geometry.length;i++) if(geometry[i].x<=atMark) markChapter=i+1;
+      const markTheme=markChapter>=1&&markChapter<=5
+        ? (markChapter===2?'light':'dark')
+        : (markChapter===6||markChapter===8?'dark':'light');
+      if(root.dataset.brandTheme!==markTheme) root.dataset.brandTheme=markTheme;
+    }
     if (index === activeChapter) return;
     activeChapter = index;
     counter.textContent = String(index + 1).padStart(2, '0');

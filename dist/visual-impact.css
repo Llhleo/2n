@@ -43,3 +43,28 @@
 .members .member-heading,.members .member-caption {z-index:3;}
 .members .member-message,.members .member-result,.members .anniversary-title {color:var(--light);}
 .members .member-caption {color:var(--light-soft);}
+
+/* The film opens a paper page and the ending stays on that same surface. */
+.film,.closing {background:var(--paper);color:var(--ink);}
+.film::before {
+  content:'';position:absolute;inset:0 auto 0 0;width:min(5vw,64px);
+  background:#ECEFEA;pointer-events:none;
+}
+.film-copy {position:relative;}
+.film-copy::before {
+  content:'';display:block;width:64px;height:2px;margin-bottom:32px;background:var(--ink);
+}
+.film .eyebrow,.closing>span {color:var(--ink-soft);}
+.film h2,.closing h2,.closing p {color:var(--ink);}
+.film video {border:1px solid var(--line);}
+
+/* The mark follows the surface at its own viewport position on native touch. */
+html.is-enhanced[data-input='touch'][data-brand-theme='light'] {--brand-color:var(--ink);}
+html.is-enhanced[data-input='touch'][data-brand-theme='dark'] {--brand-color:var(--light);}
+html.is-enhanced[data-theme] .story-controls {
+  color:var(--chrome-primary);
+  transition:color 180ms ease-out,transform .24s,opacity .24s;
+}
+html.is-enhanced[data-theme] .story-controls .chapter-name {color:var(--chrome-primary);}
+html.is-enhanced[data-theme] .story-controls .progress {background:var(--chrome-line);}
+html.is-enhanced[data-theme] .story-controls .progress i {background:var(--chrome-active);}
