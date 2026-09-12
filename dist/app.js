@@ -505,8 +505,11 @@
     const stage=M.anniversary(mapped),gather=progress(phase,0,.30);
     const flow=phase<=.355&&!reduced?L.gatherAt(M,gatherPlan,gather):null;
     const textFits=flow?smooth(progress(flow.radius*2,messageWidth+20,messageWidth+52)):0;
-    memberMessage.style.opacity = reduced?'0':String(textFits*(1-smooth(progress(phase,.285,.315))));
-    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(phase,.315,.335))*stage.resultFade);
+    memberMessage.style.opacity = reduced?'0':String(textFits*(1-smooth(progress(phase,.285,.305))));
+    // Use the existing .30–.355 physical hold. Previously resultFade was
+    // already fading while the result text was still entering, so it never
+    // reached full opacity. Give the completed mother a clear, short beat.
+    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(phase,.305,.32))*(1-smooth(progress(phase,.342,.355))));
     anniversaryTitle.style.opacity = reduced ? '1' : String(stage.title);
     if(reduced) {
       memberCloud.style.visibility='visible';
