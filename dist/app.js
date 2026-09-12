@@ -14,6 +14,7 @@
   const hero = one('.hero');
   const mark = one('.hero-mark');
   const header = one('.site-header');
+  const brandVisual=one(BRAND_MODE==='image'?'.brand-image':'.brand-wordmark');
   const controls = one('.story-controls');
   const introScreen = one('.intro-screen');
   const introLines = all('.intro-line');
@@ -48,6 +49,27 @@
   let frameId = 0, lastFrame = 0, renderedScroll = 0, activeChapter = -1;
   let cursorX = 0, cursorY = 0, wantedX = 0, wantedY = 0;
   let logoTop = 0, logoHeight = 0, focusAfterIntro = false;
+  let brandX=0,brandY=0,brandScale=1;
+  function measureBrand() {
+    // Safe-area positioning belongs to the header; read its actual target only
+    // during layout/resize, never during scroll or animation frames.
+    const target=brandVisual.getBoundingClientRect();
+    brandX=target.left+target.width/2;
+    brandY=target.top+target.height/2;
+    brandScale=target.width/Math.max(1,mark.offsetWidth);
+  }
+  function positionBrand(entry,state,scrollX=0) {
+    const move=smooth(progress(entry,0,reduced?.30:.68));
+    // Handoff begins only after both marks occupy the same screen position.
+    const handoff=smooth(progress(entry,.68,1));
+    const rise=(1-state.logo)*logoHeight*1.12;
+    const x=(touchFirst?scrollX:0)+(brandX-width*.5)*move;
+    const y=rise*(1-move)+(brandY-logoTop-logoHeight*.5)*move;
+    mark.style.transform='translateX(-50%) translate3d('+x+'px,'+y+'px,0) scale('+lerp(1,brandScale,move)+')';
+    mark.style.opacity='1';
+    brandVisual.style.opacity=String(handoff);
+    mark.style.setProperty('--logo-depth',String(.22*(1-move)));
+  }
   let touch = null;
   const bridge = one('.bridge');
   const orb = one('.bridge-orb');
@@ -282,6 +304,7 @@
     if(!touchFirst) return;
     mobile=new window.TwoNMobileStory({shell,track,hero,bridge,members,leaders,panels,
       onChapter:(index,position,max)=>{
+        if(position>=width) brandVisual.style.opacity='1';
         if(geometry.length) updateChapter(index);
         meter.style.transform='scaleX('+(position/Math.max(1,max))+')';
         previousButton.disabled=position<2;nextButton.disabled=position>=max-2;
@@ -304,6 +327,7 @@
     bridgeStart=mobile.bounds.get(bridge).x;memberStart=mobile.bounds.get(members).x;
     stops=[...new Set([...mobile.stops,...[.30,.47,.65,.86,1].map(p=>memberStart+memberDuration*p)])].sort((a,b)=>a-b);
     logoTop=mark.offsetTop;logoHeight=mark.offsetHeight;
+    measureBrand();
     if(scene) scene.resize();
     if(preserve&&initialized) scrollStory(clamp(oldPosition,0,travel));
     mobile.latest=shell.scrollLeft;mobile.publish();schedule();
@@ -361,6 +385,7 @@
     shell.style.height=(lead+travel+height)+'px';
     logoTop = mark.offsetTop;
     logoHeight = mark.offsetHeight;
+    measureBrand();
     const trackLeft = track.getBoundingClientRect().left;
     cardGeometry = all('.leader-card').map(card => ({
       card, x:card.getBoundingClientRect().left - trackLeft, width:card.offsetWidth, content:card.lastElementChild
@@ -496,8 +521,8 @@
     if(playing||!ready||section==='hero') {
       applyIntro(state);
       const entry=ready?clamp(mobile.latest/width):0;
-      mark.style.transform='translateX(-50%) translateY('+((1-state.logo)*logoHeight*1.12-entry*height*.12)+'px) scale('+(1+entry*.25)+')';
-      mark.style.opacity=1-smooth(progress(entry,.30,.72));
+      positionBrand(entry,state,mobile.latest);
+      hero.style.opacity=String(1-smooth(progress(entry,.68,1)));
       eyebrow.style.opacity=state.eyebrow*(1-smooth(progress(entry,.10,.5)));
       cue.style.opacity=state.controls*(1-progress(entry,0,.22));
       if(scene) {
@@ -574,10 +599,7 @@
     hero.style.visibility = entry >= 1 ? 'hidden' : 'visible';
     hero.style.pointerEvents = ready && entry < .65 ? 'auto' : 'none';
     hero.inert = entry >= .65;
-    const logoRise = (1-state.logo) * logoHeight * 1.12;
-    const logoScroll = reduced ? 0 : entry * height * -.12;
-    mark.style.transform = 'translateX(-50%) translate3d(' + (reduced ? 0 : -cursorX*.4) + 'px,' + (logoRise+logoScroll) + 'px,0) scale(' + (1+(reduced ? 0 : entry*.25)) + ')';
-    mark.style.opacity = 1 - smooth(progress(entry, .30, .72));
+    positionBrand(entry,state);
     eyebrow.style.opacity = state.eyebrow*(1-smooth(progress(entry, .10, .5)));
     cue.style.opacity = state.controls*(1-progress(entry, 0, .22));
     if (scene && entry < 1) {
@@ -658,7 +680,7 @@
     if (frameId) cancelAnimationFrame(frameId);
     root.classList.remove('is-booting','is-enhanced','is-intro-locked');
     root.classList.add('motion-fallback');
-    shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
+    shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';brandVisual.style.opacity='';
     track.style.cssText='';
     if(mobile) {mobile.destroy();mobile=null;}
     introScreen.classList.add('is-finished'); introScreen.inert=true;

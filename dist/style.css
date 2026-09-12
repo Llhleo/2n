@@ -40,6 +40,7 @@ button:focus-visible,a:focus-visible,video:focus-visible { outline:2px solid cur
 .brand-button { width:64px; min-height:44px; padding:0; display:grid; place-items:center; }
 .brand-wordmark { font:700 40px/.85 Georgia,serif; letter-spacing:-.12em; }
 .brand-wordmark sup { font-size:.4em; position:relative; top:-.1em; }
+.is-enhanced .brand-wordmark,.is-enhanced .brand-image { opacity:0; }
 .brand-image { display:none; width:64px; height:36px; object-fit:contain; }
 .story-controls {
   position:fixed; z-index:40; bottom:0; left:0; right:0; display:flex; gap:20px; align-items:center;
@@ -79,6 +80,7 @@ html:not(.is-enhanced) .member-fusion,.is-reduced-motion .member-fusion { displa
 .hero-eyebrow span { opacity:.5; }
 .hero-mark { position:absolute; z-index:2; top:28%; left:50%; width:max-content; max-width:90vw; transform:translateX(-50%); will-change:transform; }
 .hero-wordmark { display:block; font:700 clamp(220px,min(41vw,53vh),680px)/.86 Georgia,'Times New Roman',serif; letter-spacing:-.13em; padding-right:.1em; }
+.is-enhanced .hero-wordmark { text-shadow:1px 1px 0 rgba(20,24,19,var(--logo-depth,0)),2px 2px 0 rgba(20,24,19,var(--logo-depth,0)); }
 .hero-wordmark sup { font-size:.31em; vertical-align:top; position:relative; top:.02em; left:.07em; letter-spacing:-.06em; }
 .hero-image-mark { display:none; width:min(44vw,560px); max-height:42vh; object-fit:contain; }
 .hero-copy { position:absolute; z-index:4; left:6vw; bottom:16%; color:#fff; text-shadow:0 2px 25px #0003; }
@@ -181,7 +183,7 @@ html:not(.is-enhanced) .biome { background:var(--image) center/cover; }
 html:not(.is-enhanced) .story-controls,html:not(.is-enhanced) .replay-intro { display:none; }
 @media (max-width:760px) {
   .world-back,.world-front { will-change:transform; transform-origin:center; }
-  .site-header { height:70px; padding:env(safe-area-inset-top) 20px 0; }
+  .site-header { height:70px; padding:env(safe-area-inset-top) max(20px,env(safe-area-inset-right)) 0 max(20px,env(safe-area-inset-left)); }
   .brand-button { width:38px; } .brand-wordmark { font-size:33px; }
   .story-controls { gap:8px; padding-left:20px; padding-right:20px; }
   .chapter-position { gap:10px; } .progress { min-width:12px; }
