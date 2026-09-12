@@ -615,10 +615,10 @@
     const shift=smooth(progress(phase,.12,.76)),fade=smooth(progress(phase,.76,1));
     orb.style.transform=reduced?'none':'translate3d('+(-shift*width*.95)+'px,0,0) scale('+lerp(1.1,.26,shift)+')';
     orb.style.opacity=reduced?'.15':String(1-smooth(progress(phase,.62,.82)));
-    bridgeFirst.style.opacity=reduced?'0':String(1-smooth(progress(phase,.24,.52)));
-    bridgeFirst.style.transform=reduced?'none':'translate3d('+(-shift*width*.28)+'px,0,0)';
-    bridgeSecond.style.opacity=reduced?'1':String(smooth(progress(phase,.32,.65))*(1-fade*.6));
-    bridgeSecond.style.transform=reduced?'none':'translate3d('+((1-shift)*width*.14)+'px,0,0) scale('+(1+fade*.06)+')';
+    bridgeFirst.style.opacity=reduced?'0':String(1-smooth(progress(phase,.26,.44)));
+    bridgeFirst.style.transform=reduced?'none':'translate3d('+(-shift*Math.min(width*.08,32))+'px,0,0)';
+    bridgeSecond.style.opacity=reduced?'1':String(smooth(progress(phase,.48,.66))*(1-fade*.6));
+    bridgeSecond.style.transform=reduced?'none':'translate3d('+((1-shift)*Math.min(width*.06,28))+'px,0,0) scale('+(1+fade*.02)+')';
   }
 
   function frame(now) {
@@ -652,10 +652,10 @@
     const fade = smooth(progress(bridgeState.phase,.76,1));
     orb.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*width*.95) + 'px,0,0) scale(' + lerp(1.1,.26,shift) + ')';
     orb.style.opacity = reduced ? '.15' : String(1-smooth(progress(bridgeState.phase,.62,.82)));
-    bridgeFirst.style.opacity = reduced ? '0' : String(1-smooth(progress(bridgeState.phase,.24,.52)));
-    bridgeFirst.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*width*.28) + 'px,0,0)';
-    bridgeSecond.style.opacity = reduced ? '1' : String(smooth(progress(bridgeState.phase,.32,.65))*(1-fade*.6));
-    bridgeSecond.style.transform = reduced ? 'none' : 'translate3d(' + ((1-shift)*width*.14) + 'px,0,0) scale(' + (1+fade*.06) + ')';
+    bridgeFirst.style.opacity = reduced ? '0' : String(1-smooth(progress(bridgeState.phase,.26,.44)));
+    bridgeFirst.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*Math.min(width*.08,32)) + 'px,0,0)';
+    bridgeSecond.style.opacity = reduced ? '1' : String(smooth(progress(bridgeState.phase,.48,.66))*(1-fade*.6));
+    bridgeSecond.style.transform = reduced ? 'none' : 'translate3d(' + ((1-shift)*Math.min(width*.06,28)) + 'px,0,0) scale(' + (1+fade*.02) + ')';
     const entry = reduced ? scrolling.entry : smooth(scrolling.entry);
     // WorldScene now carries the breathing motion in its contour, not CSS translation.
     applyIntro(state);
@@ -701,7 +701,7 @@
       if (relative > width*1.15 || relative+g.width < -width*.15) return;
       const reveal = reduced ? 1 : easeOut(progress(1-relative/width,.04,.85));
       g.content.style.opacity = reveal;
-      g.content.style.transform = reduced ? 'none' : 'translateY(' + (1-reveal)*65 + 'px)';
+      g.content.style.transform = reduced ? 'none' : 'translateY(' + (1-reveal)*24 + 'px)';
     });
     updateChapter(chapter);
     previousButton.disabled = renderedScroll < 2;

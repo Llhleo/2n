@@ -12,3 +12,17 @@ html.is-enhanced.is-reduced-motion .biome-copy>* { opacity:1!important;transform
 @media(prefers-reduced-motion:reduce) {
   html.is-enhanced .biome-copy>* { opacity:1!important;transform:none!important;transition:none!important; }
 }
+
+/* Management enters as editorial text, with a small role/name/body cadence. */
+html.is-enhanced[data-input='touch'] .leader-card>div { opacity:1;transform:none;transition:none; }
+html.is-enhanced[data-input='touch'] .leader-card>div>* {
+  opacity:0;transform:translate3d(0,14px,0);
+  transition:opacity var(--motion-exit) ease-out,transform var(--motion-enter) var(--motion-soft);
+}
+html.is-enhanced[data-input='touch'] .leader-card.is-native-visible>div>* { opacity:1;transform:none; }
+html.is-enhanced[data-input='touch'] .leader-card.is-native-visible h3 { transition-delay:30ms; }
+html.is-enhanced[data-input='touch'] .leader-card.is-native-visible p { transition-delay:60ms; }
+html.is-enhanced.is-reduced-motion .leader-card>div>* { opacity:1!important;transform:none!important;transition:none!important; }
+@media(prefers-reduced-motion:reduce) {
+  html.is-enhanced .leader-card>div>* { opacity:1!important;transform:none!important;transition:none!important; }
+}
