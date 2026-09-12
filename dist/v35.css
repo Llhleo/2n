@@ -13,25 +13,3 @@ html.is-enhanced .member-cloud span {
   font-size:28px;
   padding:10px;
 }
-
-/* v39.1: a single native horizontal scroll driver, with the original story
-   track and phase holds. There is no vertical chapter bypass on touch devices.
-   No snapping across liquid phases; direction changes remain continuous. */
-html.is-enhanced[data-input='touch'],
-html.is-enhanced[data-input='touch'] body { height:100%; overflow:hidden; }
-html.is-enhanced[data-input='touch'] .story-shell {
-  position:fixed; inset:0; width:100%; height:100%;
-  display:grid; grid-template-columns:max-content; grid-template-rows:100%;
-  overflow-x:auto; overflow-y:hidden; touch-action:pan-x pinch-zoom;
-  overscroll-behavior-x:contain; scrollbar-width:none;
-}
-html.is-enhanced[data-input='touch'] .story-shell::-webkit-scrollbar { display:none; }
-html.is-enhanced[data-input='touch'] .story-scroll-extent { height:1px; pointer-events:none; }
-html.is-enhanced[data-input='touch'].is-intro-locked .story-shell { overflow:hidden; }
-html.is-enhanced[data-input='touch'] .hero,
-html.is-enhanced[data-input='touch'] .story-viewport {
-  grid-area:1/1; position:sticky; inset:auto; left:0; top:0;
-  width:100vw; height:var(--view-height); min-height:0;
-}
-html.is-enhanced[data-input='touch'] .story-scroll-extent { grid-area:1/1; }
-html:not(.is-enhanced) .story-scroll-extent { display:none; }

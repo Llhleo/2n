@@ -3,16 +3,50 @@
   const BRAND_MODE = 'wordmark'; // 'image' keeps the supplied candidate emblem available.
   const M = window.TwoNMotion;
   const L = window.TwoNLiquid;
+  const P=window.TwoNPerf;
   if (!M || !L) { window.twoNFallback(); return; }
   const { clamp, lerp, smooth, progress, easeOut } = M;
   const root = document.documentElement;
   const one = selector => document.querySelector(selector);
   const all = selector => [...document.querySelectorAll(selector)];
+  const leadersContent=window.TwoNLeadersContent;
+  if(leadersContent?.intro && Array.isArray(leadersContent.people) && leadersContent.people.length) {
+    const intro=one('.leaders .section-intro'),list=one('.leaders .leader-list');
+    if(intro && list) {
+      intro.querySelector('p').textContent=leadersContent.intro.eyebrow;
+      intro.querySelector('h2').textContent=leadersContent.intro.title;
+      const lines=intro.querySelector('span');
+      lines.replaceChildren();
+      leadersContent.intro.lines.forEach((line,i)=>{
+        if(i) lines.append(document.createElement('br'));
+        lines.append(document.createTextNode(line));
+      });
+      const fragment=document.createDocumentFragment();
+      for(const person of leadersContent.people) {
+        const card=document.createElement('article');card.className='leader-card';
+        const number=document.createElement('span');number.className='number';number.textContent=person.number;
+        const content=document.createElement('div');
+        const role=document.createElement('span');role.className='role';role.textContent=person.role+' / '+person.roleEn;
+        const name=document.createElement('h3');name.textContent=person.name;
+        const description=document.createElement('p');description.textContent=person.description;
+        content.append(role,name,description);card.append(number,content);fragment.append(card);
+      }
+      list.replaceChildren(fragment);
+    }
+  }
   const shell = one('.story-shell');
   const track = one('.story-track');
   const hero = one('.hero');
   const mark = one('.hero-mark');
+  // Keep a layout-only anchor for the opening terrain's logo measurement.
+  // Desktop uses a fixed mark; Touch moves this same node across a safe dock boundary.
+  const markAnchor=mark.cloneNode(true);
+  markAnchor.classList.add('brand-anchor');
+  markAnchor.removeAttribute('aria-label');markAnchor.setAttribute('aria-hidden','true');
+  mark.before(markAnchor);
+  mark.classList.add('brand-visual');document.body.append(mark);
   const header = one('.site-header');
+  const brandVisual=one(BRAND_MODE==='image'?'.brand-image':'.brand-wordmark');
   const controls = one('.story-controls');
   const introScreen = one('.intro-screen');
   const introLines = all('.intro-line');
@@ -26,8 +60,14 @@
   const themeMeta=one('meta[name="theme-color"]');
   const panels = all('.panel');
   const mediaQuery = matchMedia('(prefers-reduced-motion: reduce)');
-  const qaTouch = location.hostname === 'terminal.local' && new URLSearchParams(location.search).has('qa-touch');
-  const touchFirst = qaTouch || matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints > 0;
+  let touchFirst=window.TwoNProfile.input==='touch';
+  if(touchFirst) {
+    const viewportMeta=one('meta[name="viewport"]');
+    viewportMeta.content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+    const preventPinch=event=>event.preventDefault();
+    addEventListener('gesturestart',preventPinch,{passive:false});
+    addEventListener('gesturechange',preventPinch,{passive:false});
+  }
   const imagePaths = ['garden', 'desert', 'ocean', 'jungle', 'hell'].map(name => 'assets/' + name + '.png');
   const tones = ['#239450', '#dfca91', '#4c8fb9', '#339a48', '#b53d3b'];
   // Content lives in HTML, so members and contributions survive script failure.
@@ -37,8 +77,8 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '39.1';
-  root.dataset.input = touchFirst ? 'touch' : 'pointer';
+  root.dataset.version = '42rc2';
+  root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
   let width = innerWidth, height = innerHeight, lead = 1, travel = 0;
@@ -48,6 +88,40 @@
   let frameId = 0, lastFrame = 0, renderedScroll = 0, activeChapter = -1;
   let cursorX = 0, cursorY = 0, wantedX = 0, wantedY = 0;
   let logoTop = 0, logoHeight = 0, focusAfterIntro = false;
+  let brandStartX=0,brandStartY=0,brandX=0,brandY=0,brandScale=1;
+  function measureBrand() {
+    // One layout pass at init/resize; the fixed visual never inherits scroll,
+    // opacity, or transforms from the Hero and story track.
+    const target=brandVisual.getBoundingClientRect();
+    const wasDocked=mark.classList.contains('is-docked');
+    if(wasDocked) mark.classList.remove('is-docked');
+    const wide=mark.offsetWidth;
+    brandStartX=markAnchor.offsetLeft-wide/2;
+    brandStartY=markAnchor.offsetTop;
+    brandX=target.left;
+    brandY=target.top;
+    brandScale=target.width/Math.max(1,wide);
+    if(wasDocked) mark.classList.add('is-docked');
+  }
+  function positionBrand(entry,state) {
+    const move=smooth(progress(entry,0,reduced?.38:.94));
+    const rise=(1-state.logo)*logoHeight*1.12;
+    const docked=move>=1;
+    mark.classList.toggle('is-docked',docked);
+    const inScene=touchFirst && entry<(reduced?.28:.55);
+    if(touchFirst && mark.classList.contains('brand-in-scene')!==inScene) {
+      // One node, reparented only across a boundary above the terrain and before
+      // Hero's exit fade. Cached coordinates preserve its viewport rectangle.
+      if(inScene) markAnchor.after(mark);else document.body.append(mark);
+      mark.classList.toggle('brand-in-scene',inScene);
+    }
+    const nativeOffset=inScene&&mobile?mobile.latest-mobile.bounds.get(hero).x:0;
+    const x=lerp(brandStartX,brandX,move)+nativeOffset;
+    const y=lerp(brandStartY+rise,brandY,move);
+    mark.style.transform='translate3d('+x+'px,'+y+'px,0) scale('+(docked?1:lerp(1,brandScale,move))+')';
+    mark.style.setProperty('--logo-depth',String(.22*(1-move)));
+    if(scene) scene.placeForeground(entry);
+  }
   let touch = null;
   const bridge = one('.bridge');
   const orb = one('.bridge-orb');
@@ -64,27 +138,56 @@
   const leaders=one('.leaders');
   const viewport=one('.story-viewport');
   let gatherPlan,splitPlan,lastLiquidPhase=-1;
+  let messageWidth=0;
+  const activeLabels=new Set();
+  function measureMessage() {
+    const range=document.createRange();
+    const walker=document.createTreeWalker(memberMessage,NodeFilter.SHOW_TEXT);
+    let node;messageWidth=0;
+    while((node=walker.nextNode())) {
+      range.selectNodeContents(node);
+      for(const rect of range.getClientRects()) messageWidth=Math.max(messageWidth,rect.width);
+    }
+  }
   let visualLiquid=0, liquidTarget=0;
+  let touchTimeline=null;
   const svgNS='http://www.w3.org/2000/svg';
   const fusion=document.createElementNS(svgNS,'svg');
   fusion.classList.add('member-fusion'); fusion.setAttribute('aria-hidden','true');
-  fusion.innerHTML='<defs><linearGradient id="fusion-color" gradientUnits="userSpaceOnUse"><stop stop-color="#a6ebc5"/><stop offset=".5" stop-color="#64b7d0"/><stop offset="1" stop-color="#2875f0"/></linearGradient></defs><path fill="url(#fusion-color)" fill-rule="nonzero"/>';
+  fusion.innerHTML='<defs><linearGradient id="fusion-color" gradientUnits="userSpaceOnUse"><stop stop-color="#86D5CF"/><stop offset=".5" stop-color="#72B9EA"/><stop offset="1" stop-color="#347EF4"/></linearGradient></defs><path fill="url(#fusion-color)" fill-rule="nonzero"/>';
   const liquidPath=fusion.querySelector('path');
+  // Touch Safari can subtract overlapping subpaths from one compound SVG path.
+  // Paint the mother, then overlapping bridges, then children as separate fills.
+  // Desktop keeps its existing compound path and its exact rendering order.
+  const neckPath=touchFirst?document.createElementNS(svgNS,'path'):null;
+  const childPath=touchFirst?document.createElementNS(svgNS,'path'):null;
+  if(touchFirst) {
+    for(const path of [neckPath,childPath]) {
+      path.setAttribute('fill','url(#fusion-color)');
+      path.setAttribute('fill-rule','nonzero');
+      fusion.append(path);
+    }
+  }
   members.prepend(fusion);
-  let lastOutline='';
-  function writeLiquid(outline) {
+  let lastOutline='',lastNecks='',lastChildren='';
+  function writeLiquid(outline,necks='',children='') {
     if(outline!==lastOutline) {liquidPath.setAttribute('d',outline);lastOutline=outline;}
+    if(touchFirst) {
+      if(necks!==lastNecks) {neckPath.setAttribute('d',necks);lastNecks=necks;}
+      if(children!==lastChildren) {childPath.setAttribute('d',children);lastChildren=children;}
+    }
   }
   const labelOpacity=new Float64Array(memberBubbles.length).fill(-1);
   memberBubbles.forEach(label=> {
     label.style.fontSize=(label.textContent.length>10?22:28)+'px';
   });
   const anniversaryTitle = one('.anniversary-title');
+  const particleColors=['#86D5CF','#72B9EA','#509BEF','#347EF4','#2558B8'];
   const anniversaryParticles = memberBubbles.map((_,i)=> {
     const dot=document.createElement('i');
     dot.className='anniversary-particle';
     dot.append(document.createElement('b'));
-    dot.style.setProperty('--hue',String((i*137.508)%360));
+    dot.style.setProperty('--particle-color',particleColors[i%particleColors.length]);
     const size=16+(i%5)*3;
     dot.style.width=size+'px'; dot.style.height=size+'px';
     one('.anniversary-particles').append(dot);
@@ -97,7 +200,7 @@
     controls.classList.toggle('is-shown',shown);
     controls.inert=!shown || !ready;
   }
-  const scrollForX = x => lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
+  const scrollForX = x => touchFirst ? x : lead + x + (x > bridgeStart ? bridgeDuration : 0) + (x > memberStart ? memberDuration : 0);
 
   function setMotionPreference() {
     reduced = mediaQuery.matches;
@@ -113,8 +216,30 @@
       this.bg = this.back.getContext('2d');
       this.fg = this.front.getContext('2d');
       if (!this.bg || !this.fg) throw new Error('Canvas unavailable');
+      if(touchFirst) {
+        // All wave canvases remain siblings in the native-scrolling Hero.
+        // Put the single brand between the back and real front terrain instead
+        // of making the front chase native movement from a body overlay.
+        markAnchor.after(mark);mark.classList.add('brand-in-scene');
+      } else {
+        // Preserve the existing desktop composition.
+        this.frontSlot=document.createComment('opening foreground');
+        this.front.before(this.frontSlot);
+        this.frontLayer=document.createElement('div');
+        this.frontLayer.className='brand-foreground';
+        this.frontLayer.setAttribute('aria-hidden','true');
+        this.frontLayer.append(this.front);document.body.append(this.frontLayer);
+      }
       this.atlas = document.createElement('canvas');
-      this.terrain=new Map();this.sizeKey='';this.drawKey='';
+      this.sizeKey='';this.drawKey='';this.lastPaint=-Infinity;
+      // wavelength / weight / angular speed / phase / horizontal steepness.
+      // Shared swell language, with two quiet detail components on desktop.
+      this.waves=[
+        [1.04,.62,.52,.3,.42], [.47,.25,.83,1.9,.30],
+        [.22,.10,1.17,4.1,.20], [.137,.02,1.43,.7,.12],
+        [.31,.01,-.37,2.8,.10]
+      ];
+      this.waveCount=touchFirst?3:5;
     }
     makeAtlas() {
       // Match the painted aspect ratio; retain game-texture proportions on phones.
@@ -147,7 +272,7 @@
     resize() {
       const key=[width,height,touchFirst?1:Math.min(devicePixelRatio||1,1.5)].join(':');
       if(this.sizeKey===key) return;
-      this.sizeKey=key;this.drawKey='';this.terrain.clear();
+      this.sizeKey=key;this.drawKey='';this.lastPaint=-Infinity;
       this.makeAtlas();
       // A 1x canvas is enough beneath the textured artwork on touch screens and
       // avoids pushing two retina-sized canvases through every scroll frame.
@@ -161,36 +286,56 @@
       this.shade=this.fg.createLinearGradient(0,height*.60,0,height);
       this.shade.addColorStop(0,'transparent');this.shade.addColorStop(1,'#0a100950');
     }
-    ridge(x, base, amplitude, phase) {
-      return base + height * amplitude * (
-        Math.sin(x / width * Math.PI * 2.35 + phase) * .72 +
-        Math.cos(x / width * Math.PI * 4.7 + phase * .7) * .28
-      );
+    wavePoint(x, base, amplitude, phase, seconds, gain, layer) {
+      let dx=0,dy=0;
+      const span=1.18-layer*.09, speed=.72+layer*.14;
+      for(let i=0;i<this.waveCount;i++) {
+        const w=this.waves[i];
+        const angle=x/width*Math.PI*2/(w[0]*span)-seconds*w[2]*speed+phase+w[3];
+        const a=height*amplitude*w[1]*gain;
+        // Horizontal compression concentrates crests; troughs remain broad.
+        // Conservative steepness keeps x monotonic, with no curling/self-crossing.
+        dx-=Math.sin(angle)*a*w[4];
+        dy-=Math.cos(angle)*a;
+      }
+      this.waveX=x+dx;this.waveY=base+dy;
     }
-    sheet(ctx, base, amplitude, phase, offsetX, offsetY, wash, entry) {
+    sheet(ctx, base, amplitude, phase, offsetX, offsetY, wash, entry, seconds, gain, layer) {
       ctx.save();
       const zoom = 1 + easeOut(entry) * 1.35;
       ctx.translate(width * .5, height * .5);
       ctx.scale(zoom, zoom);
       ctx.translate(-width * .5 + width * .30 * entry, -height * .5 + height * .035 * entry);
-      const key=[base,amplitude,phase].join(':');
-      let contour=this.terrain.get(key);
-      if(!contour) {
-        contour=new Path2D();
-        const sample=Math.max(touchFirst?9:5,width/(touchFirst?54:100));
-        for(let x=-width;x<=width*2;x+=sample) {
-          const y=this.ridge(x,base,amplitude,phase);
-          if(x===-width) contour.moveTo(x,y);else contour.lineTo(x,y);
-        }
-        contour.lineTo(width*2,height*3);contour.lineTo(-width,height*3);contour.closePath();
-        this.terrain.set(key,contour);
+      ctx.translate(0,offsetY);
+      // Draw directly into the reusable context path. Time-varying contours must
+      // not accumulate in the old static Path2D cache.
+      ctx.beginPath();
+      const samples=touchFirst?192:336;
+      for(let i=0;i<=samples;i++) {
+        const x=-width+i/samples*width*3;
+        this.wavePoint(x,base,amplitude,phase,seconds,gain,layer);
+        if(i===0) ctx.moveTo(this.waveX,this.waveY);
+        else ctx.lineTo(this.waveX,this.waveY);
       }
-      ctx.translate(0,offsetY);ctx.clip(contour);
+      ctx.lineTo(width*2,height*3);ctx.lineTo(-width,height*3);ctx.closePath();ctx.clip();
       ctx.drawImage(this.atlas,-width*.08+offsetX,base-height*.19,width*1.16,height*1.25);
       if (wash) {
         ctx.fillStyle = wash; ctx.fillRect(-width, -height, width * 3, height * 4);
       }
       ctx.restore();
+    }
+    placeForeground(entry) {
+      if(touchFirst) return; // Hero's native scroll, clipping and fade own this.
+      // Match the original Hero's native horizontal position and exit fade.
+      // Its internal canvas camera remains owned by transform()/draw().
+      this.frontLayer.style.transform='translate3d('+(- (touchFirst?entry*width:0))+'px,0,0)';
+      this.frontLayer.style.opacity=String(1-smooth(progress(entry,.68,1)));
+      this.frontLayer.style.visibility=entry>=1?'hidden':'visible';
+    }
+    restoreForeground() {
+      if(!this.frontLayer) return;
+      if(this.frontSlot.isConnected) {this.frontSlot.before(this.front);this.frontSlot.remove();}
+      this.frontLayer.remove();
     }
     transform(entry) {
       const amount = smooth(entry);
@@ -198,34 +343,42 @@
       this.front.style.transform = 'translate3d(' + (amount*width*.12) + 'px,' + (-amount*height*.025) + 'px,0) scale(' + (1+amount*.42) + ')';
     }
     draw(state, entry, now) {
+      const worldStart=P?P.start():0;
       const { bg, fg } = this;
-      const key=[state.world,entry,touchFirst?0:cursorX,touchFirst?0:cursorY,touchFirst||reduced?0:now].join(':');
+      // Cap touch canvas work near 30 fps, including scroll-driven calls.
+      if(touchFirst && !reduced && now-this.lastPaint<32) return;
+      const key=[state.world,entry,touchFirst?0:cursorX,touchFirst?0:cursorY,reduced?0:now].join(':');
       if(key===this.drawKey) return;
-      this.drawKey=key;
-      this.back.style.transform='none';
-      this.front.style.transform='none';
+      this.drawKey=key;this.lastPaint=now;
+      // Touch scroll-space transforms are committed before drawing and must
+      // survive both the throttled return and a full waveform repaint.
+      if(!touchFirst) {
+        this.back.style.transform='none';
+        this.front.style.transform='none';
+      }
       for (const ctx of [bg, fg]) {
         ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         ctx.clearRect(0, 0, width, height);
       }
       bg.fillStyle = this.sky; bg.fillRect(0, 0, width, height);
-      const drift = reduced || touchFirst ? 0 : Math.sin(now / 7800) * 2;
+      const seconds=reduced?0:now/1000;
+      const gain=reduced?1:1+.22*(1-state.world);
       const base = logoTop + logoHeight * .67;
       const rise = (1 - state.world) * height * .24;
       const pointerX = reduced ? 0 : cursorX;
       const pointerY = reduced ? 0 : cursorY;
-      this.sheet(bg, base - height * .12, .047, .2, -pointerX * .35, rise - pointerY * .3, '#f3f2ec66', entry);
-      this.sheet(bg, base - height * .047, .041, 1.4, pointerX * .32, rise * .7 + drift, '#151d1510', entry);
+      this.sheet(bg, base - height * .12, .022, .2, -pointerX * .35, rise - pointerY * .3, '#f3f2ec66', entry, seconds, gain, 0);
+      this.sheet(bg, base - height * .047, .028, 1.4, pointerX * .32, rise * .7, '#151d1510', entry, seconds, gain, 1);
       // Solve the front contour against the measured logo, including the center wave.
-      const centralWave = this.ridge(width * .5, 0, .035, 2.5);
-      const frontBase = base - centralWave;
-      this.sheet(fg, frontBase, .035, 2.5, pointerX * .85, rise * .5 + pointerY * .42 + drift * .6 - entry * height * .04, '#09180915', entry);
+      this.wavePoint(width*.5,0,.035,2.5,0,1,2);
+      const frontBase = base - this.waveY;
+      this.sheet(fg, frontBase, .035, 2.5, pointerX * .85, rise * .5 + pointerY * .42 - entry * height * .04, '#09180915', entry, seconds, gain, 2);
       fg.fillStyle = this.shade; fg.fillRect(0, height * .62, width, height * .38);
+      if(P) P.end('world',worldStart);
     }
   }
 
-  let horizontalExtent=null;
-  // One native scroll axis for the ENTIRE narrative, not per-section carousels.
+  let mobile=null;
   const storyPosition=()=>touchFirst?shell.scrollLeft:scrollY;
   function scrollStory(top,behavior='instant') {
     if(touchFirst) shell.scrollTo({left:top,top:0,behavior});
@@ -233,20 +386,52 @@
   }
   function setupMobile() {
     if(!touchFirst) return;
-    horizontalExtent=document.createElement('div');
-    horizontalExtent.className='story-scroll-extent';
-    horizontalExtent.setAttribute('aria-hidden','true');
-    shell.append(horizontalExtent);
-    shell.setAttribute('aria-label','左右滑动，依次浏览完整故事');
-    shell.tabIndex=0;
+    mobile=new window.TwoNMobileStory({shell,track,hero,bridge,members,leaders,panels,
+      onChapter:(index,position,max)=>{
+        if(geometry.length) updateChapter(index,position);
+        meter.style.transform='scaleX('+(position/Math.max(1,max))+')';
+        previousButton.disabled=position<2;nextButton.disabled=position>=max-2;
+        if(ready && Math.abs(position-controlScrollAnchor)>12) {
+          showControls(position<controlScrollAnchor);controlScrollAnchor=position;
+          controls.style.opacity=controlsShown?'1':'0';
+          controls.style.transform=controlsShown?'translateY(0)':'translateY(110%)';
+        }
+      },wake:schedule,perf:P});
+    shell.tabIndex=0;shell.setAttribute('aria-label','左右滑动，依次浏览完整故事');
     one('.cue-direction').textContent='左右滑动探索 →';
     shell.addEventListener('scroll',onStoryScroll,{passive:true});
   }
+  function measureMobile(preserve,oldPosition) {
+    bridgeDuration=Math.round(Math.max(width*1.8,height*2.2));
+    memberDuration=Math.round(Math.max(width*7.2,height*12));
+    mobile.measure(width,height,bridgeDuration,memberDuration);
+    lead=0;travel=mobile.max;
+    geometry=panels.map(panel=>({...mobile.bounds.get(panel),panel,surface:getComputedStyle(panel).backgroundColor}));
+    bridgeStart=mobile.bounds.get(bridge).x;memberStart=mobile.bounds.get(members).x;
+    stops=[...new Set([...mobile.stops,...[.30,.47,.65,.86,1].map(p=>memberStart+memberDuration*p)])].sort((a,b)=>a-b);
+    logoTop=markAnchor.offsetTop;logoHeight=markAnchor.offsetHeight;
+    measureBrand();
+    if(scene) scene.resize();
+    if(preserve&&initialized) scrollStory(clamp(oldPosition,0,travel));
+    mobile.latest=shell.scrollLeft;mobile.publish();schedule();
+  }
   function measureLiquid() {
+    if(!messageWidth) measureMessage();
     if(gatherPlan && gatherPlan.width===width && gatherPlan.height===height) return;
     gatherPlan=L.buildGather(M,memberBubbles.length,width,height);
     splitPlan=L.buildSplit(M,memberBubbles.length,width,height,gatherPlan.rows[gatherPlan.steps].radius);
+    if(touchFirst) {
+      const events=[{type:'release-neck',phase:.395},{type:'break',phase:.449}];
+      for(let i=0;i<memberBubbles.length;i++) {
+        for(const [type,approach] of [['contact',.55],['absorb',.82]]) {
+          const k=gatherPlan.rows.findIndex(row=>row.samples[i].approach>=approach);
+          if(k>=0) events.push({type,phase:k/gatherPlan.steps*.30});
+        }
+      }
+      touchTimeline=new window.TwoNTouchTimeline(events);
+    }
     anniversaryParticles.forEach((dot,i)=> {
+      if(touchFirst&&i>=23) return;
       const p=splitPlan.plan[i];
       if(p.active) { dot.style.width=p.orbitRadius*2+'px';dot.style.height=p.orbitRadius*2+'px'; }
     });
@@ -263,6 +448,8 @@
     width = document.documentElement.clientWidth;
     height = innerHeight;
     root.style.setProperty('--view-height', height + 'px');
+    measureMessage();
+    if(touchFirst) {measureMobile(preserve,oldY);return;}
     lead = Math.round(Math.max(width * .94, height * .78));
     geometry = panels.map(panel => ({
       panel,
@@ -278,10 +465,10 @@
     measureLiquid();
     memberDuration = Math.round(Math.max(width*7.2, height*12));
     travel = Math.max(0, track.scrollWidth - width) + bridgeDuration + memberDuration;
-    if(touchFirst) horizontalExtent.style.width=(lead+travel+width)+'px';
-    else shell.style.height=(lead+travel+height)+'px';
-    logoTop = mark.offsetTop;
-    logoHeight = mark.offsetHeight;
+    shell.style.height=(lead+travel+height)+'px';
+    logoTop = markAnchor.offsetTop;
+    logoHeight = markAnchor.offsetHeight;
+    measureBrand();
     const trackLeft = track.getBoundingClientRect().left;
     cardGeometry = all('.leader-card').map(card => ({
       card, x:card.getBoundingClientRect().left - trackLeft, width:card.offsetWidth, content:card.lastElementChild
@@ -313,24 +500,37 @@
     cue.style.opacity = state.controls;
   }
 
-  function updateChapter(index) {
+  function updateChapter(index, nativePosition) {
+    // The docked mark sits near the left edge, ahead of the chapter center.
+    if (touchFirst && Number.isFinite(nativePosition) && geometry.length) {
+      const atMark=nativePosition+width*.10;
+      let markChapter=0;
+      for(let i=0;i<geometry.length;i++) if(geometry[i].x<=atMark) markChapter=i+1;
+      const markTheme=markChapter>=1&&markChapter<=5
+        ? (markChapter===2?'light':'dark')
+        : (markChapter===6||markChapter===8?'dark':'light');
+      if(root.dataset.brandTheme!==markTheme) root.dataset.brandTheme=markTheme;
+    }
     if (index === activeChapter) return;
     activeChapter = index;
     counter.textContent = String(index + 1).padStart(2, '0');
     chapterName.textContent = index === 0 ? '序章' : panels[index-1].dataset.chapter;
     root.classList.toggle('is-light-chrome', index > 0 && index <= 6 || index === 8);
     root.classList.toggle('is-ink-footer', index === 7 || index === 9 || index === 10);
-    const surface = index === 0 ? '#f3f2ec' : geometry[index-1].surface;
+    root.dataset.theme = index > 0 && index <= 5
+      ? (index === 2 ? 'biome-light' : 'biome-dark')
+      : (index === 6 || index === 8 ? 'dark' : 'light');
+    const surface = index === 0 ? '#F7F7F3' : geometry[index-1].surface;
     root.style.setProperty('--surface-color',surface);
     themeMeta.content=surface;
   }
 
   function renderMembers(phase, x) {
-    const arriving = smooth(progress(x,memberStart-width,memberStart));
+    const arriving = touchFirst?1:smooth(progress(x,memberStart-width,memberStart));
     const crossing=x>=memberStart-width && x<memberStart;
     // One dissolve over an opaque, uniform management-colored backing. Never
     // fade both surfaces, which exposed a dark seam under the moving last card.
-    members.style.transform = x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
+    members.style.transform = !touchFirst && x < memberStart ? 'translate3d(' + (x-memberStart) + 'px,0,0)' : 'none';
     members.style.opacity = String(arriving);
     members.style.zIndex = '2';
     leaders.style.opacity='1';
@@ -342,39 +542,60 @@
     lastLiquidPhase=phase;fusion.dataset.reduced=String(reduced);
     const mapped=phase<=.355?phase:phase<=.47?lerp(.355,.43,progress(phase,.355,.47)):lerp(.43,1,progress(phase,.47,1));
     const stage=M.anniversary(mapped),gather=progress(phase,0,.30);
-    memberMessage.style.opacity = reduced ? '0' : String(smooth(progress(gather,.235,.315))*(1-smooth(progress(gather,.68,.82))));
-    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(gather,.67,.9))*stage.resultFade);
+    const flow=phase<=.355&&!reduced?L.gatherAt(M,gatherPlan,gather):null;
+    const textFits=flow?smooth(progress(flow.radius*2,messageWidth+20,messageWidth+52)):0;
+    memberMessage.style.opacity = reduced?'0':String(textFits*(1-smooth(progress(phase,.285,.305))));
+    // Use the existing .30–.355 physical hold. Previously resultFade was
+    // already fading while the result text was still entering, so it never
+    // reached full opacity. Give the completed mother a clear, short beat.
+    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(phase,.305,.32))*(1-smooth(progress(phase,.342,.355))));
     anniversaryTitle.style.opacity = reduced ? '1' : String(stage.title);
+    const titleEnter = smooth(progress(mapped, .43, .49));
+    anniversaryTitle.style.transform = reduced ? 'none' : `translate3d(0,${(1-titleEnter)*8}px,0) scale(${.985+titleEnter*.015})`;
     if(reduced) {
       memberCloud.style.visibility='visible';
       memberBubbles.forEach(b=>b.style.opacity='1');
       labelOpacity.fill(-1);
       return;
     }
+    const liquidStart=P?P.start():0;
     const gathering=phase<=.355, splitting=phase>.355 && phase<.47;
     fusion.style.visibility=gathering||splitting?'visible':'hidden';
     memberCloud.style.visibility=gathering?'visible':'hidden';
     let splittingState=null;
     if(gathering) {
-      const flow=L.gatherAt(M,gatherPlan,gather);
       let outline=L.circle(flow.x,flow.y,flow.radius);
+      let necks='',children='';
       flow.drops.forEach((drop,i)=> {
-        if(drop.r>.1) outline+=L.circle(drop.x,drop.y,drop.r)+L.neck(flow.x,flow.y,flow.radius,drop.x,drop.y,drop.r);
+        if(drop.r>.1) {
+          const child=L.circle(drop.x,drop.y,drop.r);
+          const bridge=L.neck(flow.x,flow.y,flow.radius,drop.x,drop.y,drop.r);
+          if(touchFirst) {children+=child;necks+=bridge;}
+          else outline+=child+bridge;
+        }
+        if(touchFirst && drop.label<=.001 && !activeLabels.has(i)) return;
         const label=memberBubbles[i];
+        if(drop.label>.001) activeLabels.add(i);else activeLabels.delete(i);
         if(labelOpacity[i]!==drop.label) {label.style.opacity=String(drop.label);labelOpacity[i]=drop.label;}
         if(drop.label>.001) label.style.transform='translate(-50%,-50%) translate3d('+drop.x+'px,'+drop.y+'px,0) scale('+drop.scale+')';
       });
-      writeLiquid(outline);
+      writeLiquid(outline,necks,children);
     } else if(splitting) {
       splittingState=L.splitAt(splitPlan,progress(phase,.355,.47));
       let outline=L.circle(0,0,splittingState.radius);
+      let necks='',children='';
       splittingState.drops.forEach(drop=> {
         // Connected lobes belong to the mother silhouette; only detached drops
         // transfer to the colored compositor layers.
         const r=drop.r;
-        if(drop.handoff<1) outline+=L.circle(drop.x,drop.y,r)+L.neck(0,0,splittingState.radius,drop.x,drop.y,r);
+        if(drop.handoff<1) {
+          const child=L.circle(drop.x,drop.y,r);
+          const bridge=L.neck(0,0,splittingState.radius,drop.x,drop.y,r);
+          if(touchFirst) {children+=child;necks+=bridge;}
+          else outline+=child+bridge;
+        }
       });
-      writeLiquid(outline);
+      writeLiquid(outline,necks,children);
     }
     anniversaryParticles.forEach((dot,i)=> {
       if(gathering) {dot.style.opacity='0';return;}
@@ -383,13 +604,73 @@
       dot.style.opacity=String(opacity);
       if(opacity<.001) return;
       dot.style.transform='translate(-50%,-50%) translate3d('+particle.x+'px,'+particle.y+'px,0) scale('+particle.scale+')';
-      dot.style.setProperty('--split-color',String(particle.color));
+      const color=splitting?0:smooth(progress(mapped,.48,.64));
+      dot.style.setProperty('--split-color',String(color));
     });
+    if(P) P.end('liquid',liquidStart);
+  }
+
+  function frameMobile(now) {
+    if(!mobile) return;
+    mobile.reconcile();
+    const section=mobile.heavy();
+    const heroRange=mobile.bounds.get(hero);
+    const heroEndX=mobile.bounds.get(panels[0]).x;
+    const heroEntry=ready?clamp((mobile.latest-heroRange.x)/Math.max(1,heroEndX-heroRange.x)):0;
+    const heroVisible=!ready || mobile.latest<heroEndX;
+    hero.style.visibility=heroVisible?'visible':'hidden';
+    // All three layers use this frame's canonical Hero entry, even on a jump
+    // straight out of Hero. Expensive wave drawing cannot delay/reset placement.
+    if(scene) {scene.transform(heroEntry);scene.placeForeground(heroEntry);}
+    if(ready) positionBrand(heroEntry,M.intro(M.DURATION));
+    if(!playing&&ready&&!section) {
+      if(touchTimeline) touchTimeline.reset(mobile.phase(members));
+      return;
+    }
+    if(playing) time=Math.min(M.DURATION,now-startedAt);
+    const state=M.intro(ready?M.DURATION:time);
+    if(playing||!ready||section==='hero') {
+      applyIntro(state);
+      const entry=heroEntry;
+      positionBrand(entry,state);
+      hero.style.opacity=String(1-smooth(progress(entry,.68,1)));
+      eyebrow.style.opacity=state.eyebrow*(1-smooth(progress(entry,.10,.5)));
+      cue.style.opacity=state.controls*(1-progress(entry,0,.22));
+      if(scene) {
+        scene.draw(state,0,now);
+      }
+    }
+    if(section==='together') renderBridge(mobile.phase(bridge));
+    if(section==='members') {
+      measureLiquid();
+      liquidTarget=mobile.phase(members);
+      visualLiquid=reduced?liquidTarget:touchTimeline.tick(liquidTarget,now);
+      renderMembers(visualLiquid,memberStart);
+      if(!reduced && touchTimeline.pending) schedule();
+    } else if(touchTimeline) {
+      // No offscreen liquid work or deferred animation after leaving this chapter.
+      touchTimeline.reset(mobile.phase(members));
+    }
+    if(P) P.values.active=playing?'intro':section||'native';
+    if(playing&&state.complete) finishIntro();
+    if(playing || (!reduced && section==='hero')) schedule();
+  }
+  function renderBridge(phase) {
+    const shift=smooth(progress(phase,.12,.76)),fade=smooth(progress(phase,.76,1));
+    orb.style.transform=reduced?'none':'translate3d('+(-shift*width*.95)+'px,0,0) scale('+lerp(1.1,.26,shift)+')';
+    orb.style.opacity=reduced?'.15':String(1-smooth(progress(phase,.62,.82)));
+    bridgeFirst.style.opacity=reduced?'0':String(1-smooth(progress(phase,.26,.44)));
+    bridgeFirst.style.transform=reduced?'none':'translate3d('+(-shift*Math.min(width*.08,32))+'px,0,0)';
+    bridgeSecond.style.opacity=reduced?'1':String(smooth(progress(phase,.48,.66))*(1-fade*.6));
+    bridgeSecond.style.transform=reduced?'none':'translate3d('+((1-shift)*Math.min(width*.06,28))+'px,0,0) scale('+(1+fade*.02)+')';
   }
 
   function frame(now) {
+    const frameStart=P?P.start():0;
     frameId = 0;
     if (!active || !initialized || document.hidden) return;
+    if(P) P.values.active=ready?'story':'intro';
+    if(touchFirst) {frameMobile(now);if(P) P.end('frame',frameStart);return;}
     const dt = Math.min(60, Math.max(1, now - (lastFrame || now-16)));
     lastFrame = now;
     if (playing) time = Math.min(M.DURATION, now - startedAt);
@@ -415,12 +696,12 @@
     const fade = smooth(progress(bridgeState.phase,.76,1));
     orb.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*width*.95) + 'px,0,0) scale(' + lerp(1.1,.26,shift) + ')';
     orb.style.opacity = reduced ? '.15' : String(1-smooth(progress(bridgeState.phase,.62,.82)));
-    bridgeFirst.style.opacity = reduced ? '0' : String(1-smooth(progress(bridgeState.phase,.24,.52)));
-    bridgeFirst.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*width*.28) + 'px,0,0)';
-    bridgeSecond.style.opacity = reduced ? '1' : String(smooth(progress(bridgeState.phase,.32,.65))*(1-fade*.6));
-    bridgeSecond.style.transform = reduced ? 'none' : 'translate3d(' + ((1-shift)*width*.14) + 'px,0,0) scale(' + (1+fade*.06) + ')';
+    bridgeFirst.style.opacity = reduced ? '0' : String(1-smooth(progress(bridgeState.phase,.26,.44)));
+    bridgeFirst.style.transform = reduced ? 'none' : 'translate3d(' + (-shift*Math.min(width*.08,32)) + 'px,0,0)';
+    bridgeSecond.style.opacity = reduced ? '1' : String(smooth(progress(bridgeState.phase,.48,.66))*(1-fade*.6));
+    bridgeSecond.style.transform = reduced ? 'none' : 'translate3d(' + ((1-shift)*Math.min(width*.06,28)) + 'px,0,0) scale(' + (1+fade*.02) + ')';
     const entry = reduced ? scrolling.entry : smooth(scrolling.entry);
-    root.classList.toggle('is-breathing',ready && !reduced && renderedScroll<2);
+    // WorldScene now carries the breathing motion in its contour, not CSS translation.
     applyIntro(state);
     track.style.transform = 'translate3d(' + (-scrolling.x) + 'px,0,0)';
     meter.style.transform = 'scaleX(' + scrolling.progress + ')';
@@ -428,10 +709,7 @@
     hero.style.visibility = entry >= 1 ? 'hidden' : 'visible';
     hero.style.pointerEvents = ready && entry < .65 ? 'auto' : 'none';
     hero.inert = entry >= .65;
-    const logoRise = (1-state.logo) * logoHeight * 1.12;
-    const logoScroll = reduced ? 0 : entry * height * -.12;
-    mark.style.transform = 'translateX(-50%) translate3d(' + (reduced ? 0 : -cursorX*.4) + 'px,' + (logoRise+logoScroll) + 'px,0) scale(' + (1+(reduced ? 0 : entry*.25)) + ')';
-    mark.style.opacity = 1 - smooth(progress(entry, .30, .72));
+    positionBrand(entry,state);
     eyebrow.style.opacity = state.eyebrow*(1-smooth(progress(entry, .10, .5)));
     cue.style.opacity = state.controls*(1-progress(entry, 0, .22));
     if (scene && entry < 1) {
@@ -455,7 +733,7 @@
         const entering = i===0 && entry<1 ? progress(entry,.70,1) : clamp(1-relative/width);
         const reveal = reduced ? 1 : easeOut(progress(entering,.12,.80));
         copy.style.opacity = i===0 && entry<1 ? entering : reveal;
-        copy.style.transform = reduced ? 'none' : 'translate3d(' + (1-reveal)*65 + 'px,' + (1-reveal)*35 + 'px,0)';
+        copy.style.transform = reduced ? 'none' : 'translate3d(' + (1-reveal)*28 + 'px,' + (1-reveal)*18 + 'px,0)';
         if (g.visual) {
           const pan = reduced || touchFirst ? 0 : clamp(relative/width,-1,1)*width*.075;
           g.visual.style.transform = reduced || touchFirst ? 'none' : 'translate3d(' + pan + 'px,0,0) scale(1.09)';
@@ -467,7 +745,7 @@
       if (relative > width*1.15 || relative+g.width < -width*.15) return;
       const reveal = reduced ? 1 : easeOut(progress(1-relative/width,.04,.85));
       g.content.style.opacity = reveal;
-      g.content.style.transform = reduced ? 'none' : 'translateY(' + (1-reveal)*65 + 'px)';
+      g.content.style.transform = reduced ? 'none' : 'translateY(' + (1-reveal)*24 + 'px)';
     });
     updateChapter(chapter);
     previousButton.disabled = renderedScroll < 2;
@@ -476,7 +754,8 @@
     if (playing && state.complete) finishIntro();
     const unsettled = Math.abs(desired-renderedScroll)>.1;
     const pointerUnsettled = !touchFirst && (Math.abs(cursorX-wantedX)>.1 || Math.abs(cursorY-wantedY)>.1);
-    if (playing || unsettled || pointerUnsettled || Math.abs(visualLiquid-liquidTarget)>.00001) schedule();
+    if(P) P.end('frame',frameStart);
+    if (playing || (!reduced && entry<1) || unsettled || pointerUnsettled || Math.abs(visualLiquid-liquidTarget)>.00001) schedule();
   }
 
   function schedule() {
@@ -512,8 +791,11 @@
     root.classList.remove('is-booting','is-enhanced','is-intro-locked');
     root.classList.add('motion-fallback');
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
+    mark.classList.remove('brand-visual','is-docked','brand-in-scene');
+    if(markAnchor.isConnected) {markAnchor.before(mark);markAnchor.remove();}
+    if(scene) scene.restoreForeground();
     track.style.cssText='';
-    if(horizontalExtent) horizontalExtent.remove();
+    if(mobile) {mobile.destroy();mobile=null;}
     introScreen.classList.add('is-finished'); introScreen.inert=true;
     for (const element of [header,controls,hero,...panels]) { element.inert=false; element.style.opacity=''; }
     for (const element of [...introLines,eyebrow,cue]) element.style.cssText='';
@@ -554,8 +836,15 @@
   one('.skip-link').addEventListener('click', event => { if (!active) return; event.preventDefault(); finishIntro(); goTo('biomes'); });
   mediaQuery.addEventListener('change', () => { setMotionPreference(); if(reduced && playing) finishIntro(); schedule(); });
   addEventListener('2n:fallback', fallback);
+  addEventListener('2n:profile',()=>{
+    if(window.TwoNProfile.input===(touchFirst?'touch':'desktop')) return;
+    // Capability change, not viewport resize. Reload cleanly restores all observers,
+    // event routes and geometry precision rather than leaving mixed render paths.
+    location.reload();
+  });
   addEventListener('error', () => { if (!ready && active) window.twoNFallback(); });
   function onStoryScroll() {
+    if(touchFirst) {if(mobile) mobile.scroll();return;}
     const position=clamp(storyPosition(),0,lead+travel);
     if(ready && active) {
       const delta=position-controlScrollAnchor;
@@ -608,7 +897,7 @@
   addEventListener('touchend',()=>{touch=null;},{passive:true});
   }
   addEventListener('pointermove', event=>{
-    if(event.pointerType!=='mouse' || !active || reduced) return;
+    if(touchFirst || event.pointerType!=='mouse' || !active || reduced) return;
     wantedX=(event.clientX/width-.5)*24; wantedY=(event.clientY/height-.5)*14; schedule();
   },{passive:true});
   addEventListener('blur',()=>{wantedX=0;wantedY=0;});
