@@ -38,12 +38,13 @@ assert.deepEqual(styles.map(ref=>ref.split('?')[0]),[
   'style.css','v35.css','mobile.css','polish.css','visual-impact.css'
 ],'CSS cascade order');
 for(const ref of [...scripts,...styles]) {
-  assert.equal(new URLSearchParams(ref.split('?')[1]?.replaceAll('&amp;','&')).get('v'),'42rc2',`RC cache version: ${ref}`);
+  assert.equal(new URLSearchParams(ref.split('?')[1]?.replaceAll('&amp;','&')).get('v'),'1.0.0',`Release cache version: ${ref}`);
 }
 assert.match(html,/<meta name="viewport" content="[^"]*viewport-fit=cover"/);
 for(const name of ['description','theme-color']) assert.ok(html.includes(`<meta name="${name}"`));
-for(const name of ['og:title','og:description']) assert.ok(html.includes(`<meta property="${name}"`));
+for(const name of ['og:type','og:title','og:description','og:url','og:image']) assert.ok(html.includes(`<meta property="${name}"`));
+assert.ok(html.includes('<meta name="twitter:card" content="summary_large_image"'));
 assert.ok(html.includes('<link rel="icon"'));
 assert.ok(html.includes('preload="none"'));
 assert.ok(html.includes('setTimeout(window.twoNFallback, 12000)'));
-console.log('Static checks passed: local assets, JS syntax, chapters/leaders, v42rc2 assets and runtime order, lazy video and fallback.');
+console.log('Static checks passed: local assets, JS syntax, chapters/leaders, v1.0.0 assets and runtime order, lazy video and fallback.');
