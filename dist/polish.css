@@ -26,3 +26,22 @@ html.is-enhanced.is-reduced-motion .leader-card>div>* { opacity:1!important;tran
 @media(prefers-reduced-motion:reduce) {
   html.is-enhanced .leader-card>div>* { opacity:1!important;transform:none!important;transition:none!important; }
 }
+
+/* A quiet relay into the film and ending; the video remains directly usable. */
+html.is-enhanced[data-input='touch'] .film-copy,
+html.is-enhanced[data-input='touch'] .closing>p,
+html.is-enhanced[data-input='touch'] .closing>h2,
+html.is-enhanced[data-input='touch'] .closing>span {
+  opacity:0;transform:translate3d(0,8px,0);
+  transition:opacity 220ms ease-out,transform var(--motion-enter) var(--motion-soft);
+}
+html.is-enhanced[data-input='touch'] .film.is-native-visible .film-copy,
+html.is-enhanced[data-input='touch'] .closing.is-native-visible>p,
+html.is-enhanced[data-input='touch'] .closing.is-native-visible>h2,
+html.is-enhanced[data-input='touch'] .closing.is-native-visible>span { opacity:1;transform:none; }
+html.is-enhanced .story-controls { transition:color 180ms ease-out,transform .24s,opacity .24s; }
+html.is-enhanced.is-reduced-motion .film-copy,
+html.is-enhanced.is-reduced-motion .closing>* { opacity:1!important;transform:none!important;transition:none!important; }
+@media(prefers-reduced-motion:reduce) {
+  html.is-enhanced .film-copy,html.is-enhanced .closing>* { opacity:1!important;transform:none!important;transition:none!important; }
+}

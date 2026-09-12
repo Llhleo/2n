@@ -511,6 +511,8 @@
     // reached full opacity. Give the completed mother a clear, short beat.
     memberResult.style.opacity = reduced ? '1' : String(smooth(progress(phase,.305,.32))*(1-smooth(progress(phase,.342,.355))));
     anniversaryTitle.style.opacity = reduced ? '1' : String(stage.title);
+    const titleEnter = smooth(progress(mapped, .43, .49));
+    anniversaryTitle.style.transform = reduced ? 'none' : `translate3d(0,${(1-titleEnter)*8}px,0) scale(${.985+titleEnter*.015})`;
     if(reduced) {
       memberCloud.style.visibility='visible';
       memberBubbles.forEach(b=>b.style.opacity='1');
