@@ -87,6 +87,7 @@
     const y=lerp(brandStartY+rise,brandY,move);
     mark.style.transform='translate3d('+x+'px,'+y+'px,0) scale('+(docked?1:lerp(1,brandScale,move))+')';
     mark.style.setProperty('--logo-depth',String(.22*(1-move)));
+    if(scene) scene.placeForeground(entry);
   }
   let touch = null;
   const bridge = one('.bridge');
@@ -181,6 +182,14 @@
       this.bg = this.back.getContext('2d');
       this.fg = this.front.getContext('2d');
       if (!this.bg || !this.fg) throw new Error('Canvas unavailable');
+      // Lift the actual front canvas above the fixed brand, not a duplicate or
+      // a simulated mask. Keep its existing drawing context and wave contour.
+      this.frontSlot=document.createComment('opening foreground');
+      this.front.before(this.frontSlot);
+      this.frontLayer=document.createElement('div');
+      this.frontLayer.className='brand-foreground';
+      this.frontLayer.setAttribute('aria-hidden','true');
+      this.frontLayer.append(this.front);document.body.append(this.frontLayer);
       this.atlas = document.createElement('canvas');
       this.sizeKey='';this.drawKey='';this.lastPaint=-Infinity;
       // wavelength / weight / angular speed / phase / horizontal steepness.
@@ -275,6 +284,17 @@
       }
       ctx.restore();
     }
+    placeForeground(entry) {
+      // Match the original Hero's native horizontal position and exit fade.
+      // Its internal canvas camera remains owned by transform()/draw().
+      this.frontLayer.style.transform='translate3d('+(- (touchFirst?entry*width:0))+'px,0,0)';
+      this.frontLayer.style.opacity=String(1-smooth(progress(entry,.68,1)));
+      this.frontLayer.style.visibility=entry>=1?'hidden':'visible';
+    }
+    restoreForeground() {
+      if(this.frontSlot.isConnected) {this.frontSlot.before(this.front);this.frontSlot.remove();}
+      this.frontLayer.remove();
+    }
     transform(entry) {
       const amount = smooth(entry);
       this.back.style.transform = 'translate3d(' + (amount*width*.07) + 'px,' + (amount*height*.015) + 'px,0) scale(' + (1+amount*.32) + ')';
@@ -322,6 +342,7 @@
     if(!touchFirst) return;
     mobile=new window.TwoNMobileStory({shell,track,hero,bridge,members,leaders,panels,
       onChapter:(index,position,max)=>{
+        if(ready && position>=width) positionBrand(1,M.intro(M.DURATION));
         if(geometry.length) updateChapter(index);
         meter.style.transform='scaleX('+(position/Math.max(1,max))+')';
         previousButton.disabled=position<2;nextButton.disabled=position>=max-2;
@@ -700,6 +721,7 @@
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
     mark.classList.remove('brand-visual','is-docked');
     if(markAnchor.isConnected) {markAnchor.before(mark);markAnchor.remove();}
+    if(scene) scene.restoreForeground();
     track.style.cssText='';
     if(mobile) {mobile.destroy();mobile=null;}
     introScreen.classList.add('is-finished'); introScreen.inert=true;

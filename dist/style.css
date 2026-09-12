@@ -81,9 +81,14 @@ html:not(.is-enhanced) .member-fusion,.is-reduced-motion .member-fusion { displa
 .hero-mark { position:absolute; z-index:2; top:28%; left:50%; width:max-content; max-width:90vw; transform:translateX(-50%); will-change:transform; }
 .brand-anchor { visibility:hidden;pointer-events:none; }
 .is-enhanced .hero-mark.brand-visual {
-  position:fixed;top:0;left:0;z-index:45;width:max-content;max-width:none;
+  position:fixed;top:0;left:0;z-index:35;width:max-content;max-width:none;
   transform-origin:top left;pointer-events:none;opacity:1;
 }
+.brand-foreground { position:fixed;inset:0;z-index:36;width:100vw;height:var(--view-height);overflow:hidden;pointer-events:none; }
+.is-enhanced .brand-visual { color:var(--ink); }
+.is-enhanced.is-light-chrome .brand-visual.is-docked { color:#fff; }
+.is-enhanced .brand-visual.is-docked { transition:color .2s; }
+.motion-fallback .brand-foreground { display:none; }
 .is-enhanced .brand-visual.is-docked .hero-wordmark { font:700 40px/.86 Georgia,'Times New Roman',serif;letter-spacing:-.13em;padding-right:.1em; }
 .is-enhanced .brand-visual.is-docked .hero-wordmark sup { font-size:.31em;vertical-align:top;top:.02em;left:.07em;letter-spacing:-.06em; }
 .is-enhanced .brand-visual.is-docked .hero-image-mark { width:64px;height:36px;max-height:none; }
