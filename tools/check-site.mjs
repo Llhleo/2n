@@ -42,7 +42,8 @@ for(const ref of [...scripts,...styles]) {
 }
 assert.match(html,/<meta name="viewport" content="[^"]*viewport-fit=cover"/);
 for(const name of ['description','theme-color']) assert.ok(html.includes(`<meta name="${name}"`));
-for(const name of ['og:title','og:description']) assert.ok(html.includes(`<meta property="${name}"`));
+for(const name of ['og:type','og:title','og:description','og:url','og:image']) assert.ok(html.includes(`<meta property="${name}"`));
+assert.ok(html.includes('<meta name="twitter:card" content="summary_large_image"'));
 assert.ok(html.includes('<link rel="icon"'));
 assert.ok(html.includes('preload="none"'));
 assert.ok(html.includes('setTimeout(window.twoNFallback, 12000)'));
