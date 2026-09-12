@@ -14,7 +14,7 @@
   const hero = one('.hero');
   const mark = one('.hero-mark');
   // Keep a layout-only anchor for the opening terrain's logo measurement.
-  // The only painted mark lives outside the scrolling/fading Hero hierarchy.
+  // Desktop uses a fixed mark; Touch moves this same node across a safe dock boundary.
   const markAnchor=mark.cloneNode(true);
   markAnchor.classList.add('brand-anchor');
   markAnchor.removeAttribute('aria-label');markAnchor.setAttribute('aria-hidden','true');
@@ -83,7 +83,15 @@
     const rise=(1-state.logo)*logoHeight*1.12;
     const docked=move>=1;
     mark.classList.toggle('is-docked',docked);
-    const x=lerp(brandStartX,brandX,move);
+    const inScene=touchFirst && entry<(reduced?.28:.55);
+    if(touchFirst && mark.classList.contains('brand-in-scene')!==inScene) {
+      // One node, reparented only across a boundary above the terrain and before
+      // Hero's exit fade. Cached coordinates preserve its viewport rectangle.
+      if(inScene) markAnchor.after(mark);else document.body.append(mark);
+      mark.classList.toggle('brand-in-scene',inScene);
+    }
+    const nativeOffset=inScene&&mobile?mobile.latest-mobile.bounds.get(hero).x:0;
+    const x=lerp(brandStartX,brandX,move)+nativeOffset;
     const y=lerp(brandStartY+rise,brandY,move);
     mark.style.transform='translate3d('+x+'px,'+y+'px,0) scale('+(docked?1:lerp(1,brandScale,move))+')';
     mark.style.setProperty('--logo-depth',String(.22*(1-move)));
@@ -182,14 +190,20 @@
       this.bg = this.back.getContext('2d');
       this.fg = this.front.getContext('2d');
       if (!this.bg || !this.fg) throw new Error('Canvas unavailable');
-      // Lift the actual front canvas above the fixed brand, not a duplicate or
-      // a simulated mask. Keep its existing drawing context and wave contour.
-      this.frontSlot=document.createComment('opening foreground');
-      this.front.before(this.frontSlot);
-      this.frontLayer=document.createElement('div');
-      this.frontLayer.className='brand-foreground';
-      this.frontLayer.setAttribute('aria-hidden','true');
-      this.frontLayer.append(this.front);document.body.append(this.frontLayer);
+      if(touchFirst) {
+        // All wave canvases remain siblings in the native-scrolling Hero.
+        // Put the single brand between the back and real front terrain instead
+        // of making the front chase native movement from a body overlay.
+        markAnchor.after(mark);mark.classList.add('brand-in-scene');
+      } else {
+        // Preserve the existing desktop composition.
+        this.frontSlot=document.createComment('opening foreground');
+        this.front.before(this.frontSlot);
+        this.frontLayer=document.createElement('div');
+        this.frontLayer.className='brand-foreground';
+        this.frontLayer.setAttribute('aria-hidden','true');
+        this.frontLayer.append(this.front);document.body.append(this.frontLayer);
+      }
       this.atlas = document.createElement('canvas');
       this.sizeKey='';this.drawKey='';this.lastPaint=-Infinity;
       // wavelength / weight / angular speed / phase / horizontal steepness.
@@ -285,6 +299,7 @@
       ctx.restore();
     }
     placeForeground(entry) {
+      if(touchFirst) return; // Hero's native scroll, clipping and fade own this.
       // Match the original Hero's native horizontal position and exit fade.
       // Its internal canvas camera remains owned by transform()/draw().
       this.frontLayer.style.transform='translate3d('+(- (touchFirst?entry*width:0))+'px,0,0)';
@@ -292,6 +307,7 @@
       this.frontLayer.style.visibility=entry>=1?'hidden':'visible';
     }
     restoreForeground() {
+      if(!this.frontLayer) return;
       if(this.frontSlot.isConnected) {this.frontSlot.before(this.front);this.frontSlot.remove();}
       this.frontLayer.remove();
     }
@@ -731,7 +747,7 @@
     root.classList.remove('is-booting','is-enhanced','is-intro-locked');
     root.classList.add('motion-fallback');
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
-    mark.classList.remove('brand-visual','is-docked');
+    mark.classList.remove('brand-visual','is-docked','brand-in-scene');
     if(markAnchor.isConnected) {markAnchor.before(mark);markAnchor.remove();}
     if(scene) scene.restoreForeground();
     track.style.cssText='';
