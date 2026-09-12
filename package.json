@@ -1,6 +1,6 @@
 {
-  "name": "2n-guild-v40",
-  "version": "40.0.0",
+  "name": "2n-guild",
+  "version": "42.0.0-rc.1",
   "private": true,
   "scripts": {
     "dev": "node tools/preview-server.mjs",

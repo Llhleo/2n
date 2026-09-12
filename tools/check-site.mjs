@@ -18,10 +18,22 @@ assert.equal((html.match(/class="panel biome"/g)||[]).length,5);
 assert.equal((html.match(/class="leader-card"/g)||[]).length,5);
 assert.equal((html.match(/class="panel /g)||[]).length,10);
 for(const name of ['CNFlyDream','sschara','awdc','flowerwsr','20180333']) assert.ok(html.includes(name));
-assert.ok(html.indexOf('motion.js?v=40')<html.indexOf('v35-runtime.js?v=40'),'v35 runtime must load after motion.js');
-assert.ok(html.indexOf('v35-runtime.js?v=40')<html.indexOf('app.js?v=43'),'v35 runtime must load before app.js');
-assert.ok(html.includes('liquid.js?v=40'));
-assert.ok(html.includes('v35.css?v=40'));
+const scripts=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(match=>match[1]);
+const styles=[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(match=>match[1]);
+assert.deepEqual(scripts.map(ref=>ref.split('?')[0]),[
+  'profile.js','perf.js','motion.js','v35-runtime.js','liquid.js',
+  'mobile-story.js','touch-timeline.js','app.js'
+],'Runtime script order');
+assert.deepEqual(styles.map(ref=>ref.split('?')[0]),[
+  'style.css','v35.css','mobile.css','polish.css','visual-impact.css'
+],'CSS cascade order');
+for(const ref of [...scripts,...styles]) {
+  assert.equal(new URLSearchParams(ref.split('?')[1]?.replaceAll('&amp;','&')).get('v'),'42rc1',`RC cache version: ${ref}`);
+}
+assert.match(html,/<meta name="viewport" content="[^"]*viewport-fit=cover"/);
+for(const name of ['description','theme-color']) assert.ok(html.includes(`<meta name="${name}"`));
+for(const name of ['og:title','og:description']) assert.ok(html.includes(`<meta property="${name}"`));
+assert.ok(html.includes('<link rel="icon"'));
 assert.ok(html.includes('preload="none"'));
 assert.ok(html.includes('setTimeout(window.twoNFallback, 12000)'));
-console.log('Static checks passed: local assets, JS syntax, current chapters/leaders, v40 runtime order, lazy video and fallback.');
+console.log('Static checks passed: local assets, JS syntax, chapters/leaders, v42rc1 assets and runtime order, lazy video and fallback.');

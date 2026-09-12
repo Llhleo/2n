@@ -52,7 +52,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '40';
+  root.dataset.version = '42rc1';
   root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
