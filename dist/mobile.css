@@ -3,7 +3,7 @@ html.is-enhanced[data-input='touch'],
 html.is-enhanced[data-input='touch'] body {height:100%;overflow:hidden;}
 html.is-enhanced[data-input='touch'] .story-shell {
   position:fixed;inset:0;width:100%;height:100%;overflow-x:auto;overflow-y:hidden;
-  touch-action:pan-x pinch-zoom;overscroll-behavior-x:contain;scrollbar-width:none;
+  touch-action:pan-x pan-y;overscroll-behavior-x:contain;scrollbar-width:none;
 }
 html.is-enhanced[data-input='touch'] .story-shell::-webkit-scrollbar {display:none;}
 html.is-enhanced[data-input='touch'].is-intro-locked .story-shell {overflow:hidden;}
