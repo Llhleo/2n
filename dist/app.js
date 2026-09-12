@@ -129,7 +129,7 @@
   const svgNS='http://www.w3.org/2000/svg';
   const fusion=document.createElementNS(svgNS,'svg');
   fusion.classList.add('member-fusion'); fusion.setAttribute('aria-hidden','true');
-  fusion.innerHTML='<defs><linearGradient id="fusion-color" gradientUnits="userSpaceOnUse"><stop stop-color="#a6ebc5"/><stop offset=".5" stop-color="#64b7d0"/><stop offset="1" stop-color="#2875f0"/></linearGradient></defs><path fill="url(#fusion-color)" fill-rule="nonzero"/>';
+  fusion.innerHTML='<defs><linearGradient id="fusion-color" gradientUnits="userSpaceOnUse"><stop stop-color="#86D5CF"/><stop offset=".5" stop-color="#72B9EA"/><stop offset="1" stop-color="#347EF4"/></linearGradient></defs><path fill="url(#fusion-color)" fill-rule="nonzero"/>';
   const liquidPath=fusion.querySelector('path');
   // Touch Safari can subtract overlapping subpaths from one compound SVG path.
   // Paint the mother, then overlapping bridges, then children as separate fills.
@@ -157,11 +157,12 @@
     label.style.fontSize=(label.textContent.length>10?22:28)+'px';
   });
   const anniversaryTitle = one('.anniversary-title');
+  const particleColors=['#86D5CF','#72B9EA','#509BEF','#347EF4','#2558B8'];
   const anniversaryParticles = memberBubbles.map((_,i)=> {
     const dot=document.createElement('i');
     dot.className='anniversary-particle';
     dot.append(document.createElement('b'));
-    dot.style.setProperty('--hue',String((i*137.508)%360));
+    dot.style.setProperty('--particle-color',particleColors[i%particleColors.length]);
     const size=16+(i%5)*3;
     dot.style.width=size+'px'; dot.style.height=size+'px';
     one('.anniversary-particles').append(dot);
@@ -481,7 +482,10 @@
     chapterName.textContent = index === 0 ? '序章' : panels[index-1].dataset.chapter;
     root.classList.toggle('is-light-chrome', index > 0 && index <= 6 || index === 8);
     root.classList.toggle('is-ink-footer', index === 7 || index === 9 || index === 10);
-    const surface = index === 0 ? '#f3f2ec' : geometry[index-1].surface;
+    root.dataset.theme = index > 0 && index <= 5
+      ? (index === 2 ? 'biome-light' : 'biome-dark')
+      : (index === 6 || index === 8 ? 'dark' : 'light');
+    const surface = index === 0 ? '#F7F7F3' : geometry[index-1].surface;
     root.style.setProperty('--surface-color',surface);
     themeMeta.content=surface;
   }

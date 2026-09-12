@@ -64,3 +64,39 @@ html.is-enhanced.is-reduced-motion .closing>* { opacity:1!important;transform:no
 .biome-copy p { color:var(--biome-body,rgba(243,246,248,.82)); }
 .biome-copy>span { color:var(--biome-eyebrow,rgba(243,246,248,.68)); }
 .biome[style*='desert.png'] { --biome-title:var(--ink);--biome-body:#34383E;--biome-eyebrow:var(--ink-soft); }
+
+/* Chapter state changes only when the active chapter changes. */
+html[data-theme='light'],html[data-theme='biome-light'] {
+  --brand-color:var(--ink);--chrome-primary:var(--ink);
+  --chrome-muted:var(--ink-soft);--chrome-line:#C8CDD2;--chrome-active:var(--blue);
+}
+html[data-theme='dark'],html[data-theme='biome-dark'] {
+  --brand-color:var(--light);--chrome-primary:var(--light);
+  --chrome-muted:var(--light-soft);--chrome-line:#344252;--chrome-active:var(--blue-soft);
+}
+html.is-enhanced[data-theme] .brand-visual.is-docked { color:var(--brand-color); }
+html.is-enhanced[data-theme] .story-controls { color:var(--chrome-primary);text-shadow:none; }
+html.is-enhanced[data-theme] .story-controls .chapter-count,
+html.is-enhanced[data-theme] .story-controls .replay-intro { color:var(--chrome-muted); }
+html.is-enhanced[data-theme] .story-controls .progress { color:var(--chrome-active);background:var(--chrome-line);opacity:1; }
+html.is-enhanced[data-theme] .story-controls .progress i { background:var(--chrome-active); }
+
+.member-core,.anniversary-particle {
+  background:linear-gradient(135deg,var(--aqua),var(--blue-soft) 50%,var(--blue));
+}
+.is-enhanced .member-cloud span { color:#07101A;background:linear-gradient(145deg,var(--aqua),var(--blue-soft)); }
+.is-enhanced .member-cloud span:nth-child(3n) { background:linear-gradient(145deg,var(--blue-soft),var(--blue)); }
+.member-core::before,.is-enhanced .member-cloud span::before,.anniversary-particle::before {
+  background:radial-gradient(ellipse at 26% 30%,var(--aqua) 0%,var(--blue-soft) 45%,var(--blue) 80%);
+}
+.member-core::after,.is-enhanced .member-cloud span::after,.anniversary-particle::after {
+  background:radial-gradient(ellipse at 72% 25%,var(--aqua) 0%,var(--blue-soft) 45%,var(--blue) 80%);
+}
+.anniversary-particle b {
+  background:radial-gradient(circle at 30% 25%,var(--aqua),var(--particle-color,var(--blue-soft)) 72%);
+}
+.anniversary-title span { background:none;color:var(--blue-soft);-webkit-text-fill-color:currentColor; }
+.member-caption { color:var(--light-soft); }
+.film,.closing { background:var(--paper);color:var(--ink); }
+.film .eyebrow,.closing>span { color:var(--ink-soft); }
+.film-copy>p:last-child { color:#34383E; }
