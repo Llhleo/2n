@@ -15,7 +15,7 @@
       curtain: smooth(progress(time, 2040, 3450)),
       world: easeOut(progress(time, 2200, 4140)),
       logo: easeOut(progress(time, 2990, 4570)),
-      eyebrow: easeOut(progress(time, 3780, 4370)),
+      eyebrow: easeOut(progress(time, 4100, 4660)),
       copyOne: easeOut(progress(time, 4250, 4930)),
       copyTwo: easeOut(progress(time, 4500, 5240)),
       controls: smooth(progress(time, 4920, 5500)),

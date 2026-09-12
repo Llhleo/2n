@@ -1,0 +1,14 @@
+/* Motion-only overrides. No scroll/layout/profile ownership. */
+:root { --motion-soft:cubic-bezier(.22,.65,.3,1); --motion-enter:360ms; --motion-exit:180ms; }
+html.is-enhanced[data-input='touch'] .biome-copy { opacity:1;transform:none;transition:none; }
+html.is-enhanced[data-input='touch'] .biome-copy>* {
+  opacity:0;transform:translate3d(0,16px,0);
+  transition:opacity var(--motion-exit) ease-out,transform var(--motion-enter) var(--motion-soft);
+}
+html.is-enhanced[data-input='touch'] .biome.is-native-visible .biome-copy>* { opacity:1;transform:none; }
+html.is-enhanced[data-input='touch'] .biome.is-native-visible .biome-copy>h2 { transition-delay:35ms; }
+html.is-enhanced[data-input='touch'] .biome.is-native-visible .biome-copy>p { transition-delay:70ms; }
+html.is-enhanced.is-reduced-motion .biome-copy>* { opacity:1!important;transform:none!important;transition:none!important; }
+@media(prefers-reduced-motion:reduce) {
+  html.is-enhanced .biome-copy>* { opacity:1!important;transform:none!important;transition:none!important; }
+}

@@ -689,7 +689,7 @@
         const entering = i===0 && entry<1 ? progress(entry,.70,1) : clamp(1-relative/width);
         const reveal = reduced ? 1 : easeOut(progress(entering,.12,.80));
         copy.style.opacity = i===0 && entry<1 ? entering : reveal;
-        copy.style.transform = reduced ? 'none' : 'translate3d(' + (1-reveal)*65 + 'px,' + (1-reveal)*35 + 'px,0)';
+        copy.style.transform = reduced ? 'none' : 'translate3d(' + (1-reveal)*28 + 'px,' + (1-reveal)*18 + 'px,0)';
         if (g.visual) {
           const pan = reduced || touchFirst ? 0 : clamp(relative/width,-1,1)*width*.075;
           g.visual.style.transform = reduced || touchFirst ? 'none' : 'translate3d(' + pan + 'px,0,0) scale(1.09)';
