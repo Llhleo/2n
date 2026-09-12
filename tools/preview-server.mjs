@@ -10,6 +10,10 @@ const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost');
+    if(url.pathname==='/__qa/liquid-benchmark') {
+      response.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+      response.end(await readFile(resolve('tools/liquid-benchmark.html')));return;
+    }
     if (url.pathname === '/__qa/') {
       response.writeHead(200, { 'Content-Type':'text/html; charset=utf-8', 'Cache-Control':'no-store' });
       response.end(await readFile(resolve('tools/qa.html'))); return;
