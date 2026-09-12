@@ -235,10 +235,13 @@
     });
     const weights=entries.reduce((sum,p)=>sum+(p.active?p.orbitRadius*p.orbitRadius:0),0);
     for(const p of entries) {
-      if(p.active) p.orbitRadius*=radius/Math.sqrt(weights);
+      if(p.active) {
+        p.volumeRadius=p.orbitRadius*radius/Math.sqrt(weights);
+        p.orbitRadius=p.volumeRadius*.55;
+      }
     }
     const mother=s=>Math.sqrt(Math.max(0,radius*radius-entries.reduce((sum,p)=>
-      sum+(p.active?p.orbitRadius*p.orbitRadius*ramp((s-p.start)/p.duration,.04,.50):0),0)));
+      sum+(p.active?p.volumeRadius*p.volumeRadius*ramp((s-p.start)/p.duration,.04,.50):0),0)));
     return {plan:entries,mother,activeCount,totalArea:radius*radius,renderSteps:1800,cacheKey:-1,cacheValue:null};
   }
 
@@ -254,7 +257,10 @@
       if(!p.active) return {x:0,y:0,r:0,collisionR:0,handoff:0,color:0,scale:0,local:0};
       const local=clamp((q-p.start)/p.duration);
       const transferred=ramp(local,.04,.50);
-      const r=p.orbitRadius*Math.sqrt(transferred);
+      const areaR=p.volumeRadius*Math.sqrt(transferred);
+      // Optical taper after budding: keep source volume accounting independent
+      // from the smaller display radius requested for released particles.
+      const r=areaR*mix(1,.55,ramp(local,.12,.64));
       const release=ramp(local,.48,.68);
       const flight=ramp(local,.64,1);
       const angle=p.orbit.angle+Math.sin(flight*Math.PI)*.09;
@@ -267,8 +273,8 @@
       const bulge=Math.sin(ramp(local,0,.52)*Math.PI)*(1-ramp(local,.52,.82));
       if(bulge>.02) lobes.push({angle,weight:bulge*(.7+(i%4)*.08)});
       return {
-        x,y,r,collisionR:r*(1-ramp(local,.02,.24)),
-        handoff:ramp(local,.74,1),color:ramp(local,.5,1),
+        x,y,r,areaR,collisionR:r*(1-ramp(local,.02,.24)),
+        handoff:ramp(local,.74,1),color:0,
         scale:r/Math.max(.001,p.orbitRadius),local
       };
     });
@@ -279,7 +285,8 @@
     return value;
   }
 
-  const api={circle,neck,buildGather,gatherAt,buildSplit,splitAt};
+  const mother=(x,y,r,deform)=>r<.05?'':deform&&((deform.lobes&&deform.lobes.length)||deform.stretch>.001)?softMother(x,y,r,deform):plainCircle(x,y,r);
+  const api={circle,plainCircle,mother,neck,buildGather,gatherAt,buildSplit,splitAt};
   if(typeof module==='object' && module.exports) module.exports=api;
   else target.TwoNLiquid=api;
 })(typeof window==='object'?window:this);

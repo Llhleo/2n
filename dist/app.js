@@ -64,6 +64,17 @@
   const leaders=one('.leaders');
   const viewport=one('.story-viewport');
   let gatherPlan,splitPlan,lastLiquidPhase=-1;
+  let messageWidth=0;
+  const activeLabels=new Set();
+  function measureMessage() {
+    const range=document.createRange();
+    const walker=document.createTreeWalker(memberMessage,NodeFilter.SHOW_TEXT);
+    let node;messageWidth=0;
+    while((node=walker.nextNode())) {
+      range.selectNodeContents(node);
+      for(const rect of range.getClientRects()) messageWidth=Math.max(messageWidth,rect.width);
+    }
+  }
   let visualLiquid=0, liquidTarget=0;
   let touchTimeline=null;
   const svgNS='http://www.w3.org/2000/svg';
@@ -264,6 +275,7 @@
     mobile.latest=shell.scrollLeft;mobile.publish();schedule();
   }
   function measureLiquid() {
+    if(!messageWidth) measureMessage();
     if(gatherPlan && gatherPlan.width===width && gatherPlan.height===height) return;
     gatherPlan=L.buildGather(M,memberBubbles.length,width,height);
     splitPlan=L.buildSplit(M,memberBubbles.length,width,height,gatherPlan.rows[gatherPlan.steps].radius);
@@ -278,6 +290,7 @@
       touchTimeline=new window.TwoNTouchTimeline(events);
     }
     anniversaryParticles.forEach((dot,i)=> {
+      if(touchFirst&&i>=23) return;
       const p=splitPlan.plan[i];
       if(p.active) { dot.style.width=p.orbitRadius*2+'px';dot.style.height=p.orbitRadius*2+'px'; }
     });
@@ -294,6 +307,7 @@
     width = document.documentElement.clientWidth;
     height = innerHeight;
     root.style.setProperty('--view-height', height + 'px');
+    measureMessage();
     if(touchFirst) {measureMobile(preserve,oldY);return;}
     lead = Math.round(Math.max(width * .94, height * .78));
     geometry = panels.map(panel => ({
@@ -373,8 +387,10 @@
     lastLiquidPhase=phase;fusion.dataset.reduced=String(reduced);
     const mapped=phase<=.355?phase:phase<=.47?lerp(.355,.43,progress(phase,.355,.47)):lerp(.43,1,progress(phase,.47,1));
     const stage=M.anniversary(mapped),gather=progress(phase,0,.30);
-    memberMessage.style.opacity = reduced ? '0' : String(smooth(progress(gather,.235,.315))*(1-smooth(progress(gather,.68,.82))));
-    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(gather,.67,.9))*stage.resultFade);
+    const flow=phase<=.355&&!reduced?L.gatherAt(M,gatherPlan,gather):null;
+    const textFits=flow?smooth(progress(flow.radius*2,messageWidth+20,messageWidth+52)):0;
+    memberMessage.style.opacity = reduced?'0':String(textFits*(1-smooth(progress(phase,.285,.315))));
+    memberResult.style.opacity = reduced ? '1' : String(smooth(progress(phase,.315,.335))*stage.resultFade);
     anniversaryTitle.style.opacity = reduced ? '1' : String(stage.title);
     if(reduced) {
       memberCloud.style.visibility='visible';
@@ -388,11 +404,12 @@
     memberCloud.style.visibility=gathering?'visible':'hidden';
     let splittingState=null;
     if(gathering) {
-      const flow=L.gatherAt(M,gatherPlan,gather);
       let outline=L.circle(flow.x,flow.y,flow.radius);
       flow.drops.forEach((drop,i)=> {
         if(drop.r>.1) outline+=L.circle(drop.x,drop.y,drop.r)+L.neck(flow.x,flow.y,flow.radius,drop.x,drop.y,drop.r);
+        if(touchFirst && drop.label<=.001 && !activeLabels.has(i)) return;
         const label=memberBubbles[i];
+        if(drop.label>.001) activeLabels.add(i);else activeLabels.delete(i);
         if(labelOpacity[i]!==drop.label) {label.style.opacity=String(drop.label);labelOpacity[i]=drop.label;}
         if(drop.label>.001) label.style.transform='translate(-50%,-50%) translate3d('+drop.x+'px,'+drop.y+'px,0) scale('+drop.scale+')';
       });
@@ -415,7 +432,8 @@
       dot.style.opacity=String(opacity);
       if(opacity<.001) return;
       dot.style.transform='translate(-50%,-50%) translate3d('+particle.x+'px,'+particle.y+'px,0) scale('+particle.scale+')';
-      dot.style.setProperty('--split-color',String(particle.color));
+      const color=splitting?0:smooth(progress(mapped,.48,.64));
+      dot.style.setProperty('--split-color',String(color));
     });
     if(P) P.end('liquid',liquidStart);
   }
@@ -423,6 +441,7 @@
   function frameMobile(now) {
     if(!mobile) return;
     const section=mobile.heavy();
+    if(!playing&&ready&&!section) return;
     if(playing) time=Math.min(M.DURATION,now-startedAt);
     const state=M.intro(ready?M.DURATION:time);
     if(playing||!ready||section==='hero') {
@@ -633,6 +652,12 @@
   one('.skip-link').addEventListener('click', event => { if (!active) return; event.preventDefault(); finishIntro(); goTo('biomes'); });
   mediaQuery.addEventListener('change', () => { setMotionPreference(); if(reduced && playing) finishIntro(); schedule(); });
   addEventListener('2n:fallback', fallback);
+  addEventListener('2n:profile',()=>{
+    if(window.TwoNProfile.input===(touchFirst?'touch':'desktop')) return;
+    // Capability change, not viewport resize. Reload cleanly restores all observers,
+    // event routes and geometry precision rather than leaving mixed render paths.
+    location.reload();
+  });
   addEventListener('error', () => { if (!ready && active) window.twoNFallback(); });
   function onStoryScroll() {
     if(touchFirst) {if(mobile) mobile.scroll();return;}
