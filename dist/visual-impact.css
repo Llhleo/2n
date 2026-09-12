@@ -31,3 +31,15 @@
 .leader-card h3 {color:var(--ink);}
 .leader-card .role,.section-intro p {color:var(--ink-soft);}
 .leader-card p,.section-intro>span {color:#34383E;}
+
+/* The entire liquid sequence occupies one uninterrupted night space. */
+.members {background:var(--night);color:var(--light);}
+.members::before {
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 74% 78% at 51% 49%,var(--night-3) 0%,var(--night-2) 47%,var(--night) 100%);
+}
+.members .member-fusion,.members .member-core,.members .anniversary-particles {z-index:1;}
+.members .member-cloud {z-index:2;}
+.members .member-heading,.members .member-caption {z-index:3;}
+.members .member-message,.members .member-result,.members .anniversary-title {color:var(--light);}
+.members .member-caption {color:var(--light-soft);}
