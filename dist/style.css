@@ -1,5 +1,8 @@
 :root {
-  --paper:#f3f2ec; --ink:#141613; --line:rgb(20 22 19 / .22); --view-height:100svh;
+  --paper:#F7F7F3; --ink:#0B0D10; --ink-soft:#747980; --line:#D9DDE1;
+  --night:#050A12; --night-2:#071321; --night-3:#0B2238;
+  --blue:#347EF4; --blue-soft:#72B9EA; --aqua:#86D5CF;
+  --light:#F3F6F8; --light-soft:#9DA8B5; --view-height:100svh;
   font-family:Arial,'PingFang SC','Microsoft YaHei',sans-serif;
   color:var(--ink); background:var(--paper); font-synthesis:none;
 }
