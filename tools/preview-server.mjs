@@ -19,7 +19,10 @@ http.createServer(async (request, response) => {
       response.end(await readFile(resolve('tools/qa.html'))); return;
     }
     if (url.pathname === '/__qa/missing-app') {
-      const html = (await readFile(resolve(base, 'index.html'), 'utf8')).replace('<head>', '<head><base href="/">').replace('<script src="app.js" defer></script>', '');
+      const html = (await readFile(resolve(base, 'index.html'), 'utf8'))
+        .replace('<head>', '<head><base href="/">')
+        .replace(/<script src="app\.js(?:\?[^\"]*)?" defer><\/script>/, '');
+      if (html.includes('src="app.js')) throw new Error('QA fallback must omit app.js');
       response.writeHead(200, { 'Content-Type':'text/html; charset=utf-8', 'Cache-Control':'no-store' });
       response.end(html); return;
     }
