@@ -2,7 +2,7 @@
 (function(target) {
   class TouchTimeline {
     constructor(events=[]) {this.events=events;this.reset(0);}
-    reset(value) {this.value=value;this.target=value;this.queue=[];this.deadline=0;this.direction=0;}
+    reset(value) {this.value=value;this.target=value;this.queue=[];this.deadline=0;this.direction=0;this.finishTarget=false;}
     next(target,now) {
       const direction=Math.sign(target-this.value);
       if(this.direction && direction && direction!==this.direction) this.queue.length=0;

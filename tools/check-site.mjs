@@ -13,15 +13,15 @@ for(const ref of new Set(refs)) {
   assert.ok(!/^(?:https?:)?\/\//.test(ref),'No external asset dependency: '+ref);
   assert.ok((await stat(resolve(root,ref))).isFile(),ref);
 }
-for(const file of ['app.js','motion.js','liquid.js','v35-runtime.js']) execFileSync(process.execPath,['--check',resolve(root,file)]);
+for(const file of ['app.js','motion.js','liquid.js','v35-runtime.js','profile.js','perf.js','mobile-story.js','touch-timeline.js','liquid-renderers.js']) execFileSync(process.execPath,['--check',resolve(root,file)]);
 assert.equal((html.match(/class="panel biome"/g)||[]).length,5);
 assert.equal((html.match(/class="leader-card"/g)||[]).length,5);
 assert.equal((html.match(/class="panel /g)||[]).length,10);
 for(const name of ['CNFlyDream','sschara','awdc','flowerwsr','20180333']) assert.ok(html.includes(name));
-assert.ok(html.indexOf('motion.js?v=39')<html.indexOf('v35-runtime.js?v=39'),'v35 runtime must load after motion.js');
-assert.ok(html.indexOf('v35-runtime.js?v=39')<html.indexOf('app.js?v=39'),'v35 runtime must load before app.js');
-assert.ok(html.includes('liquid.js?v=39'));
-assert.ok(html.includes('v35.css?v=39'));
+assert.ok(html.indexOf('motion.js?v=40')<html.indexOf('v35-runtime.js?v=40'),'v35 runtime must load after motion.js');
+assert.ok(html.indexOf('v35-runtime.js?v=40')<html.indexOf('app.js?v=40'),'v35 runtime must load before app.js');
+assert.ok(html.includes('liquid.js?v=40'));
+assert.ok(html.includes('v35.css?v=40'));
 assert.ok(html.includes('preload="none"'));
 assert.ok(html.includes('setTimeout(window.twoNFallback, 12000)'));
-console.log('Static checks passed: local assets, JS syntax, current chapters/leaders, v39 runtime order, lazy video and fallback.');
+console.log('Static checks passed: local assets, JS syntax, current chapters/leaders, v40 runtime order, lazy video and fallback.');

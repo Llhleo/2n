@@ -37,7 +37,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '39.1';
+  root.dataset.version = '40';
   root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
@@ -441,7 +441,10 @@
   function frameMobile(now) {
     if(!mobile) return;
     const section=mobile.heavy();
-    if(!playing&&ready&&!section) return;
+    if(!playing&&ready&&!section) {
+      if(touchTimeline) touchTimeline.reset(mobile.phase(members));
+      return;
+    }
     if(playing) time=Math.min(M.DURATION,now-startedAt);
     const state=M.intro(ready?M.DURATION:time);
     if(playing||!ready||section==='hero') {
