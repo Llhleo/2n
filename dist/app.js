@@ -342,7 +342,6 @@
     if(!touchFirst) return;
     mobile=new window.TwoNMobileStory({shell,track,hero,bridge,members,leaders,panels,
       onChapter:(index,position,max)=>{
-        if(ready && position>=width) positionBrand(1,M.intro(M.DURATION));
         if(geometry.length) updateChapter(index);
         meter.style.transform='scaleX('+(position/Math.max(1,max))+')';
         previousButton.disabled=position<2;nextButton.disabled=position>=max-2;
@@ -549,7 +548,14 @@
 
   function frameMobile(now) {
     if(!mobile) return;
+    mobile.reconcile();
     const section=mobile.heavy();
+    const heroRange=mobile.bounds.get(hero);
+    const heroEndX=mobile.bounds.get(panels[0]).x;
+    const heroEntry=ready?clamp((mobile.latest-heroRange.x)/Math.max(1,heroEndX-heroRange.x)):0;
+    const heroVisible=!ready || mobile.latest<heroEndX;
+    hero.style.visibility=heroVisible?'visible':'hidden';
+    if(ready) positionBrand(heroEntry,M.intro(M.DURATION));
     if(!playing&&ready&&!section) {
       if(touchTimeline) touchTimeline.reset(mobile.phase(members));
       return;
@@ -558,7 +564,7 @@
     const state=M.intro(ready?M.DURATION:time);
     if(playing||!ready||section==='hero') {
       applyIntro(state);
-      const entry=ready?clamp(mobile.latest/width):0;
+      const entry=heroEntry;
       positionBrand(entry,state);
       hero.style.opacity=String(1-smooth(progress(entry,.68,1)));
       eyebrow.style.opacity=state.eyebrow*(1-smooth(progress(entry,.10,.5)));
