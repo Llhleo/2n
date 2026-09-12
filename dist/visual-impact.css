@@ -1,0 +1,33 @@
+/* v41.1: section-owned surfaces scroll with the real story panels. */
+.bridge {
+  background:var(--night);
+  color:var(--light);
+}
+.bridge::before {
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 85% 78% at 52% 54%,var(--night-3) 0%,var(--night-2) 49%,var(--night) 100%);
+}
+.bridge-orb {
+  z-index:1;
+  background:radial-gradient(circle at 34% 28%,var(--blue-soft) 0%,var(--blue) 13%,var(--night-3) 49%,var(--night-2) 77%);
+}
+.bridge-copy,.bridge-label {z-index:2;}
+.bridge-first {color:var(--light);}
+.bridge-second {color:var(--light-soft);}
+.bridge-second span {background:linear-gradient(100deg,var(--blue-soft),var(--light));background-clip:text;-webkit-background-clip:text;color:transparent;}
+
+.leaders,.leader-list,.leader-card {background:var(--paper);color:var(--ink);}
+.section-intro {
+  position:relative;
+  background:linear-gradient(110deg,var(--paper) 54%,#EFF1EE 100%);
+  border-color:var(--line);
+}
+.section-intro::before {
+  content:'';position:absolute;top:12vh;left:6vw;width:64px;height:2px;
+  background:var(--blue);pointer-events:none;
+}
+.leader-card {border-color:var(--line);}
+.leader-card .number {font-size:22px;line-height:1;color:var(--blue);}
+.leader-card h3 {color:var(--ink);}
+.leader-card .role,.section-intro p {color:var(--ink-soft);}
+.leader-card p,.section-intro>span {color:#34383E;}
