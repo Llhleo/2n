@@ -308,8 +308,12 @@
       const key=[state.world,entry,touchFirst?0:cursorX,touchFirst?0:cursorY,reduced?0:now].join(':');
       if(key===this.drawKey) return;
       this.drawKey=key;this.lastPaint=now;
-      this.back.style.transform='none';
-      this.front.style.transform='none';
+      // Touch scroll-space transforms are committed before drawing and must
+      // survive both the throttled return and a full waveform repaint.
+      if(!touchFirst) {
+        this.back.style.transform='none';
+        this.front.style.transform='none';
+      }
       for (const ctx of [bg, fg]) {
         ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         ctx.clearRect(0, 0, width, height);
@@ -555,6 +559,9 @@
     const heroEntry=ready?clamp((mobile.latest-heroRange.x)/Math.max(1,heroEndX-heroRange.x)):0;
     const heroVisible=!ready || mobile.latest<heroEndX;
     hero.style.visibility=heroVisible?'visible':'hidden';
+    // All three layers use this frame's canonical Hero entry, even on a jump
+    // straight out of Hero. Expensive wave drawing cannot delay/reset placement.
+    if(scene) {scene.transform(heroEntry);scene.placeForeground(heroEntry);}
     if(ready) positionBrand(heroEntry,M.intro(M.DURATION));
     if(!playing&&ready&&!section) {
       if(touchTimeline) touchTimeline.reset(mobile.phase(members));
@@ -570,8 +577,7 @@
       eyebrow.style.opacity=state.eyebrow*(1-smooth(progress(entry,.10,.5)));
       cue.style.opacity=state.controls*(1-progress(entry,0,.22));
       if(scene) {
-        if(!ready) scene.draw(state,0,now);
-        else {scene.draw(state,0,now);scene.transform(entry);}
+        scene.draw(state,0,now);
       }
     }
     if(section==='together') renderBridge(mobile.phase(bridge));
