@@ -9,6 +9,31 @@
   const root = document.documentElement;
   const one = selector => document.querySelector(selector);
   const all = selector => [...document.querySelectorAll(selector)];
+  const leadersContent=window.TwoNLeadersContent;
+  if(leadersContent?.intro && Array.isArray(leadersContent.people) && leadersContent.people.length) {
+    const intro=one('.leaders .section-intro'),list=one('.leaders .leader-list');
+    if(intro && list) {
+      intro.querySelector('p').textContent=leadersContent.intro.eyebrow;
+      intro.querySelector('h2').textContent=leadersContent.intro.title;
+      const lines=intro.querySelector('span');
+      lines.replaceChildren();
+      leadersContent.intro.lines.forEach((line,i)=>{
+        if(i) lines.append(document.createElement('br'));
+        lines.append(document.createTextNode(line));
+      });
+      const fragment=document.createDocumentFragment();
+      for(const person of leadersContent.people) {
+        const card=document.createElement('article');card.className='leader-card';
+        const number=document.createElement('span');number.className='number';number.textContent=person.number;
+        const content=document.createElement('div');
+        const role=document.createElement('span');role.className='role';role.textContent=person.role+' / '+person.roleEn;
+        const name=document.createElement('h3');name.textContent=person.name;
+        const description=document.createElement('p');description.textContent=person.description;
+        content.append(role,name,description);card.append(number,content);fragment.append(card);
+      }
+      list.replaceChildren(fragment);
+    }
+  }
   const shell = one('.story-shell');
   const track = one('.story-track');
   const hero = one('.hero');
@@ -52,7 +77,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '42rc1';
+  root.dataset.version = '42rc2';
   root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
