@@ -6,7 +6,7 @@ const params=new URLSearchParams(location.search),motion=matchMedia('(prefers-re
 const touch=params.get('input')==='touch'||(params.get('input')!=='desktop'&&matchMedia('(pointer:coarse)').matches);
 const shell=q('#story'),track=q('#track'),sections=[...document.querySelectorAll('.chapter')],view=q('#core-view');
 const status=q('#status'),metrics=q('#metrics');
-let reduced=motion.matches,p=0,frameId=0,width=innerWidth,height=innerHeight,travel=1,active=true,renderer,scene,camera,core;
+let reduced=motion.matches,p=0,frameId=0,width=innerWidth,height=innerHeight,travel=1,active=true,renderer,scene,camera,core,hemi,key,fill,rim;
 let lost=false,frames=[],work=[],lastFrame=0,activeUntil=0,quality=q('#quality').value,qualityChanged=0,lastSummary=0,firstFrame=null;
 let benchmark=null,renderCount=0,paintBackend='none',currentState=sample(0),pointer={x:0,y:0},disposed=false;
 const frameLimit=touch?1000/30:0;
@@ -38,15 +38,15 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  const idle=!reduced&&p<.03&&now<activeUntil?Math.sin(now*.0007)*.016:0;
  core.root.rotation.set(0,s.yaw+idle+pointer.x*(reduced?0:.025),s.roll);
  camera.position.set(pointer.x*.025,0,compact?7.8:7.1);camera.lookAt(0,0,0);
- const colors=[new T.Color('#eaf0e2'),new T.Color('#ede4cc'),new T.Color('#dae8ea')];
+ const colors=[new T.Color('#e7ece2'),new T.Color('#eadfc9'),new T.Color('#d4e1e4')];
  const i=Math.min(1,Math.floor(s.world));const color=colors[i].lerp(colors[i+1],s.world-i).lerp(new T.Color('#101f2b'),s.night);
- q('.sky').style.background=`linear-gradient(180deg,${color.getStyle()},${color.clone().multiplyScalar(.93).getStyle()})`;
+ root.style.setProperty('--haze',color.getStyle());root.style.setProperty('--env',s.world.toFixed(3));root.style.setProperty('--night',s.night.toFixed(3));
  body.dataset.theme=s.night>.5?'night':'day';
  const focus=ramp(p,.06,.24),pan=mix(50,mix(0,50,clamp((p-.22)/.48)),focus);
  for(const [index,land] of [...document.querySelectorAll('.land')].entries()){
    land.style.backgroundSize=`${mix(100,500,focus)}% 100%`;land.style.backgroundPosition=`${pan}% center`;
    const shift=clamp(p/.24);land.style.transform=`translate3d(${Math.sin(p*4+index)*2}%,${shift*(compact?26:38)+s.night*28}%,0) scale(${1+shift*.1})`;
-   land.style.opacity=String((index?.96:.68)*(1-s.night*.94));
+   land.style.opacity=String(([.46,.70,.92][index]??.8)*(1-s.night*.88));
  }
  // Keep landscape in front of Core at entry, then reveal the full volume.
  if(!touch){track.style.transform='none';sections.forEach((section,index)=>{section.style.position='absolute';section.style.inset='0';section.style.opacity=s.weights[index];section.style.visibility=s.weights[index]>.001?'visible':'hidden';section.style.transform=`translate3d(${(1-s.weights[index])*24}px,0,0)`;section.inert=s.chapter!==index;});}
@@ -54,7 +54,12 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  q('#chapter-number').textContent=`0${s.chapter} / 04`;
  document.querySelectorAll('footer nav a').forEach((a,index)=>{if(index===s.chapter)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current');});
  q('#next').setAttribute('aria-label',s.chapter===4?'返回序章':'下一章节');
- core.layers.forEach((m,index)=>{m.material.color.set(index===1?'#609ea8':'#172b2c').lerp(new T.Color('#4d818b'),s.night*(index===1?.6:.35));});
+ core.setEnvironment(s.world,s.night);
+ key.color.set('#fff6dc').lerp(new T.Color('#f1c88d'),T.MathUtils.smoothstep(s.world,.55,1.3)).lerp(new T.Color('#c0e3ec'),T.MathUtils.smoothstep(s.world,1.35,2));
+ key.intensity=3.6+T.MathUtils.smoothstep(s.world,.55,1.25)*.9-s.night*.8;
+ fill.color.set('#b7d2c2').lerp(new T.Color('#d6a66e'),T.MathUtils.smoothstep(s.world,.55,1.3)).lerp(new T.Color('#6ca9bd'),T.MathUtils.smoothstep(s.world,1.35,2));
+ rim.color.set('#d7eee0').lerp(new T.Color('#85c8d4'),T.MathUtils.smoothstep(s.world,1.2,2));rim.intensity=1.3+s.night*.9;
+ q('.core-shadow').style.opacity=String((.78-s.night*.46)*(1-s.expansion*.52));
  renderer.render(scene,camera);renderCount++;
  if(firstFrame===null){firstFrame=Math.round(performance.now());log('first-frame');status.textContent=paintBackend==='webgl'?'':'当前为几何预览，WebGL 未启用。';}
  if(lastFrame){frames.push(now-lastFrame);if(frames.length>12000)frames.shift();}
@@ -68,12 +73,18 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
 function dispose(){if(disposed)return;disposed=true;active=false;cancelAnimationFrame(frameId);core?.dispose();renderer?.dispose?.();log('disposed');}
 async function boot(){
  if(params.has('fallback')){plain('普通阅读测试模式。');return;}
- scene=new T.Scene();camera=new T.PerspectiveCamera(38,width/height,.1,50);camera.position.z=7.1;
- scene.add(new T.HemisphereLight(0xffffff,0x345649,2.8));const key=new T.DirectionalLight(0xfff9e8,3.8);key.position.set(-3,5,5);scene.add(key);const rim=new T.DirectionalLight(0x74c8e0,2);rim.position.set(4,1,-2);scene.add(rim);
+ scene=new T.Scene();camera=new T.PerspectiveCamera(36,width/height,.1,50);camera.position.z=7.1;
+ hemi=new T.HemisphereLight(0xf5f1df,0x33483f,1.65);scene.add(hemi);
+ key=new T.DirectionalLight(0xfff6dc,3.6);key.position.set(-3.8,5.5,5);scene.add(key);
+ fill=new T.DirectionalLight(0xb7d2c2,1.25);fill.position.set(4,-1.5,4);scene.add(fill);
+ rim=new T.DirectionalLight(0xd7eee0,1.3);rim.position.set(3.5,2,-4);scene.add(rim);
  core=createCore('A',touch);scene.add(core.root);
- try{if(params.get('renderer')==='svg')throw Error('SVG geometry diagnostic requested');renderer=new T.WebGLRenderer({alpha:true,antialias:!touch,powerPreference:'low-power'});paintBackend='webgl';renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;}
+ try{if(params.get('renderer')==='svg')throw Error('SVG geometry diagnostic requested');renderer=new T.WebGLRenderer({alpha:true,antialias:!touch,powerPreference:'low-power'});paintBackend='webgl';renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;}
  catch(error){log('webgl-unavailable');if(params.get('renderer')==='svg'){
    const {SVGRenderer}=await import('./svg-renderer.js');renderer=new SVGRenderer();renderer.setClearColor(0xf3f2eb,0);paintBackend='svg-geometry';core.nodes.visible=false;
+   // The diagnostic renderer does not implement PhysicalMaterial; keep the same
+   // geometry and substitute a matte material only for screenshot inspection.
+   core.root.traverse(o=>{if(o.isMesh&&!o.isInstancedMesh)o.material=new T.MeshPhongMaterial({color:o.material.color,shininess:28,specular:0x9eb5ac,transparent:o.material.transparent,opacity:o.material.opacity});});
  }else{plain('当前设备无法启动 WebGL，已保留全部原型正文。');return;}}
  view.replaceChildren(renderer.domElement);renderer.domElement.setAttribute('aria-hidden','true');
  root.classList.add('enhanced');if(touch)root.classList.add('touch');
