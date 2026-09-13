@@ -1,0 +1,205 @@
+{
+  "capturedAt": "2026-09-13",
+  "baselineCommit": "3f2ecc2bc918276b291d90ad4a65aa8f22e15dd8",
+  "tag": "v1.0.0",
+  "members": 95,
+  "leaders": 5,
+  "biomes": 5,
+  "validation": {
+    "staticCheck": "pass",
+    "existingTests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "iphoneSafari": "not measured",
+    "prototype": "not implemented"
+  },
+  "files": [
+    {
+      "path": ".github/workflows/deploy-pages.yml",
+      "bytes": 699,
+      "sha256": "004d8f1e9932f81042a612adcd12a0ff64e9f92c9139c7fb22f131a28b5b8c7a"
+    },
+    {
+      "path": "dist/app.js",
+      "bytes": 50546,
+      "sha256": "625c256f117d21d75c0078a56dd209c2309715db46aa79dcd4ed92d0f8cff209"
+    },
+    {
+      "path": "dist/assets/desert.png",
+      "bytes": 979996,
+      "sha256": "3f98508f6631a20c9a970cc2ec9c76375098c35589ebc7da5ab1606f0b2335e9",
+      "width": 1504,
+      "height": 1046,
+      "rgba8Bytes": 6292736
+    },
+    {
+      "path": "dist/assets/florr-icon.webp",
+      "bytes": 13818,
+      "sha256": "83b2f01be07b51452a283c347d9af925ed469571388bf4d72315dbc08c38cc96"
+    },
+    {
+      "path": "dist/assets/garden.png",
+      "bytes": 984659,
+      "sha256": "0d058e03a51c040cd662371c5019c01a16026b3ed2828b56eb73c261dd0d5d8f",
+      "width": 1504,
+      "height": 1046,
+      "rgba8Bytes": 6292736
+    },
+    {
+      "path": "dist/assets/guild-mark-candidate.png",
+      "bytes": 43233,
+      "sha256": "b87ff5a062c4daeda8cb721221922675b2b221ec7067e87e2f83788335ba492b",
+      "width": 714,
+      "height": 366,
+      "rgba8Bytes": 1045296
+    },
+    {
+      "path": "dist/assets/half-year.mp4",
+      "bytes": 17330848,
+      "sha256": "6d0f0a97097952d3393f7e8f37dec2c4ac858797d7b491c89e6ee3a2bf2cb932"
+    },
+    {
+      "path": "dist/assets/hell.png",
+      "bytes": 1041223,
+      "sha256": "f3a175663f25c7d9132c43e9bf7cd6afb55dfc82a2cea7a75307f89ffa419c4d",
+      "width": 1504,
+      "height": 1046,
+      "rgba8Bytes": 6292736
+    },
+    {
+      "path": "dist/assets/jungle.png",
+      "bytes": 979129,
+      "sha256": "b18d82926e9561388fb4967fb1562b30403322bd7c9dcbebd446ce3b01474acc",
+      "width": 1504,
+      "height": 1046,
+      "rgba8Bytes": 6292736
+    },
+    {
+      "path": "dist/assets/ocean.png",
+      "bytes": 1045066,
+      "sha256": "c45d2ee10b931c32a5d80c0956d88730d2068ae3f7426611568ca98a1f795e3c",
+      "width": 1504,
+      "height": 1046,
+      "rgba8Bytes": 6292736
+    },
+    {
+      "path": "dist/assets/og-2n.png",
+      "bytes": 1760230,
+      "sha256": "20fa7c10041bd486fa53dc035715852250a2e902bd512f5779959929fc73b81f",
+      "width": 1731,
+      "height": 909,
+      "rgba8Bytes": 6293916
+    },
+    {
+      "path": "dist/index.html",
+      "bytes": 11554,
+      "sha256": "41560e66e5045f5d2265e7aab1e419d26179aad306a8aa1b3d3adccca8b11bae"
+    },
+    {
+      "path": "dist/leaders-data.js",
+      "bytes": 973,
+      "sha256": "5e5af3892119da5a5351205f7beeb021d174b1c2b199634da2ea41d1466aa609"
+    },
+    {
+      "path": "dist/liquid-renderers.js",
+      "bytes": 1923,
+      "sha256": "be91f21bca96756521e369bd210a0b4aaa75cd30671e96606aad43b30ec34b85"
+    },
+    {
+      "path": "dist/liquid.js",
+      "bytes": 13654,
+      "sha256": "e96dc7c4d92164a96553e4a0b9b2fc4ab3c9dbec92f9d4dc8b4cb91b70106236"
+    },
+    {
+      "path": "dist/mobile-story.js",
+      "bytes": 5165,
+      "sha256": "f83d5b92c8f329743f0b0f21e72f64c63e0e17f30a2fa400002826bfad406bd2"
+    },
+    {
+      "path": "dist/mobile.css",
+      "bytes": 2734,
+      "sha256": "67e294dff30203066839e22e72961f00f520dcc7053359ee04443c2e0ae87acb"
+    },
+    {
+      "path": "dist/motion.js",
+      "bytes": 5637,
+      "sha256": "7447e64063ebbe4072fdaf6c1b38e26ebfe02ad85ac88cd7050acaa1b8f31b71"
+    },
+    {
+      "path": "dist/perf.js",
+      "bytes": 1486,
+      "sha256": "d51db62578379694606feee251acf3490a5b621e2dbfd048528fe2338f005956"
+    },
+    {
+      "path": "dist/polish.css",
+      "bytes": 6625,
+      "sha256": "70c77dafa0307b47c961a11c0b16970f1326702383b8c9691015befffa8c692c"
+    },
+    {
+      "path": "dist/profile.js",
+      "bytes": 1254,
+      "sha256": "f3012896deb2e48bc8214abb75d560ef155d88f61276dc8b6b89619995fb10d3"
+    },
+    {
+      "path": "dist/style.css",
+      "bytes": 20935,
+      "sha256": "8a413f7d6ee9c22664441caeee6518a78506fd139eb1717573a37225fbd1975b"
+    },
+    {
+      "path": "dist/touch-timeline.js",
+      "bytes": 2085,
+      "sha256": "c9ba23c81f94d633ed3162926665394cb31b1a40f86767d1da07fc6938ec7a28"
+    },
+    {
+      "path": "dist/v35-runtime.js",
+      "bytes": 2721,
+      "sha256": "064488672fd1154e6f4b47222a28ac70cfdbfd34b0e0d7cbc35447bcda850800"
+    },
+    {
+      "path": "dist/v35.css",
+      "bytes": 592,
+      "sha256": "802cd7e77e164f1507d80ef10d935a9269547d53106306919d10cceae614f023"
+    },
+    {
+      "path": "dist/visual-impact.css",
+      "bytes": 3297,
+      "sha256": "277a211affb3cf29559c3a44db062fc716133c895f39e650d9ea2006883b64dc"
+    },
+    {
+      "path": "package.json",
+      "bytes": 242,
+      "sha256": "4910bd4038bbadc4da26c79ba85b62e2d06a1ffd902a49451062b2d3ae21b65d"
+    },
+    {
+      "path": "tools/check-site.mjs",
+      "bytes": 3311,
+      "sha256": "68463c432c81b2fb6733e9d3887e2859cb00b349da5a1add74b1be849ca6c62a"
+    },
+    {
+      "path": "tools/liquid-benchmark.html",
+      "bytes": 2848,
+      "sha256": "47c36aba2e6e06a0e85c4f8aaeb47e81a7e32c83a286ca895cf1f406759c123c"
+    },
+    {
+      "path": "tools/liquid.test.cjs",
+      "bytes": 4368,
+      "sha256": "4518ed3bafe5af2636ce5defeeb5d8f5834967d25e74a8f8180a45b5cd40b8f0"
+    },
+    {
+      "path": "tools/motion.test.cjs",
+      "bytes": 1330,
+      "sha256": "f51c7862cb5cd36cf88400244d5ee3637ed73ed23646744a6c07bd48290e0528"
+    },
+    {
+      "path": "tools/preview-server.mjs",
+      "bytes": 2999,
+      "sha256": "91e82b6446c09243ee11f14ed81b6616f3b5a5532c0bc016b8c71b7bd063bccd"
+    },
+    {
+      "path": "tools/qa.html",
+      "bytes": 1594,
+      "sha256": "3171022912c268f2b215ca16189df1bb13935c87d69383fe891c04991d304b52"
+    }
+  ]
+}
