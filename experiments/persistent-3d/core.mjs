@@ -35,9 +35,11 @@ export function createCore(variant='A',lite=false){
   const mark=new T.Group();mark.name='2n-mark';mark.position.set(-.24,-.20,0);root.add(mark);
   const shell=new T.Group();shell.name='core-shell';mark.add(shell);
   const skeleton=new T.Group();skeleton.name='connection-skeleton';mark.add(skeleton);
+  const collars=new T.Group();collars.name='structural-seams';mark.add(collars);
   const outer=physical(0x31433d,.49),accent=physical(0x667b72,.43),linkMat=physical(0x263b37,.38);
   const spineMat=new T.MeshStandardMaterial({color:0x7db8b4,roughness:.34,metalness:.16,emissive:0x2d7776,emissiveIntensity:.34,transparent:true,opacity:0});
   const nodeMat=new T.MeshStandardMaterial({color:0xa7d7cf,roughness:.28,metalness:.10,emissive:0x3c8884,emissiveIntensity:.28,transparent:true,opacity:0});
+  const collarMat=new T.MeshStandardMaterial({color:0x20332e,roughness:.42,metalness:.15});
   const shellParts=[],spines=[],paths=corePaths();
   paths.forEach((def,index)=>{
     const material=def.kind==='link'?linkMat:index===2?accent:outer;
@@ -48,18 +50,20 @@ export function createCore(variant='A',lite=false){
   const nodeGeo=new T.SphereGeometry(lite?.047:.052,lite?8:12,lite?6:8);
   const nodes=new T.InstancedMesh(nodeGeo,nodeMat,nodePositions.length);nodes.name='connection-nodes';
   const dummy=new T.Object3D();nodePositions.forEach((v,i)=>{dummy.position.set(v[0],v[1],0);dummy.scale.setScalar(.001);dummy.updateMatrix();nodes.setMatrixAt(i,dummy.matrix);});nodes.instanceMatrix.needsUpdate=true;skeleton.add(nodes);
+  const seamDefs=[{p:[.66,.62],t:[-.35,-.7,0],r:.232},{p:[-.78,-.70],t:[-.55,-.45,0],r:.232},{p:[.94,1.47],t:[.2,.72,0],r:.124}];
+  seamDefs.forEach((d,i)=>{const geometry=new T.TorusGeometry(d.r,.014,lite?5:7,lite?14:24);const mesh=new T.Mesh(geometry,collarMat);mesh.name=`structure-seam-${i}`;mesh.position.set(...d.p,0);mesh.quaternion.setFromUnitVectors(V(0,0,1),V(...d.t).normalize());collars.add(mesh);});
   const env={garden:new T.Color('#43584f'),desert:new T.Color('#5d5142'),ocean:new T.Color('#334d54'),night:new T.Color('#21333d')};
   const temp=new T.Color();
-  const api={root,layers:shellParts,shellParts,spines,nodes,variant:'A',triangles:0,set(expansion=0){
+  const api={root,layers:shellParts,shellParts,spines,nodes,collars,variant:'A',triangles:0,set(expansion=0){
     const e=T.MathUtils.smootherstep(expansion,0,1);
     shellParts.forEach(mesh=>{const [x,y,z]=mesh.userData.reveal;mesh.position.set(x*e,y*e,z*e);});
     spineMat.opacity=.86*T.MathUtils.smoothstep(e,.10,.72);nodeMat.opacity=.95*T.MathUtils.smoothstep(e,.20,.82);
     const scale=.001+(1-.001)*T.MathUtils.smootherstep(e,.18,.82);nodePositions.forEach((v,i)=>{dummy.position.set(v[0],v[1],0);dummy.scale.setScalar(scale);dummy.updateMatrix();nodes.setMatrixAt(i,dummy.matrix);});nodes.instanceMatrix.needsUpdate=true;
-    skeleton.visible=e>.04;nodes.visible=e>.04;
+    skeleton.visible=e>.04;nodes.visible=e>.04;collarMat.emissive.setRGB(.03+.09*e,.07+.13*e,.065+.14*e);
   },setEnvironment(world=0,night=0){
     const t=Math.max(0,Math.min(2,world)),a=t<1?env.garden:env.desert,b=t<1?env.desert:env.ocean;
     temp.copy(a).lerp(b,t%1).lerp(env.night,night*.55);outer.color.copy(temp);accent.color.copy(temp).offsetHSL(.015,.035,.10);linkMat.color.copy(temp).multiplyScalar(.76);
-    outer.emissiveIntensity=.07+night*.07;accent.emissiveIntensity=.08+night*.10;spineMat.emissiveIntensity=.28+night*.30;
+    outer.emissiveIntensity=.07+night*.07;accent.emissiveIntensity=.08+night*.10;spineMat.emissiveIntensity=.28+night*.30;collarMat.color.copy(temp).multiplyScalar(.58);
   },dispose(){const geometries=new Set(),materials=new Set();root.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());}};
   root.traverse(o=>{if(o.geometry)api.triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);});api.set(0);api.setEnvironment(0,0);return api;
 }

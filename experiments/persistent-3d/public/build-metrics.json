@@ -1,11 +1,11 @@
 {
   "app.js": {
-    "bytes": 530931,
-    "gzip": 137148
+    "bytes": 532427,
+    "gzip": 137636
   },
   "study.js": {
-    "bytes": 518399,
-    "gzip": 131823
+    "bytes": 519895,
+    "gzip": 132300
   },
   "svg-renderer.js": {
     "bytes": 257332,
