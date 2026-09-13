@@ -572,13 +572,13 @@ html.enhanced #connection .copy h2 {
 }
 .touch #track {
   position: relative !important;
-  width: 760vw !important;
+  width: 560vw !important;
   transform: none !important;
   height: 100%;
   pointer-events: auto;
 }
 .touch .chapter {
-  width: 152vw !important;
+  width: 112vw !important;
 }
 .touch .copy {
   position: sticky !important;

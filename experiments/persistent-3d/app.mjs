@@ -10,7 +10,7 @@ let reduced=motion.matches,p=0,frameId=0,width=innerWidth,height=innerHeight,tra
 let lost=false,frames=[],work=[],lastFrame=0,activeUntil=0,quality=q('#quality').value,qualityChanged=0,lastSummary=0,firstFrame=null;
 let benchmark=null,renderCount=0,paintBackend='none',currentState=sample(0),pointer={x:0,y:0},disposed=false;
 const frameLimit=touch?1000/30:0;
-const report={schema:1,experiment:'persistent-3d-stage1',core:'A',startedAt:new Date().toISOString(),userAgent:navigator.userAgent,viewport:{width,height,dpr:devicePixelRatio},input:touch?'native-horizontal':'native-vertical',events:[],tests:[],gpuTime:'not measured',iphoneValidation:'requires physical device'};
+const report={schema:2,experiment:'persistent-3d-visual-prototype-02',core:'connected-surface-sculpture',startedAt:new Date().toISOString(),userAgent:navigator.userAgent,viewport:{width,height,dpr:devicePixelRatio},input:touch?'native-horizontal':'native-vertical',events:[],tests:[],gpuTime:'not measured',iphoneValidation:'requires physical device'};
 try{new PerformanceObserver(list=>{const entries=list.getEntries();report.lcp=entries.at(-1)?.startTime;}).observe({type:'largest-contentful-paint',buffered:true});}catch{}
 function log(type){report.events.push({type,ms:Math.round(performance.now()),p});if(report.events.length>80)report.events.shift();}
 function plain(message){active=false;cancelAnimationFrame(frameId);frameId=0;root.classList.remove('enhanced','touch');sections.forEach(s=>{s.style.cssText='';s.inert=false;});track.style.cssText='';status.textContent=message;body.dataset.theme='';body.style.cssText='';log('content-mode');}
@@ -31,7 +31,7 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  const start=performance.now();
  if(benchmark){const t=(now-benchmark.start)/1000;if(t>=60){report.tests.push({name:'60s-scroll-cycle',backend:paintBackend,durationMs:now-benchmark.start,samples:frames.length,p95Ms:percentile(frames,.95),over100ms:frames.filter(n=>n>100).length});benchmark=null;log('benchmark-complete');q('#measure').textContent='再测 60 秒';}
  else{seek((1-Math.cos(t*Math.PI/10))/2,false);activeUntil=now+100;}}
- p=current();const compact=width<=760&&height>560;const s=currentState=sample(p,compact,reduced);
+ p=current();const compact=touch||width<=760;const s=currentState=sample(p,compact,reduced);
  // Same state owns model, camera, scene light, terrain and content. No second interpolation clock.
  core.set(s.expansion);core.root.visible=!q('#hide-core').checked;
  core.root.position.set(s.x,s.y,s.z);core.root.scale.setScalar(s.scale);
