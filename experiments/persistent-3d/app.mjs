@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {createCore} from './core.mjs';
-import {clamp,mix,sample,stops,names} from './story.mjs';
+import {clamp,mix,ramp,sample,stops,names} from './story.mjs';
 const q=s=>document.querySelector(s),root=document.documentElement,body=document.body;
 const params=new URLSearchParams(location.search),motion=matchMedia('(prefers-reduced-motion: reduce)');
 const touch=params.get('input')==='touch'||(params.get('input')!=='desktop'&&matchMedia('(pointer:coarse)').matches);
@@ -42,9 +42,9 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  const i=Math.min(1,Math.floor(s.world));const color=colors[i].lerp(colors[i+1],s.world-i).lerp(new T.Color('#101f2b'),s.night);
  q('.sky').style.background=`linear-gradient(180deg,${color.getStyle()},${color.clone().multiplyScalar(.93).getStyle()})`;
  body.dataset.theme=s.night>.5?'night':'day';
- const pan=p<.18?50:mix(0,50,clamp((p-.22)/.48));
+ const focus=ramp(p,.06,.24),pan=mix(50,mix(0,50,clamp((p-.22)/.48)),focus);
  for(const [index,land] of [...document.querySelectorAll('.land')].entries()){
-   land.style.backgroundSize=p<.18?'100% 100%':'500% 100%';land.style.backgroundPosition=`${pan}% center`;
+   land.style.backgroundSize=`${mix(100,500,focus)}% 100%`;land.style.backgroundPosition=`${pan}% center`;
    const shift=clamp(p/.24);land.style.transform=`translate3d(${Math.sin(p*4+index)*2}%,${shift*(compact?26:38)+s.night*28}%,0) scale(${1+shift*.1})`;
    land.style.opacity=String((index?.96:.68)*(1-s.night*.94));
  }
@@ -57,7 +57,7 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  core.layers.forEach((m,index)=>{m.material.color.set(index===1?'#609ea8':'#172b2c').lerp(new T.Color('#4d818b'),s.night*(index===1?.6:.35));});
  renderer.render(scene,camera);renderCount++;
  if(firstFrame===null){firstFrame=Math.round(performance.now());log('first-frame');status.textContent=paintBackend==='webgl'?'':'当前为几何预览，WebGL 未启用。';}
- if(lastFrame&&now-lastFrame<2000){frames.push(now-lastFrame);if(frames.length>12000)frames.shift();}
+ if(lastFrame){frames.push(now-lastFrame);if(frames.length>12000)frames.shift();}
  work.push(performance.now()-start);if(work.length>12000)work.shift();lastFrame=now;
  if(now-lastSummary>500){updateMetrics();lastSummary=now;}
  if(quality==='auto'&&frames.length>60&&now-qualityChanged>5000&&percentile(frames.slice(-60),.95)>(touch?43:28)&&paintBackend==='webgl'){
@@ -80,9 +80,9 @@ async function boot(){
  q('#gesture').textContent=touch?'左右滑动探索':'向下滚动探索';q('#reduce').checked=reduced;
  resize();
  if(paintBackend==='webgl'){
- const canvas=renderer.domElement;
- canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();lost=true;cancelAnimationFrame(frameId);frameId=0;status.textContent='3D 已暂停，正在尝试恢复；可切换普通阅读。';log('context-lost');});
- canvas.addEventListener('webglcontextrestored',()=>{lost=false;lastFrame=0;status.textContent='';log('context-restored');wake(100);});
+ const canvas=renderer.domElement;let recoveryTimer,recoveries=0;
+ canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();lost=true;cancelAnimationFrame(frameId);frameId=0;status.textContent='3D 已暂停，正在尝试恢复；可切换普通阅读。';log('context-lost');clearTimeout(recoveryTimer);recoveryTimer=setTimeout(()=>{dispose();plain('3D 恢复超时，已切换普通阅读。');},5000);});
+ canvas.addEventListener('webglcontextrestored',()=>{clearTimeout(recoveryTimer);if(disposed)return;if(++recoveries>1){dispose();plain('3D 多次中断，已切换普通阅读。');return;}lost=false;lastFrame=0;status.textContent='';log('context-restored');wake(100);});
  }
  const observer=new ResizeObserver(()=>{if(Math.abs(document.documentElement.clientWidth-width)>2)resize();});observer.observe(body);
  addEventListener('orientationchange',()=>setTimeout(resize,240));

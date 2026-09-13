@@ -31,5 +31,5 @@ export function sample(p,compact=false,reduced=false){
  const v=a.map((n,i)=>mix(n,b[i],t));
  const weights=[1-ramp(p,.10,.22),ramp(p,.10,.22)*(1-ramp(p,.33,.43)),ramp(p,.33,.43)*(1-ramp(p,.57,.67)),ramp(p,.57,.67)*(1-ramp(p,.82,.92)),ramp(p,.82,.92)];
  const chapter=weights.indexOf(Math.max(...weights));
- return {p,chapter,weights,x:v[1],y:v[2],scale:v[3],yaw:reduced?.14:v[4],roll:reduced?0:v[5],expansion:reduced?0:v[6],world:mix(0,2,ramp(p,.22,.70)),horizon:mix(.04,-1.65,ramp(p,.06,.28)),night:ramp(p,.81,.99)};
+ return {p,chapter,weights,x:reduced?(compact?0:1.15):v[1],y:reduced?1:v[2],scale:reduced?(compact?.65:.85):v[3],yaw:reduced?.14:v[4],roll:reduced?0:v[5],expansion:reduced?0:v[6],world:mix(0,2,ramp(p,.22,.70)),horizon:mix(.04,-1.65,ramp(p,.06,.28)),night:ramp(p,.81,.99)};
 }
