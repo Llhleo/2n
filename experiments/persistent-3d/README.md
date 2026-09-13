@@ -1,16 +1,17 @@
 # 2n — Persistent 3D Narrative Experiment
 
-2026-09-13 · 研究与设计决策检查点 · 尚未完成 3D 原型
+2026-09-13 · Visual Prototype 02 已实现 · 停在 First Structural Reveal
 
-**决策：值得进入最小原型；目前只作为实验分支，不承诺成为 v2。**
+**当前决策：视觉原型已按 A–E 五个检查点保存；继续保持实验分支，不合并 main。**
 
 稳定基线为 `3f2ecc2bc918276b291d90ad4a65aa8f22e15dd8`，本轮核实 main 与 v1.0.0 相同。实验分支 `experiment/persistent-3d-narrative` 从该提交建立。本目录为实验资料，未修改 `dist/`、正式页面入口、部署工作流、版本号或标签。不要将研究检查点误认为可发布版本。
 
-本轮成果：代码与资产核查、五个参考方向的来源核实、叙事决策、阶段路线、第一段镜头设计、性能与退出标准。当前浏览器无法正常呈现部分参考 WebGL 页面；未取得 iPhone 真机性能证据。已知事实、设计建议和未验证项分别记录。
+当前可运行范围：Hero → Garden → Desert → Ocean → First Structural Reveal。Core 已由挤压字形改为连续曲面连接雕塑，环境、镜头、遮挡和展开共享同一条可逆时间线。尚未取得真实 iPhone Safari 与本环境 WebGL 帧率证据。
 
 - [基线与参考证据](RESEARCH.md)
 - [最小原型设计与验收合同](PROTOTYPE.md)
 - [资产与源码哈希快照](baseline.json)
+- [Visual Prototype 02 验收记录](VISUAL-PROTOTYPE-02.md)
 
 ## 最终体验
 
