@@ -34,20 +34,24 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  p=current();const compact=width<=760&&height>560;const s=currentState=sample(p,compact,reduced);
  // Same state owns model, camera, scene light, terrain and content. No second interpolation clock.
  core.set(s.expansion);core.root.visible=!q('#hide-core').checked;
- core.root.position.set(s.x,s.y,0);core.root.scale.setScalar(s.scale);
+ core.root.position.set(s.x,s.y,s.z);core.root.scale.setScalar(s.scale);
  const idle=!reduced&&p<.03&&now<activeUntil?Math.sin(now*.0007)*.016:0;
- core.root.rotation.set(0,s.yaw+idle+pointer.x*(reduced?0:.025),s.roll);
- camera.position.set(pointer.x*.025,0,compact?7.8:7.1);camera.lookAt(0,0,0);
+ core.root.rotation.set(s.pitch,s.yaw+idle+pointer.x*(reduced?0:.022),s.roll);
+ camera.position.set(s.cameraX+pointer.x*(reduced?0:.018),s.cameraY,s.cameraZ);camera.lookAt(s.lookX,s.lookY,0);
  const colors=[new T.Color('#e7ece2'),new T.Color('#eadfc9'),new T.Color('#d4e1e4')];
  const i=Math.min(1,Math.floor(s.world));const color=colors[i].lerp(colors[i+1],s.world-i).lerp(new T.Color('#101f2b'),s.night);
  root.style.setProperty('--haze',color.getStyle());root.style.setProperty('--env',s.world.toFixed(3));root.style.setProperty('--night',s.night.toFixed(3));
  body.dataset.theme=s.night>.5?'night':'day';
- const focus=ramp(p,.06,.24),pan=mix(50,mix(0,50,clamp((p-.22)/.48)),focus);
+ const focus=ramp(p,.055,.25),pan=mix(50,s.world*50,focus);
  for(const [index,land] of [...document.querySelectorAll('.land')].entries()){
-   land.style.backgroundSize=`${mix(100,500,focus)}% 100%`;land.style.backgroundPosition=`${pan}% center`;
-   const shift=clamp(p/.24);land.style.transform=`translate3d(${Math.sin(p*4+index)*2}%,${shift*(compact?26:38)+s.night*28}%,0) scale(${1+shift*.1})`;
+   land.style.backgroundSize=`${mix(100,300,focus)}% 100%`;land.style.backgroundPosition=`${pan}% center`;
+   const depth=index-1,travelShift=Math.sin(p*Math.PI*2+index*.8)*(compact?.6:1.2);
+   land.style.transform=`translate3d(${travelShift+depth*s.world*(compact?.45:.8)}%,${ramp(p,.10,.30)*(index*2.2)+s.night*(8+index*4)}%,0) scale(${1+focus*.025+index*.012})`;
    land.style.opacity=String(([.46,.70,.92][index]??.8)*(1-s.night*.88));
+   land.style.filter=`saturate(${.58+s.world*.05}) brightness(${index===2?.80:1.02-s.night*.12})`;
  }
+ q('.atmosphere-a').style.transform=`translate3d(${-s.world*5}%,${s.night*8}%,0) scale(${1+s.world*.08})`;
+ q('.atmosphere-b').style.transform=`translate3d(${s.world*4}%,${-s.night*18}%,0) scale(${1+s.night*.45})`;
  // Keep landscape in front of Core at entry, then reveal the full volume.
  if(!touch){track.style.transform='none';sections.forEach((section,index)=>{section.style.position='absolute';section.style.inset='0';section.style.opacity=s.weights[index];section.style.visibility=s.weights[index]>.001?'visible':'hidden';section.style.transform=`translate3d(${(1-s.weights[index])*24}px,0,0)`;section.inert=s.chapter!==index;});}
  else sections.forEach((section,index)=>{section.inert=Math.abs(index/4-p)>.36;});

@@ -1,7 +1,7 @@
 {
   "app.js": {
-    "bytes": 529921,
-    "gzip": 136775
+    "bytes": 530931,
+    "gzip": 137148
   },
   "study.js": {
     "bytes": 518399,
@@ -12,7 +12,7 @@
     "gzip": 59520
   },
   "terrain.js": {
-    "bytes": 8499,
-    "gzip": 6451
+    "bytes": 14395,
+    "gzip": 10879
   }
 }
