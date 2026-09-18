@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {createCore} from './core.mjs';
+import {createCore} from './cast-core.mjs';
 import {clamp,mix,ramp,sample,stops,names} from './story.mjs';
 const q=s=>document.querySelector(s),root=document.documentElement,body=document.body;
 const params=new URLSearchParams(location.search),motion=matchMedia('(prefers-reduced-motion: reduce)');
