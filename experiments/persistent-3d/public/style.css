@@ -791,3 +791,31 @@ html.enhanced .fallback-mark {
     transition: none !important;
   }
 }
+
+/* Recovery: one continuous low horizon, not three polygon slideshow strips. */
+.land { width:120%;left:-10%;clip-path:none;will-change:transform,opacity; }
+.land-back { height:44%;bottom:-2%;mask-image:linear-gradient(transparent,#000 24%);-webkit-mask-image:linear-gradient(transparent,#000 24%); }
+.land-middle { height:25%;bottom:-5%;border-radius:55% 80% 0 0 / 16% 25% 0 0; }
+.land-front { height:31%;bottom:-3%;border-radius:80% 45% 0 0 / 30% 18% 0 0; }
+.world-rule { background:linear-gradient(90deg,#edf0e9e8,transparent 49%),linear-gradient(transparent 65%,#edf0e924); }
+.horizon-line,.grain { display:none; }
+.atmosphere { filter:none; }
+.core-shadow { transform:translate(-50%,-50%);width:21vw;height:4vw;filter:none; }
+html.enhanced .hero-copy { bottom:15%;max-width:32vw; }
+html.enhanced .hero-top { top:16%; }
+html.enhanced .copy { max-width:29vw; }
+@media(max-width:760px){
+  .land-back{height:36%;bottom:20%;}
+  .land-middle{height:23%;bottom:21%;}
+  .land-front{height:25%;bottom:20%;border-radius:65% 55% 0 0 / 17% 24%;mask-image:linear-gradient(#000 40%,transparent);-webkit-mask-image:linear-gradient(#000 40%,transparent);}
+  .world-rule{background:linear-gradient(transparent 43%,#edf0e960 60%,#edf0e9 79%);}
+  .core-shadow{width:48vw;height:8vw;}
+  html.enhanced .copy,html.enhanced .hero-copy{max-width:84vw;width:84vw;top:65%;bottom:auto;}
+  html.enhanced #connection .copy{top:63%;}
+  html.enhanced.touch .opening .copy{top:65%;bottom:auto;}
+  html.enhanced .hero-top{display:none;}
+  .copy h1{letter-spacing:-.035em;}
+  .touch .copy{position:absolute!important;}
+  .touch .chapter{width:100vw!important;}
+  .touch #track{width:500vw!important;}
+}

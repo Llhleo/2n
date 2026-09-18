@@ -10,13 +10,13 @@ let reduced=motion.matches,p=0,frameId=0,width=innerWidth,height=innerHeight,tra
 let lost=false,frames=[],work=[],lastFrame=0,activeUntil=0,quality=q('#quality').value,qualityChanged=0,lastSummary=0,firstFrame=null;
 let benchmark=null,renderCount=0,paintBackend='none',currentState=sample(0),pointer={x:0,y:0},disposed=false;
 const frameLimit=touch?1000/30:0;
-const report={schema:2,experiment:'persistent-3d-visual-prototype-02',core:'connected-surface-sculpture',startedAt:new Date().toISOString(),userAgent:navigator.userAgent,viewport:{width,height,dpr:devicePixelRatio},input:touch?'native-horizontal':'native-vertical',events:[],tests:[],gpuTime:'not measured',iphoneValidation:'requires physical device'};
+const report={schema:3,experiment:'persistent-3d-direction-recovery',core:'cast-monolith-candidate',startedAt:new Date().toISOString(),userAgent:navigator.userAgent,viewport:{width,height,dpr:devicePixelRatio},input:touch?'native-horizontal':'native-vertical',events:[],tests:[],gpuTime:'not measured',iphoneValidation:'requires physical device'};
 try{new PerformanceObserver(list=>{const entries=list.getEntries();report.lcp=entries.at(-1)?.startTime;}).observe({type:'largest-contentful-paint',buffered:true});}catch{}
 function log(type){report.events.push({type,ms:Math.round(performance.now()),p});if(report.events.length>80)report.events.shift();}
 function plain(message){active=false;cancelAnimationFrame(frameId);frameId=0;root.classList.remove('enhanced','touch');sections.forEach(s=>{s.style.cssText='';s.inert=false;});track.style.cssText='';status.textContent=message;body.dataset.theme='';body.style.cssText='';log('content-mode');}
-function current(){return clamp(touch?shell.scrollLeft/travel:scrollY/travel);}
+function current(){if(!touch)return clamp(scrollY/travel);const raw=clamp(shell.scrollLeft/travel)*4,i=Math.min(3,Math.floor(raw));return mix(stops[i],stops[i+1],raw-i);}
 function seek(value,smooth=true){value=clamp(value);if(!active){sections[Math.round(value*4)].scrollIntoView({behavior:'auto'});return;}
- const options={behavior:smooth&&!reduced?'smooth':'instant'};if(touch)shell.scrollTo({...options,left:value*travel});else scrollTo({...options,top:value*travel});wake(500);}
+ const options={behavior:smooth&&!reduced?'smooth':'instant'};if(touch){let i=0;while(i<3&&value>stops[i+1])i++;const raw=(i+(value-stops[i])/(stops[i+1]-stops[i]))/4;shell.scrollTo({...options,left:raw*travel});}else scrollTo({...options,top:value*travel});wake(500);}
 function resize(){if(!active)return;const previous=p;width=document.documentElement.clientWidth;height=innerHeight;root.style.setProperty('--vh',height+'px');travel=width*6.6;
  camera.aspect=width/height;camera.updateProjectionMatrix();renderer.setSize(width,height);setDpr();
  if(touch){travel=shell.scrollWidth-width;}
@@ -42,12 +42,12 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  const i=Math.min(1,Math.floor(s.world));const color=colors[i].lerp(colors[i+1],s.world-i).lerp(new T.Color('#101f2b'),s.night);
  root.style.setProperty('--haze',color.getStyle());root.style.setProperty('--env',s.world.toFixed(3));root.style.setProperty('--night',s.night.toFixed(3));
  body.dataset.theme=s.night>.5?'night':'day';
- const focus=ramp(p,.055,.25),pan=mix(50,s.world*50,focus);
+ const focus=ramp(p,.055,.25),pan=s.world*50;
  for(const [index,land] of [...document.querySelectorAll('.land')].entries()){
-   land.style.backgroundSize=`${mix(100,300,focus)}% 100%`;land.style.backgroundPosition=`${pan}% center`;
+   land.style.backgroundSize='300% 100%';land.style.backgroundPosition=`${pan}% center`;
    const depth=index-1,travelShift=Math.sin(p*Math.PI*2+index*.8)*(compact?.6:1.2);
    land.style.transform=`translate3d(${travelShift+depth*s.world*(compact?.45:.8)}%,${ramp(p,.10,.30)*(index*2.2)+s.night*(8+index*4)}%,0) scale(${1+focus*.025+index*.012})`;
-   land.style.opacity=String(([.46,.70,.92][index]??.8)*(1-s.night*.88));
+   land.style.opacity=String(([.65,.45,1][index]??1)*(1-s.night*.88));
    land.style.filter=`saturate(${.58+s.world*.05}) brightness(${index===2?.80:1.02-s.night*.12})`;
  }
  q('.atmosphere-a').style.transform=`translate3d(${-s.world*5}%,${s.night*8}%,0) scale(${1+s.world*.08})`;
@@ -63,9 +63,12 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  key.intensity=3.6+T.MathUtils.smoothstep(s.world,.55,1.25)*.9-s.night*.8;
  fill.color.set('#b7d2c2').lerp(new T.Color('#d6a66e'),T.MathUtils.smoothstep(s.world,.55,1.3)).lerp(new T.Color('#6ca9bd'),T.MathUtils.smoothstep(s.world,1.35,2));
  rim.color.set('#d7eee0').lerp(new T.Color('#85c8d4'),T.MathUtils.smoothstep(s.world,1.2,2));rim.intensity=1.3+s.night*.9;
- q('.core-shadow').style.opacity=String((.78-s.night*.46)*(1-s.expansion*.52));
+ const groundPoint=new T.Vector3(s.x,s.y-1.5*s.scale,0).project(camera);
+ q('.core-shadow').style.left=`${(groundPoint.x*.5+.5)*100}%`;
+ q('.core-shadow').style.top=`${(.5-groundPoint.y*.5)*100}%`;
+ q('.core-shadow').style.opacity=String((.48-s.night*.36)*(1-s.expansion*.52));
  renderer.render(scene,camera);renderCount++;
- if(firstFrame===null){firstFrame=Math.round(performance.now());log('first-frame');status.textContent=paintBackend==='webgl'?'':'当前为几何预览，WebGL 未启用。';}
+ if(firstFrame===null){firstFrame=Math.round(performance.now());log('first-frame');status.textContent=paintBackend==='webgl'?'':'几何校样 · 非 WebGL / 材质与性能未验收';}
  if(lastFrame){frames.push(now-lastFrame);if(frames.length>12000)frames.shift();}
  work.push(performance.now()-start);if(work.length>12000)work.shift();lastFrame=now;
  if(now-lastSummary>500){updateMetrics();lastSummary=now;}
@@ -83,8 +86,10 @@ async function boot(){
  fill=new T.DirectionalLight(0xb7d2c2,1.25);fill.position.set(4,-1.5,4);scene.add(fill);
  rim=new T.DirectionalLight(0xd7eee0,1.3);rim.position.set(3.5,2,-4);scene.add(rim);
  core=createCore('A',touch);scene.add(core.root);
- try{if(params.get('renderer')==='svg')throw Error('SVG geometry diagnostic requested');renderer=new T.WebGLRenderer({alpha:true,antialias:!touch,powerPreference:'low-power'});paintBackend='webgl';renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;}
- catch(error){log('webgl-unavailable');if(params.get('renderer')==='svg'){
+ try{if(['svg','proof'].includes(params.get('renderer')))throw Error('Geometry diagnostic requested');renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});paintBackend='webgl';renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;}
+ catch(error){log('webgl-unavailable');if(params.get('renderer')==='proof'){
+   const {ProofRenderer}=await import('./proof-renderer.js');renderer=new ProofRenderer();paintBackend='cpu-geometry-proof';
+ }else if(params.get('renderer')==='svg'){
    const {SVGRenderer}=await import('./svg-renderer.js');renderer=new SVGRenderer();renderer.setClearColor(0xf3f2eb,0);paintBackend='svg-geometry';core.nodes.visible=false;
    // The diagnostic renderer does not implement PhysicalMaterial; keep the same
    // geometry and substitute a matte material only for screenshot inspection.

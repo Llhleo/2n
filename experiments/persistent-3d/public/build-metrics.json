@@ -1,18 +1,18 @@
 {
   "app.js": {
-    "bytes": 540258,
-    "gzip": 141568
+    "bytes": 540616,
+    "gzip": 141690
   },
   "study.js": {
-    "bytes": 519895,
-    "gzip": 132300
+    "bytes": 547343,
+    "gzip": 141838
   },
   "svg-renderer.js": {
     "bytes": 257332,
     "gzip": 59520
   },
   "terrain.js": {
-    "bytes": 14395,
-    "gzip": 10879
+    "bytes": 18259,
+    "gzip": 13816
   }
 }
