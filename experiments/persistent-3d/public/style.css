@@ -800,6 +800,7 @@ html.enhanced .fallback-mark {
 .world-rule { background:linear-gradient(90deg,#edf0e9e8,transparent 49%),linear-gradient(transparent 65%,#edf0e924); }
 .horizon-line,.grain { display:none; }
 .atmosphere { filter:none; }
+em { color:#365d59; }
 .core-shadow { transform:translate(-50%,-50%);width:21vw;height:4vw;filter:none; }
 html.enhanced .hero-copy { bottom:15%;max-width:32vw; }
 html.enhanced .hero-top { top:16%; }
@@ -818,4 +819,12 @@ html.enhanced .copy { max-width:29vw; }
   .touch .copy{position:absolute!important;}
   .touch .chapter{width:100vw!important;}
   .touch #track{width:500vw!important;}
+}
+@media(orientation:landscape) and (max-height:560px){
+  html.enhanced.touch .copy,html.enhanced.touch .opening .copy,html.enhanced.touch #connection .copy{position:absolute!important;top:27%;bottom:auto;left:6vw;width:36vw;max-width:36vw;}
+  .touch .chapter{width:100vw!important;}
+  .touch #track{width:500vw!important;}
+  .land-back{height:44%;bottom:-2%;}
+  .land-middle{height:25%;bottom:-5%;}
+  .land-front{height:31%;bottom:-3%;}
 }

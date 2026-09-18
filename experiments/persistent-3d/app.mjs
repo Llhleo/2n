@@ -31,7 +31,7 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  const start=performance.now();
  if(benchmark){const t=(now-benchmark.start)/1000;if(t>=60){report.tests.push({name:'60s-scroll-cycle',backend:paintBackend,durationMs:now-benchmark.start,samples:frames.length,p95Ms:percentile(frames,.95),over100ms:frames.filter(n=>n>100).length});benchmark=null;log('benchmark-complete');q('#measure').textContent='再测 60 秒';}
  else{seek((1-Math.cos(t*Math.PI/10))/2,false);activeUntil=now+100;}}
- p=current();const compact=touch||width<=760;const s=currentState=sample(p,compact,reduced);
+ p=current();const compact=width<=760||(touch&&width<height);const s=currentState=sample(p,compact,reduced);
  // Same state owns model, camera, scene light, terrain and content. No second interpolation clock.
  core.set(s.expansion);core.root.visible=!q('#hide-core').checked;
  core.root.position.set(s.x,s.y,s.z);core.root.scale.setScalar(s.scale);
@@ -39,9 +39,9 @@ function frame(now){frameId=0;if(!active||document.hidden||lost)return;
  core.root.rotation.set(s.pitch,s.yaw+idle+pointer.x*(reduced?0:.022),s.roll);
  camera.position.set(s.cameraX+pointer.x*(reduced?0:.018),s.cameraY,s.cameraZ);camera.lookAt(s.lookX,s.lookY,0);
  const colors=[new T.Color('#e7ece2'),new T.Color('#eadfc9'),new T.Color('#d4e1e4')];
- const i=Math.min(1,Math.floor(s.world));const color=colors[i].lerp(colors[i+1],s.world-i).lerp(new T.Color('#101f2b'),s.night);
+ const i=Math.min(1,Math.floor(s.world));const color=colors[i].lerp(colors[i+1],s.world-i).lerp(new T.Color('#cbd7d5'),s.night);
  root.style.setProperty('--haze',color.getStyle());root.style.setProperty('--env',s.world.toFixed(3));root.style.setProperty('--night',s.night.toFixed(3));
- body.dataset.theme=s.night>.5?'night':'day';
+ body.dataset.theme='day';
  const focus=ramp(p,.055,.25),pan=s.world*50;
  for(const [index,land] of [...document.querySelectorAll('.land')].entries()){
    land.style.backgroundSize='300% 100%';land.style.backgroundPosition=`${pan}% center`;

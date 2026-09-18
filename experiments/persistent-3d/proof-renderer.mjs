@@ -41,7 +41,7 @@ export function rasterize(scene,camera,width,height){
 }
 export class ProofRenderer{
   constructor(){this.domElement=document.createElement('canvas');this.context=this.domElement.getContext('2d');}
-  setSize(w,h){const scale=Math.min(1,900/w,900/h);this.domElement.width=Math.round(w*scale);this.domElement.height=Math.round(h*scale);this.domElement.style.width=w+'px';this.domElement.style.height=h+'px';}
+  setSize(w,h){const scale=Math.min(1.5,1800/w,1600/h);this.domElement.width=Math.round(w*scale);this.domElement.height=Math.round(h*scale);this.domElement.style.width=w+'px';this.domElement.style.height=h+'px';}
   render(scene,camera){const {width,height}=this.domElement;this.context.putImageData(new ImageData(rasterize(scene,camera,width,height),width,height),0,0);}
   dispose(){}
 }
