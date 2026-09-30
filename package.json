@@ -1,9 +1,9 @@
 {
   "name": "2n-guild",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "scripts": {
-    "dev": "node tools/preview-server.mjs",
+    "dev": "node tools/sync-leaders.mjs && node tools/preview-server.mjs",
     "check": "node tools/check-site.mjs",
     "test": "node --test tools/motion.test.cjs tools/liquid.test.cjs tools/loading.test.cjs tools/content.test.cjs tools/dense-motion.test.cjs tools/navigation.test.cjs tools/touch-timeline.test.cjs",
     "content": "node tools/sync-leaders.mjs",

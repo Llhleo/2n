@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { runInNewContext } from 'node:vm';
 import content from './leaders-content.cjs';
 
 const root=resolve(process.env.SITE_DIR || 'dist');
@@ -15,15 +14,14 @@ for(const ref of new Set(refs)) {
   assert.ok(!/^(?:https?:)?\/\//.test(ref),'No external asset dependency: '+ref);
   assert.ok((await stat(resolve(root,ref))).isFile(),ref);
 }
-for(const file of ['app.js','leaders-data.js','motion.js','liquid.js','assets.js','world-scene.js','profile.js','perf.js','navigation.js','mobile-story.js','touch-timeline.js','liquid-renderers.js']) execFileSync(process.execPath,['--check',resolve(root,file)]);
+for(const file of ['app.js','motion.js','liquid.js','assets.js','world-scene.js','profile.js','perf.js','navigation.js','mobile-story.js','touch-timeline.js','liquid-renderers.js']) execFileSync(process.execPath,['--check',resolve(root,file)]);
 assert.equal((html.match(/class="panel biome"/g)||[]).length,5);
-const leaderContext={window:{}};
-runInNewContext(await readFile(resolve(root,'leaders-data.js'),'utf8'),leaderContext);
-const leaderData=leaderContext.window.TwoNLeadersContent;
+assert.equal((html.match(/class="biome-image"/g)||[]).length,5, 'Five eager biome images');
+const leaderData=content.readContent(await readFile(resolve('content/leaders.json'),'utf8'));
 assert.ok(leaderData?.intro?.title && leaderData.intro.eyebrow && leaderData.intro.lines?.length);
 assert.ok(Array.isArray(leaderData.people) && leaderData.people.length>0);
 assert.equal((html.match(/class="leader-card"/g)||[]).length,leaderData.people.length);
-assert.equal(content.synchronize(html, content.readContent(await readFile(resolve(root,'leaders-data.js'),'utf8'))),html,'Leaders snapshot is stale: run npm run content');
+assert.equal(content.synchronize(html, leaderData),html,'Leaders snapshot is stale: run npm run content');
 for(const person of leaderData.people) {
   for(const field of ['number','role','roleEn','name','description']) assert.ok(person[field],`Leader ${field}`);
 }

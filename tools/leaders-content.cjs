@@ -1,5 +1,4 @@
 const assert = require('node:assert/strict');
-const { runInNewContext } = require('node:vm');
 
 const sectionPattern = /<section class="panel leaders"[^>]*>[\s\S]*?<\/section>/;
 const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({
@@ -7,9 +6,7 @@ const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({
 }[character]));
 
 function readContent(source) {
-  const context = { window: {} };
-  runInNewContext(source, context, { timeout: 1000 });
-  const data = context.window.TwoNLeadersContent;
+  const data = JSON.parse(source);
   assert.ok(data?.intro && Array.isArray(data.people) && data.people.length);
   for (const field of ['eyebrow', 'title'])
     assert.ok(typeof data.intro[field] === 'string' && data.intro[field].trim(), 'Intro ' + field);
