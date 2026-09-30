@@ -3,16 +3,12 @@ const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { runInNewContext } = require('node:vm');
 
-const app = readFileSync(require.resolve('../dist/app.js'), 'utf8');
-const start = app.indexOf('  async function loadImage(path) {');
-const end = app.indexOf('  async function boot() {', start);
-assert.ok(start >= 0 && end > start);
-const source = app.slice(start, end) + '\nloadImage';
+const source = readFileSync(require.resolve('../dist/assets.js'), 'utf8');
 
 function setup(decode) {
   let image, timeout;
   let cleared = false;
-  const loadImage = runInNewContext(source, {
+  const context = { module: { exports: {} },
     Image: class {
       constructor() { image = this; }
       decode() { return decode(); }
@@ -23,7 +19,9 @@ function setup(decode) {
       return 1;
     },
     clearTimeout() { cleared = true; }
-  });
+  };
+  runInNewContext(source, context);
+  const loadImage = context.module.exports.loadImage;
   const result = loadImage('assets/garden.png');
   return { result, image, expire() { if (!cleared) timeout(); }, cleared: () => cleared };
 }

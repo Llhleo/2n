@@ -1,4 +1,4 @@
-// 管理层内容在这里修改；修改姓名、职位或贡献说明后无需改 index.html。
+// 管理层内容在这里修改；修改后运行 npm run content，自动同步 index.html。
 window.TwoNLeadersContent = {
   intro: {
     eyebrow: 'THE PEOPLE BEHIND 2n',

@@ -42,10 +42,13 @@
 2n/
 ├─ dist/
 │  ├─ index.html          # 页面结构与静态回退
-│  ├─ app.js              # 章节编排
+│  ├─ app.js              # 章节编排与动画生命周期
+│  ├─ world-scene.js      # 开场双层 Canvas 绘制
+│  ├─ assets.js           # 图片加载与解码超时
+│  ├─ motion.js           # 运动几何（含完整成员名单路径）
 │  ├─ liquid.js           # 液滴运动与几何
 │  ├─ leaders-data.js     # 管理层文案
-│  ├─ style.css           # 基础样式（其他样式也位于 dist/）
+│  ├─ style.css           # 按原级联顺序合并的布局、触屏、动效与视觉样式
 │  └─ assets/             # 生态图片、影片和分享图
 ├─ tools/                 # 本地预览、检查与测试
 ├─ package.json
@@ -65,7 +68,7 @@ npm run check
 npm test
 ```
 
-`npm run dev` 启动项目自带的本地预览服务，按终端给出的地址打开网站；`npm run check` 验证静态资源、脚本与内容结构，`npm test` 运行现有的运动和液滴测试。修改页面后建议先完成两项检查，再通过浏览器查看实际表现。也可以查看 `dist/index.html` 的静态结构，但交互检查应以本地预览服务为准。
+`npm run dev` 启动项目自带的本地预览服务，按终端给出的地址打开网站；`npm run check` 验证静态资源、脚本与内容结构，`npm test` 运行运动、液滴、图片加载与内容同步测试。修改页面后建议先完成两项检查，再通过浏览器查看实际表现。也可以查看 `dist/index.html` 的静态结构，但交互检查应以本地预览服务为准。
 
 ### 可选：本地生成发布副本
 
@@ -79,19 +82,31 @@ SITE_DIR=_site npm run check
 
 脚本会重新生成 `_site/`，输出每张生态图片及合计节省的字节数。原始 `dist/` 不会被改写；视频仍按需加载。部署只接受像素一致且体积更小的 WebP，其他图片继续使用 PNG。
 
+### 浏览器回归检查
+
+CI 对优化后的发布副本执行浏览器测试。本地安装测试工具后也可以运行：
+
+```sh
+npm install --no-save --package-lock=false @playwright/test@1.56.1
+npx playwright install chromium webkit
+npm run test:browser
+```
+
+默认预览 `dist/`；设置 `SITE_DIR=_site` 可验证发布副本。CI 还启动上一轮分支的对照站点，比较五个章节的计算样式。触屏 WebKit 测试覆盖浏览器行为，但不能替代 iPhone 真机的滚动、合成与帧率检查。触屏的 `maximum-scale=1, user-scalable=no` 和 Safari 手势拦截继续保留。
+
 ## 内容维护
 
 ### 管理层
 
-管理层标题、开头说明、职位、姓名与个人贡献，正常情况下只需编辑 [`dist/leaders-data.js`](dist/leaders-data.js)。`intro` 保存引导文字；`people` 按展示顺序保存每张卡片。常用字段包括 `number`（编号）、`role`（中文职位）、`roleEn`（英文职位）、`name`（姓名）和 `description`（贡献说明）。修改后运行检查，并在预览中确认卡片数量、顺序与换行。
+管理层标题、开头说明、职位、姓名与个人贡献，正常情况下只需编辑 [`dist/leaders-data.js`](dist/leaders-data.js)。`intro` 保存引导文字；`people` 按展示顺序保存每张卡片。常用字段包括 `number`（编号）、`role`（中文职位）、`roleEn`（英文职位）、`name`（姓名）和 `description`（贡献说明）。修改后运行 `npm run content`，自动同步 `dist/index.html`，再运行检查并在预览中确认卡片数量、顺序与换行。
 
-`dist/index.html` 中保留管理层内容的**静态回退快照**，供脚本无法运行时阅读。日常管理层文案维护以数据文件为准，不需要每次手动同步两份；若以后专门更新无 JavaScript 的回退内容，再一起检查该快照。生态文案、成员名单和纪念文案目前仍分散在页面结构或相关脚本中，没有统一的内容管理系统，修改前请先定位对应来源。
+`dist/leaders-data.js` 是管理层内容的唯一编辑来源，`npm run content` 将它生成到 `dist/index.html`。有无 JavaScript 都读取同一份生成内容，浏览器不再重新创建管理层卡片。检查会拒绝数据与 HTML 不同步的提交，不必手动维护两份文案。生态文案、成员名单和纪念文案目前仍分散在页面结构或相关脚本中，没有统一的内容管理系统，修改前请先定位对应来源。
 
 ## 发布流程
 
 从最新 `main` 新建工作分支，完成修改后运行 `npm run check` 和 `npm test`，再创建到 `main` 的 PR。合并前应检查受影响章节，涉及触屏滚动、品牌遮挡、液滴或性能时还应进行真机检查；核心动画与性能架构的改动应在独立分支验证，不直接提交到 `main`。
 
-PR 会通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。更详细的版本说明见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
+PR 会通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本。此外，桌面 Chromium、触屏 Chromium 和触屏 WebKit 会验证开场跳过、章节导航、无脚本回退、沙漠配色及触屏缩放限制，并与重构前版本比较主要章节的计算样式；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。更详细的版本说明见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
 
 ## 项目状态
 

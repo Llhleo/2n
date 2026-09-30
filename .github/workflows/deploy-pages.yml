@@ -26,7 +26,7 @@ jobs:
           node-version: "22"
       - name: Check source site
         run: npm run check
-      - name: Test motion, liquid and image loading
+      - name: Test motion, liquid, loading and content
         run: npm test
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -47,9 +47,46 @@ jobs:
           path: _site
           retention-days: 7
 
+  browser:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Checkout previous implementation for comparison
+        uses: actions/checkout@v4
+        with:
+          ref: 77e20f471f645595b7d2a9bab11570ddf834e45d
+          path: _baseline
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Download optimized site
+        uses: actions/download-artifact@v4
+        with:
+          name: checked-site
+          path: _site
+      - name: Install browser test runner
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+      - name: Install browsers
+        run: npx playwright install --with-deps chromium webkit
+      - name: Check desktop and touch behavior
+        run: npm run test:browser
+        env:
+          SITE_DIR: _site
+          BASELINE_URL: http://127.0.0.1:4174
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-traces
+          path: test-results
+          retention-days: 7
+
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: check
+    needs: [check, browser]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
