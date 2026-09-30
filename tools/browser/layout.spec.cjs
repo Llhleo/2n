@@ -37,6 +37,7 @@ test('member progress survives portrait to landscape and back', async ({ page })
     shell.scrollTo({ left: start + (box.width - shell.clientWidth) * .6, behavior: 'instant' });
   });
   await expect.poll(() => memberPhase(page)).toBeCloseTo(.6, 2);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const before = await memberPhase(page);
   for (const viewport of [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
