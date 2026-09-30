@@ -52,7 +52,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '1.0.2';
+  root.dataset.version = '1.0.3';
   root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
@@ -250,6 +250,7 @@
     gradient.setAttribute('x2',gatherPlan.finalRadius);gradient.setAttribute('y2',gatherPlan.finalRadius);
   }
   function measure(preserve = true) {
+    if (!active) return;
     const oldLead = lead, oldTravel = travel, oldY = storyPosition();
     const previousEntry = oldLead ? oldY / oldLead : 0;
     const previousTrackRatio = oldTravel ? (oldY - oldLead) / oldTravel : 0;
@@ -597,6 +598,7 @@
     active=false; ready=true; playing=false;
     clearTimeout(window.twoNBootTimer);
     if (frameId) cancelAnimationFrame(frameId);
+    frameId=0;clearTimeout(resizeTimer);
     root.classList.remove('is-booting','is-enhanced','is-intro-locked');
     root.classList.add('motion-fallback');
     shell.style.height='auto'; hero.style.cssText=''; mark.style.cssText='';
@@ -624,16 +626,18 @@
   });
   const isControl = target => target instanceof Element && !!target.closest('button,a,input,textarea,select,video,[contenteditable=true]');
 
-  one('.skip-intro').addEventListener('click', () => {
+  function skipIntro() {
     focusAfterIntro=true;
-    if (initialized) finishIntro(); else { fallback(); root.dataset.state='fallback'; }
-  });
+    // Loading is asynchronous: early dismissal must also stop the pending boot.
+    if (initialized) finishIntro(); else window.twoNFallback();
+  }
+  one('.skip-intro').addEventListener('click', skipIntro);
   one('.replay-intro').addEventListener('click', () => { focusAfterIntro=true; replay(); });
   one('.previous-chapter').addEventListener('click', () => nextStop(-1));
   one('.next-chapter').addEventListener('click', () => nextStop(1));
   all('[data-section]').forEach(button=>button.addEventListener('click',()=>goTo(button.dataset.section)));
   all('[data-go="0"]').forEach(button=>button.addEventListener('click',()=>goTo(0)));
-  one('.skip-link').addEventListener('click', event => { if (!active) return; event.preventDefault(); finishIntro(); goTo('biomes'); });
+  one('.skip-link').addEventListener('click', event => { if (!active) return; event.preventDefault(); skipIntro(); goTo('biomes'); });
   mediaQuery.addEventListener('change', () => { setMotionPreference(); if(reduced && playing) finishIntro(); schedule(); });
   addEventListener('2n:fallback', fallback);
   addEventListener('2n:profile',()=>{
@@ -667,7 +671,7 @@
     const scrollKeys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '];
     if (!active) return;
     if (!ready) {
-      if (event.key==='Escape') { focusAfterIntro=true; finishIntro(); }
+      if (event.key==='Escape') skipIntro();
       else if(scrollKeys.includes(event.key) && !isControl(event.target)) event.preventDefault();
       return;
     }
