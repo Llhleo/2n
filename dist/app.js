@@ -206,7 +206,8 @@
     shell.addEventListener('scroll',onStoryScroll,{passive:true});
   }
   function measureMobile(preserve,oldPosition) {
-    const anchor=preserve&&initialized?mobile.capturePosition(oldPosition):null;
+    const resized=mobile.width!==width || mobile.height!==height;
+    const anchor=preserve&&initialized?(resized&&mobile.readingAnchor?mobile.readingAnchor:mobile.capturePosition(oldPosition)):null;
     bridgeDuration=Math.round(Math.max(width*1.8,height*2.2));
     memberDuration=Math.round(Math.max(width*7.2,height*12));
     mobile.measure(width,height,bridgeDuration,memberDuration);
@@ -218,7 +219,9 @@
     measureBrand();
     if(scene) scene.resize();
     if(preserve&&initialized) scrollStory(clamp(mobile.restorePosition(anchor,oldPosition),0,travel));
-    mobile.latest=shell.scrollLeft;mobile.publish();schedule();
+    mobile.latest=shell.scrollLeft;
+    mobile.readingAnchor=mobile.capturePosition(mobile.latest);mobile.anchorPosition=mobile.latest;
+    mobile.publish();schedule();
   }
   function measureLiquid() {
     if(!messageWidth) measureMessage();

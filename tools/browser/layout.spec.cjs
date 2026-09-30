@@ -4,6 +4,15 @@ async function ready(page, hash) {
   await page.goto('/' + hash);
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready');
 }
+async function stablePosition(page) {
+  let previous = -1, repeats = 0;
+  await expect.poll(async () => {
+    const value = await page.locator('.story-shell').evaluate(shell => shell.scrollLeft);
+    repeats = value === previous ? repeats + 1 : 0;
+    previous = value;
+    return repeats;
+  }, { intervals: [50, 50, 100, 100] }).toBeGreaterThanOrEqual(3);
+}
 async function touchOnly(page) {
   test.skip(await page.locator('html').getAttribute('data-input') !== 'touch', 'Native resize anchoring applies to touch input');
 }
@@ -19,6 +28,8 @@ test('member progress survives portrait to landscape and back', async ({ page })
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await ready(page, '#members');
   await touchOnly(page);
+  await expect(page.locator('.chapter-name')).toHaveText('汇聚成 2n');
+  await stablePosition(page);
   await page.evaluate(() => {
     const shell = document.querySelector('.story-shell');
     const box = document.querySelector('.native-chapter[data-stage="members"]').getBoundingClientRect();
@@ -29,6 +40,7 @@ test('member progress survives portrait to landscape and back', async ({ page })
   const before = await memberPhase(page);
   for (const viewport of [{ width: 844, height: 390 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
+    await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--view-height'))).toBe(viewport.height + 'px');
     await expect.poll(() => memberPhase(page)).toBeCloseTo(before, 2);
     await expect(page.locator('.chapter-name')).toHaveText('汇聚成 2n');
     await expect(page.locator('meta[name="viewport"]')).toHaveAttribute('content', /maximum-scale=1, user-scalable=no/);

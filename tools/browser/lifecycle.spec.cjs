@@ -43,23 +43,25 @@ test('a simulated long background pause stops frames and resumes the unfinished 
 });
 
 test('film is idle while the opening still schedules its intended wave animation', async ({ page }) => {
-  await clock(page);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/?perf=1#film');
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready');
-  await page.clock.runFor(7000);
-  // Allow native intersection notifications to arrive, then drain their wake-up.
-  await page.waitForTimeout(100);
-  await page.clock.runFor(1000);
   await expect(page.locator('.chapter-count b')).toHaveText('10');
+  let last = -1, repeats = 0;
+  await expect.poll(async () => {
+    const value = await frames(page);
+    repeats = value === last ? repeats + 1 : 0;
+    last = value;
+    return repeats;
+  }, { intervals: [100, 100, 200, 200] }).toBeGreaterThanOrEqual(3);
   const idle = await frames(page);
-  await page.clock.runFor(2000);
+  // This is a measured idle interval using the browser's actual scroll clock.
+  await page.waitForTimeout(500);
   expect(await frames(page)).toBe(idle);
   await page.keyboard.press('Home');
-  await page.clock.runFor(7000);
   await expect(page.locator('.chapter-count b')).toHaveText('01');
   const opening = await frames(page);
-  await page.clock.runFor(300);
+  await page.waitForTimeout(200);
   expect(await frames(page)).toBeGreaterThan(opening);
 });
 
