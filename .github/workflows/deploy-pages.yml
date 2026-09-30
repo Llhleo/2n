@@ -59,7 +59,7 @@ jobs:
       - name: Checkout previous implementation for comparison
         uses: actions/checkout@v4
         with:
-          ref: 0c2c68a6a9f3a2d839ee5cddfe2b8d3cae3bb205
+          ref: 71f07c9babb16d6d3f271dd926070eae9b2b8b83
           path: _baseline
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -72,6 +72,12 @@ jobs:
           path: _site
       - name: Install browser test runner
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+      - name: Demonstrate recovery regressions on previous version
+        run: npm run test:browser -- tools/browser/recovery.spec.cjs
+        env:
+          SITE_DIR: _site
+          BASELINE_URL: http://127.0.0.1:4174
+          REGRESSION_BASELINE_URL: http://127.0.0.1:4174
       - name: Check desktop and touch behavior
         run: npm run test:browser
         env:
@@ -86,6 +92,7 @@ jobs:
           retention-days: 7
 
   deploy:
+    timeout-minutes: 15
     concurrency:
       group: pages-publish
       cancel-in-progress: false
@@ -100,6 +107,8 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout verification tools
+        uses: actions/checkout@v4
       - name: Download checked site
         uses: actions/download-artifact@v4
         with:
@@ -114,9 +123,14 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify published production assets
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: python tools/verify-deployment.py _site "$PAGE_URL"
 
   preview:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'maintenance/release-and-preview'
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/fallback-and-loading-controls'
     needs: [check, browser]
     concurrency:
       group: pages-publish
@@ -130,6 +144,8 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout verification tools
+        uses: actions/checkout@v4
       - name: Checkout unchanged production source
         uses: actions/checkout@v4
         with:
@@ -176,21 +192,38 @@ jobs:
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
-          python - <<'PY'
-          import os, pathlib, time, urllib.request
-          base = os.environ["PAGE_URL"].rstrip("/") + "/"
-          for route, source in [("", "_production/_site/index.html"), ("preview/", "_preview/index.html"), ("preview/app.js", "_preview/app.js")]:
-              expected = pathlib.Path(source).read_bytes()
-              for attempt in range(12):
-                  try:
-                      with urllib.request.urlopen(base + route + "?verify=" + str(time.time_ns()), timeout=20) as response:
-                          actual = response.read()
-                      if actual == expected:
-                          print("Verified:", base + route)
-                          break
-                  except Exception as error:
-                      print(type(error).__name__, str(error))
-                  time.sleep(5)
-              else:
-                  raise SystemExit("Published content did not match: " + route)
-          PY
+          python tools/verify-deployment.py _production/_site "$PAGE_URL"
+          python tools/verify-deployment.py _preview "${PAGE_URL%/}/preview/"
+
+  cleanup:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Remove merged optimization and maintenance branches
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const branches = await github.paginate(github.rest.repos.listBranches, { owner, repo, per_page: 100 });
+            for (const branch of branches) {
+              if (branch.protected || !/^(optimize|maintenance|fix)\//.test(branch.name)) continue;
+              const result = await github.rest.repos.compareCommitsWithBasehead({ owner, repo, basehead: branch.commit.sha + '...' + context.sha });
+              if (!['ahead', 'identical'].includes(result.data.status) || result.data.behind_by !== 0) continue;
+              const ref = 'heads/' + branch.name;
+              let current;
+              try {
+                current = await github.rest.git.getRef({ owner, repo, ref });
+              } catch (error) {
+                if (error.status === 404) continue;
+                throw error;
+              }
+              if (current.data.object.sha !== branch.commit.sha) {
+                core.info('Preserved changed branch: ' + branch.name);
+                continue;
+              }
+              await github.rest.git.deleteRef({ owner, repo, ref });
+              core.info('Deleted merged branch: ' + branch.name);
+            }
