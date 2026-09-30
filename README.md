@@ -36,7 +36,7 @@
 
 ## 技术与目录
 
-站点使用 HTML、CSS 和原生 JavaScript；开篇地貌由 Canvas 绘制，成员液滴使用项目内的 SVG / Canvas 绘制路径。项目没有应用框架或构建步骤：`dist/` 是可部署的静态网站，GitHub Pages 从该目录发布。
+站点使用 HTML、CSS 和原生 JavaScript；开篇地貌由 Canvas 绘制，成员液滴使用项目内的 SVG / Canvas 绘制路径。项目没有应用框架：`dist/` 是可直接预览的静态网站。发布时从它生成 `_site/`，仅将更小且解码像素完全一致的生态图片替换为无损 WebP，GitHub Pages 发布经过检查的 `_site/`。
 
 ```text
 2n/
@@ -67,6 +67,18 @@ npm test
 
 `npm run dev` 启动项目自带的本地预览服务，按终端给出的地址打开网站；`npm run check` 验证静态资源、脚本与内容结构，`npm test` 运行现有的运动和液滴测试。修改页面后建议先完成两项检查，再通过浏览器查看实际表现。也可以查看 `dist/index.html` 的静态结构，但交互检查应以本地预览服务为准。
 
+### 可选：本地生成发布副本
+
+日常预览仍使用 `npm run dev`，无需 Python。若要检查发布后的无损图片压缩结果，使用 Python 3.12 执行：
+
+```sh
+python -m pip install Pillow==11.3.0
+python tools/optimize-assets.py
+SITE_DIR=_site npm run check
+```
+
+脚本会重新生成 `_site/`，输出每张生态图片及合计节省的字节数。原始 `dist/` 不会被改写；视频仍按需加载。部署只接受像素一致且体积更小的 WebP，其他图片继续使用 PNG。
+
 ## 内容维护
 
 ### 管理层
@@ -79,7 +91,7 @@ npm test
 
 从最新 `main` 新建工作分支，完成修改后运行 `npm run check` 和 `npm test`，再创建到 `main` 的 PR。合并前应检查受影响章节，涉及触屏滚动、品牌遮挡、液滴或性能时还应进行真机检查；核心动画与性能架构的改动应在独立分支验证，不直接提交到 `main`。
 
-PR 合并进入 `main` 后，仓库现有的 GitHub Actions 工作流会上传 `dist/` 并部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要另行编译网站。更详细的版本说明见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
+PR 会通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。更详细的版本说明见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
 
 ## 项目状态
 

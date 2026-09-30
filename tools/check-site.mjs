@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { runInNewContext } from 'node:vm';
 
-const root=resolve('dist');
+const root=resolve(process.env.SITE_DIR || 'dist');
 const html=await readFile(resolve(root,'index.html'),'utf8');
 const css=await readFile(resolve(root,'style.css'),'utf8');
 const refs=[...html.matchAll(/(?:src|href)="([^"#]+)"/g),...html.matchAll(/url\('([^']+)'\)/g),...css.matchAll(/url\('([^']+)'\)/g)]

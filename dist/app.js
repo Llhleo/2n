@@ -934,7 +934,7 @@
       const timer=setTimeout(()=>finish(null),4500);
       image.decoding='async';
       image.onload=async()=>{
-        clearTimeout(timer);
+        // Keep the deadline active until decoding finishes as well.
         try { await image.decode(); } catch {}
         finish(image);
       };
