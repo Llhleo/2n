@@ -86,6 +86,9 @@ jobs:
           retention-days: 7
 
   deploy:
+    concurrency:
+      group: pages-publish
+      cancel-in-progress: false
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: [check, browser]
     environment:
@@ -111,3 +114,68 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  preview:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'optimize/preview-publishing'
+    needs: [check, browser]
+    concurrency:
+      group: pages-publish
+      cancel-in-progress: false
+    environment:
+      name: 2n-preview
+      url: ${{ steps.deployment.outputs.page_url }}preview/
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout unchanged production source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: _production
+      - name: Download checked preview
+        uses: actions/download-artifact@v4
+        with:
+          name: checked-site
+          path: _preview
+      - name: Assemble production and isolated preview
+        run: |
+          mkdir -p _pages/preview
+          cp -a _production/dist/. _pages/
+          cp -a _preview/. _pages/preview/
+          touch _pages/.nojekyll
+          cmp _production/dist/index.html _pages/index.html
+          cmp _preview/index.html _pages/preview/index.html
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload production with preview
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_pages
+      - name: Publish isolated preview
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify published content
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          python - <<'PY'
+          import os, pathlib, time, urllib.request
+          base = os.environ["PAGE_URL"].rstrip("/") + "/"
+          for route, source in [("", "_production/dist/index.html"), ("preview/", "_preview/index.html"), ("preview/app.js", "_preview/app.js")]:
+              expected = pathlib.Path(source).read_bytes()
+              for attempt in range(12):
+                  try:
+                      with urllib.request.urlopen(base + route + "?verify=" + str(time.time_ns()), timeout=20) as response:
+                          actual = response.read()
+                      if actual == expected:
+                          print("Verified:", base + route)
+                          break
+                  except Exception as error:
+                      print(type(error).__name__, str(error))
+                  time.sleep(5)
+              else:
+                  raise SystemExit("Published content did not match: " + route)
+          PY
