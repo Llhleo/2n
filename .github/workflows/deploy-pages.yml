@@ -75,7 +75,7 @@ jobs:
       - name: Install browser test runner
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
       - name: Demonstrate rapid biome regressions on previous version
-        run: npm run test:browser -- tools/browser/biomes.spec.cjs
+        run: npm run test:browser -- tools/browser/biomes.spec.cjs --grep "touch biome text"
         env:
           SITE_DIR: _site
           BASELINE_URL: http://127.0.0.1:4174

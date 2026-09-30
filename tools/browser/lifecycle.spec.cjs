@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { intro: leaderIntro, people: leaders } = require('../../content/leaders.json');
 
 async function clock(page) {
   await page.clock.install({ time: new Date('2026-09-30T00:00:00Z') });
@@ -75,7 +76,7 @@ test('live fallback removes enhanced stages and cancels pending animation', asyn
   await expect(page.locator('.native-chapter')).toHaveCount(0);
   await expect(page.locator('.brand-anchor')).toHaveCount(0);
   await expect(page.locator('.member-fusion')).toBeHidden();
-  await expect(page.locator('.leader-list')).toContainText('awdc');
+  await expect(page.locator('.leader-list')).toContainText(leaders[0].name);
   const stopped = await frames(page);
   await page.clock.runFor(2000);
   expect(await frames(page)).toBe(stopped);
@@ -85,10 +86,10 @@ test('simulated pageshow restoration keeps a single set of stages and the readin
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/#leaders');
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready');
-  await expect(page.locator('.chapter-name')).toHaveText('管理层');
+  await expect(page.locator('.chapter-name')).toHaveText(leaderIntro.title);
   for (let i = 0; i < 3; i++)
     await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
-  await expect(page.locator('.chapter-name')).toHaveText('管理层');
+  await expect(page.locator('.chapter-name')).toHaveText(leaderIntro.title);
   await expect(page.locator('.brand-visual')).toHaveCount(1);
   await expect(page.locator('.member-fusion')).toHaveCount(1);
   const input = await page.locator('html').getAttribute('data-input');

@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { intro: leaderIntro, people: leaders } = require('../../content/leaders.json');
 
 async function ready(page, hash) {
   await page.goto('/' + hash);
@@ -52,7 +53,7 @@ test('the same management card stays at the same fractional position on rotation
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await ready(page, '#leaders');
   await touchOnly(page);
-  const index = 1;
+  const index = Math.min(1, leaders.length - 1);
   await page.evaluate(index => {
     const shell = document.querySelector('.story-shell');
     const box = document.querySelectorAll('.leader-card')[index].getBoundingClientRect();
@@ -67,7 +68,7 @@ test('the same management card stays at the same fractional position on rotation
   await expect.poll(fraction).toBeCloseTo(.35, 2);
   await page.setViewportSize({ width: 844, height: 390 });
   await expect.poll(fraction).toBeCloseTo(.35, 2);
-  await expect(page.locator('.chapter-name')).toHaveText('管理层');
+  await expect(page.locator('.chapter-name')).toHaveText(leaderIntro.title);
 });
 
 test('narrow and landscape layouts keep root overflow contained and endpoints reachable', async ({ page }) => {
