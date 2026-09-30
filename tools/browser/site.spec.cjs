@@ -33,6 +33,9 @@ test('startup, chapter navigation, and returning to opening work', async ({ page
 });
 
 test('skip opening unlocks the story while motion is enabled', async ({ page }) => {
+  // Keep the click inside the early intro, before its curtain clips this button.
+  await page.clock.install({ time: new Date('2026-09-30T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-09-30T00:00:00.100Z'));
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-state', 'intro');
@@ -40,6 +43,24 @@ test('skip opening unlocks the story while motion is enabled', async ({ page }) 
   await expect(page.locator('html')).toHaveAttribute('data-state', 'ready');
   await expect(page.locator('.intro-screen')).toBeHidden();
   await expect(page.locator('.site-header')).not.toHaveAttribute('inert', '');
+});
+
+test('member animation and returning to opening run without frame errors', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await ready(page, '/#members');
+  await expect(page.locator('.member-fusion path').first()).toHaveAttribute('d', /^M/);
+  await page.keyboard.press('ArrowRight');
+  await settle(page);
+  const outline = await page.locator('.member-fusion path').first().getAttribute('d');
+  expect(outline).not.toMatch(/NaN|Infinity/);
+  await page.keyboard.press('End');
+  await expect(page.locator('.chapter-count b')).toHaveText('11');
+  await page.keyboard.press('Home');
+  await expect(page.locator('.chapter-count b')).toHaveText('01');
+  await settle(page);
+  expect(errors).toEqual([]);
 });
 
 test('touch viewport and cancelable Safari gestures keep zoom disabled', async ({ page }) => {
