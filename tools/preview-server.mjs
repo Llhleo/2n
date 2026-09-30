@@ -1,9 +1,9 @@
-// Local QA only. Production remains a buildless static website.
+// Local QA only. Also supports checking the optimized deployment copy via SITE_DIR.
 import http from 'node:http';
 import { createReadStream } from 'node:fs';
 import { stat, readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
-const base = resolve('dist');
+const base = resolve(process.env.SITE_DIR || 'dist');
 const portArg = process.argv.indexOf('--port');
 const port = Number(portArg >= 0 ? process.argv[portArg + 1] : process.env.PORT || 4173);
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.webp': 'image/webp', '.mp4': 'video/mp4' };

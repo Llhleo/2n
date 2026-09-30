@@ -35,6 +35,7 @@
   // Stable per-member variation keeps reverse scrolling identical to forward scrolling.
   const noise = seed => { const n = Math.sin(seed * 127.1 + 311.7) * 43758.5453; return n - Math.floor(n); };
   function memberPath(index, count, phase, width, height) {
+    if(count>48) return denseMemberPath(index,count,phase,width,height);
     const start = .015 + index / Math.max(1,count-1) * .61 + noise(index+4)*.025;
     const duration = .23 + noise(index+15)*.10;
     const local = progress(phase,start,start+duration);
@@ -67,7 +68,7 @@
       collapse:Math.pow(progress(phase,.66,1),2)
     };
   }
-  function anniversaryParticle(index,count,phase,width,height) {
+  function baseAnniversaryParticle(index,count,phase,width,height) {
     const s=anniversary(phase), fraction=index/count;
     const base=fraction*Math.PI*2;
     const orbit=progress(phase,.43,.62);
@@ -86,6 +87,36 @@
       scale:lerp(.45,1,s.split)*lerp(1,.74,coil)*(1-s.collapse*.8),
       color:smooth(progress(s.split,.12,.94)), angle,radius:r
     };
+  }
+  // Dense rosters retain the same stable lanes and 23-particle handoff.
+  function denseMemberPath(index,count,phase,width,height) {
+    const start=.012+index/Math.max(1,count-1)*.72;
+    const duration=.095+noise(index+15)*.020;
+    const local=progress(phase,start,start+duration);
+    const t=smooth(progress(local,.07,1));
+    const angle=index*2.399963+noise(index+9)*.16;
+    const radius=.955+noise(index+21)*.045;
+    const rx=Math.max(68,width*.5-46),ry=Math.max(90,height*.5-92);
+    const edge=Math.max(Math.abs(Math.cos(angle)),Math.abs(Math.sin(angle)));
+    const falloff=(1-t)*(1-t);
+    return {
+      x:Math.cos(angle)/edge*rx*radius*falloff,
+      y:Math.sin(angle)/edge*ry*radius*falloff,
+      scale:lerp(.94+noise(index+7)*.08,.35,t),
+      opacity:smooth(progress(local,0,.13))*(1-smooth(progress(local,.76,1))),
+      mix:smooth(local),
+      absorbed:smooth(progress(local,.66,1)),
+      approach:t,
+      heading:angle
+    };
+  }
+  function anniversaryParticle(index,count,phase,width,height) {
+    if(count<=48) return baseAnniversaryParticle(index,count,phase,width,height);
+    if(index>=23) {
+      const p=baseAnniversaryParticle(index,Math.max(1,count),phase,width,height);
+      return {...p,opacity:0,scale:0};
+    }
+    return baseAnniversaryParticle(index,23,phase,width,height);
   }
   function recoil(paths,gather) {
     let x=0,y=0,stretch=0;

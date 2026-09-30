@@ -25,20 +25,17 @@
     };
     window.twoNBootTimer = setTimeout(window.twoNFallback, 12000);
   </script>
-  <link rel="stylesheet" href="style.css?v=1.0.0">
-  <link rel="stylesheet" href="v35.css?v=1.0.0">
-  <link rel="stylesheet" href="mobile.css?v=1.0.0">
-  <link rel="stylesheet" href="polish.css?v=1.0.0">
-  <link rel="stylesheet" href="visual-impact.css?v=1.0.0">
-  <script src="profile.js?v=1.0.0" defer></script>
-  <script src="perf.js?v=1.0.0" defer></script>
-  <script src="motion.js?v=1.0.0" defer></script>
-  <script src="v35-runtime.js?v=1.0.0" defer></script>
-  <script src="liquid.js?v=1.0.0" defer></script>
-  <script src="mobile-story.js?v=1.0.0" defer></script>
-  <script src="touch-timeline.js?v=1.0.0" defer></script>
-  <script src="leaders-data.js?v=1.0.0" defer></script>
-  <script src="app.js?v=1.0.0" defer></script>
+  <link rel="stylesheet" href="style.css?v=1.0.2">
+  <script src="profile.js?v=1.0.2" defer></script>
+  <script src="perf.js?v=1.0.2" defer></script>
+  <script src="motion.js?v=1.0.2" defer></script>
+  <script src="liquid.js?v=1.0.2" defer></script>
+  <script src="navigation.js?v=1.0.2" defer></script>
+  <script src="mobile-story.js?v=1.0.2" defer></script>
+  <script src="touch-timeline.js?v=1.0.2" defer></script>
+  <script src="assets.js?v=1.0.2" defer></script>
+  <script src="world-scene.js?v=1.0.2" defer></script>
+  <script src="app.js?v=1.0.2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#story">跳到主要内容</a>
@@ -84,19 +81,19 @@
     </section>
     <div class="story-viewport">
       <div class="story-track">
-        <section class="panel biome" id="biomes" data-chapter="花园" style="--image:url('assets/garden.png');--tone:#22a956">
+        <section class="panel biome" data-biome="garden" id="biomes" data-chapter="花园" style="--image:url('assets/garden.png');--tone:#22a956">
           <div class="biome-copy"><span>01 · GARDEN</span><h2>花园</h2><p>从最熟悉的绿色出发。这里保存相遇、成长与公会最早的记忆。</p></div>
         </section>
-        <section class="panel biome" data-chapter="沙漠" style="--image:url('assets/desert.png');--tone:#c3a56a">
+        <section class="panel biome" data-biome="desert" data-chapter="沙漠" style="--image:url('assets/desert.png');--tone:#c3a56a">
           <div class="biome-copy"><span>02 · DESERT</span><h2>沙漠</h2><p>风沙让路线变得漫长，也让每一次并肩前进更有分量。</p></div>
         </section>
-        <section class="panel biome" data-chapter="海洋" style="--image:url('assets/ocean.png');--tone:#397cae">
+        <section class="panel biome" data-biome="ocean" data-chapter="海洋" style="--image:url('assets/ocean.png');--tone:#397cae">
           <div class="biome-copy"><span>03 · OCEAN</span><h2>海洋</h2><p>蓝色深处没有固定答案。探索、判断与协作让队伍保持方向。</p></div>
         </section>
-        <section class="panel biome" data-chapter="丛林" style="--image:url('assets/jungle.png');--tone:#198f4e">
+        <section class="panel biome" data-biome="jungle" data-chapter="丛林" style="--image:url('assets/jungle.png');--tone:#198f4e">
           <div class="biome-copy"><span>04 · JUNGLE</span><h2>丛林</h2><p>密集的路径考验默契；真正可靠的成员，总能在复杂里找到彼此。</p></div>
         </section>
-        <section class="panel biome" data-chapter="地狱" style="--image:url('assets/hell.png');--tone:#aa3034">
+        <section class="panel biome" data-biome="hell" data-chapter="地狱" style="--image:url('assets/hell.png');--tone:#aa3034">
           <div class="biome-copy"><span>05 · HELL</span><h2>地狱</h2><p>越过最后一道红色边界，留下的不只是战绩，也是共同承担。</p></div>
         </section>
 

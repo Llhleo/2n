@@ -62,11 +62,24 @@ window.TwoNMobileStory=class {
       this.bounds.set(panel,{x:box.left-shellLeft+x,width:box.width});
     }
     this.stops=[0,...this.panels.map(p=>this.bounds.get(p).x)];
-    for(const card of this.leaders.querySelectorAll('.leader-card'))
-      this.stops.push(card.getBoundingClientRect().left-shellLeft+x);
+    for(const card of this.leaders.querySelectorAll('.leader-card')) {
+      const box=card.getBoundingClientRect();
+      const bounds={x:box.left-shellLeft+x,width:box.width};
+      this.bounds.set(card,bounds);
+      this.stops.push(bounds.x);
+    }
     this.max=this.shell.scrollWidth-width;
     this.latest=this.shell.scrollLeft;
     this.publish();
+  }
+  capturePosition(position=this.shell.scrollLeft) {
+    // Prefer an individual management card over the wider leaders section.
+    const targets=[...this.leaders.querySelectorAll('.leader-card'),this.hero,...this.panels];
+    const entries=targets.map(target=>({target,...this.bounds.get(target),hold:this.holds.has(target)}));
+    return window.TwoNNavigation.captureAnchor(entries,position,this.width);
+  }
+  restorePosition(anchor,fallback) {
+    return window.TwoNNavigation.restoreAnchor(anchor,this.bounds,this.width,fallback);
   }
   heavy() {
     const x=this.latest,w=this.width;
@@ -88,6 +101,11 @@ window.TwoNMobileStory=class {
   reconcile() {
     // One canonical native position per frame, including momentum jumps.
     this.latest=Math.max(0,Math.min(this.max||0,this.shell.scrollLeft));
+    // Native resize can adjust scrollLeft before our debounced measurement.
+    // Cache a reading anchor only while the measured layout still matches.
+    if(this.latest!==this.anchorPosition && Math.abs(this.shell.clientWidth-this.width)<3) {
+      this.readingAnchor=this.capturePosition(this.latest);this.anchorPosition=this.latest;
+    }
     this.dirty=false;this.publish();
   }
   publish() {
