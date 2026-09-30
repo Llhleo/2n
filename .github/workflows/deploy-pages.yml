@@ -116,7 +116,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   preview:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'optimize/preview-publishing'
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'maintenance/release-and-preview'
     needs: [check, browser]
     concurrency:
       group: pages-publish
@@ -133,21 +133,36 @@ jobs:
       - name: Checkout unchanged production source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: main
           path: _production
       - name: Download checked preview
         uses: actions/download-artifact@v4
         with:
           name: checked-site
           path: _preview
+      - name: Setup production image encoder
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install production image encoder
+        run: python -m pip install Pillow==11.3.0
+      - name: Prepare current production assets
+        working-directory: _production
+        run: python tools/optimize-assets.py
       - name: Assemble production and isolated preview
         run: |
           mkdir -p _pages/preview
-          cp -a _production/dist/. _pages/
+          cp -a _production/_site/. _pages/
           cp -a _preview/. _pages/preview/
           touch _pages/.nojekyll
-          cmp _production/dist/index.html _pages/index.html
+          cmp _production/_site/index.html _pages/index.html
           cmp _preview/index.html _pages/preview/index.html
+      - name: Ensure production source is still current
+        working-directory: _production
+        run: |
+          current_sha=$(git rev-parse HEAD)
+          remote_sha=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current_sha" = "$remote_sha"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload production with preview
@@ -164,7 +179,7 @@ jobs:
           python - <<'PY'
           import os, pathlib, time, urllib.request
           base = os.environ["PAGE_URL"].rstrip("/") + "/"
-          for route, source in [("", "_production/dist/index.html"), ("preview/", "_preview/index.html"), ("preview/app.js", "_preview/app.js")]:
+          for route, source in [("", "_production/_site/index.html"), ("preview/", "_preview/index.html"), ("preview/app.js", "_preview/app.js")]:
               expected = pathlib.Path(source).read_bytes()
               for attempt in range(12):
                   try:

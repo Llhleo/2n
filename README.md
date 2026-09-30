@@ -4,7 +4,7 @@
 
 **在线网站：** https://llhleo.github.io/2n/
 
-**当前稳定版本：** v1.0.0
+**当前稳定版本：** v1.0.2
 
 ![2n Website 分享封面](dist/assets/og-2n.png)
 
@@ -107,11 +107,17 @@ npm run test:browser
 
 从最新 `main` 新建工作分支，完成修改后运行 `npm run check` 和 `npm test`，再创建到 `main` 的 PR。合并前应检查受影响章节，涉及触屏滚动、品牌遮挡、液滴或性能时还应进行真机检查；核心动画与性能架构的改动应在独立分支验证，不直接提交到 `main`。
 
-PR 会通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本。此外，桌面 Chromium、触屏 Chromium 和触屏 WebKit 会验证开场跳过、章节导航、无脚本回退、沙漠配色及触屏缩放限制，并与上一轮分支比较主要章节的计算样式；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。更详细的版本说明见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
+PR 会通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本。此外，桌面 Chromium、触屏 Chromium 和触屏 WebKit 会验证开场跳过、章节导航、无脚本回退、沙漠配色及触屏缩放限制，并与上一轮分支比较主要章节的计算样式；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。本轮优化说明见 [RELEASE-v1.0.2.md](RELEASE-v1.0.2.md)，最初发布记录见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
+
+### 优化预览
+
+当前维护分支的审阅入口为 https://llhleo.github.io/2n/preview/ 。仅指定的同仓库维护分支 PR 在静态、单元和浏览器检查通过后发布此路径。预览发布会从当前 `main` 重新生成正式发布副本，放在根路径；待审阅副本放在 `preview/`。两者均使用已校验的无损图片优化，避免预览发布使正式页面退回原始 PNG。发布前核对 `main` 未变化，发布后核对正式首页、预览首页和预览脚本内容。
+
+预览是临时入口；后续正常的 `main` 发布会替换整个 Pages 站点，可能移除 `preview/`。正式地址始终是 https://llhleo.github.io/2n/ 。
 
 ## 项目状态
 
-当前稳定版本为 **v1.0.0**。项目重点关注 iPhone Safari、移动端 Chromium 以及桌面 Chromium / Safari 等使用场景；不同设备和浏览器的合成、滚动行为可能略有差异。后续修改以保持现有内容可访问、移动端原生滚动顺畅和各章节动画连续为优先。
+当前稳定版本为 **v1.0.2**。项目重点关注 iPhone Safari、移动端 Chromium 以及桌面 Chromium / Safari 等使用场景；不同设备和浏览器的合成、滚动行为可能略有差异。后续修改以保持现有内容可访问、移动端原生滚动顺畅和各章节动画连续为优先。
 
 ---
 
