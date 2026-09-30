@@ -103,7 +103,7 @@ window.TwoNMobileStory=class {
     this.latest=Math.max(0,Math.min(this.max||0,this.shell.scrollLeft));
     // Native resize can adjust scrollLeft before our debounced measurement.
     // Cache a reading anchor only while the measured layout still matches.
-    if(Math.abs(this.shell.clientWidth-this.width)<3 && this.latest!==this.anchorPosition) {
+    if(this.latest!==this.anchorPosition && Math.abs(this.shell.clientWidth-this.width)<3) {
       this.readingAnchor=this.capturePosition(this.latest);this.anchorPosition=this.latest;
     }
     this.dirty=false;this.publish();
