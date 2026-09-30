@@ -1,19 +1,25 @@
-/* Loading deadline covers network and decoding; no DOM or animation ownership. */
+/* Reuse the displayed image; the deadline covers network and decoding. */
 (function (target) {
   'use strict';
-  async function loadImage(path) {
+  async function loadImage(path, displayedImage) {
     return new Promise(resolve=>{
-      const image=new Image();
+      const image=displayedImage || new Image();
       let completed=false;
       const finish=value=>{if(completed)return;completed=true;clearTimeout(timer);resolve(value);};
       const timer=setTimeout(()=>finish(null),4500);
       image.decoding='async';
-      image.onload=async()=>{
-        // Keep the deadline active until decoding finishes as well.
+      const decode=async()=>{
         try { await image.decode(); } catch {}
         finish(image);
       };
-      image.onerror=()=>finish(null);image.src=path;
+      image.onload=decode;
+      image.onerror=()=>finish(null);
+      if(displayedImage) {
+        // Its src was discovered by the HTML parser; do not restart that request.
+        if(image.complete) {
+          if(image.naturalWidth>0) decode(); else finish(null);
+        }
+      } else image.src=path;
     });
   }
 

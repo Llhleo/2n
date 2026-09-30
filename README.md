@@ -4,7 +4,9 @@
 
 **在线网站：** https://llhleo.github.io/2n/
 
-**当前稳定版本：** v1.0.3
+**当前稳定版本：** v1.0.4
+
+**修改管理层文案：** 打开 [`content/leaders.json`](content/leaders.json)，修改后提交，GitHub Actions 会自动生成并发布页面。
 
 ![2n Website 分享封面](dist/assets/og-2n.png)
 
@@ -48,9 +50,10 @@
 │  ├─ motion.js           # 运动几何（含完整成员名单路径）
 │  ├─ navigation.js       # 章节目标、相邻停靠点与触屏旋转锚点
 │  ├─ liquid.js           # 液滴运动与几何
-│  ├─ leaders-data.js     # 管理层文案
 │  ├─ style.css           # 按原级联顺序合并的布局、触屏、动效与视觉样式
 │  └─ assets/             # 生态图片、影片和分享图
+├─ content/
+│  └─ leaders.json        # 管理层标题、姓名、职位与贡献：日常编辑入口
 ├─ tools/                 # 本地预览、检查与测试
 ├─ package.json
 ├─ RELEASE-v1.0.md
@@ -93,21 +96,33 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-默认预览 `dist/`；设置 `SITE_DIR=_site` 可验证发布副本。CI 还启动上一轮分支的对照站点，比较五个章节的计算样式。浏览器检查还覆盖成员动画回看、窄屏/横屏、旋转后的阅读位置、模拟的 visibilitychange/pageshow 事件，以及通过调试帧计数验证影片章节停止调度、开场继续播放。模拟后台事件和浏览器时钟不等同于真实系统挂起或浏览器 BFCache 恢复；触屏 WebKit 也不能替代 iPhone 真机的滚动、合成与帧率检查。触屏的 `maximum-scale=1, user-scalable=no` 和 Safari 手势拦截继续保留。
+默认预览 `dist/`；设置 `SITE_DIR=_site` 可验证发布副本。CI 还启动上一轮分支的对照站点，比较五个章节的计算样式。浏览器检查还覆盖成员动画回看、窄屏/横屏、旋转后的阅读位置、模拟的 visibilitychange/pageshow 事件，以及通过调试帧计数验证影片章节停止调度、开场继续播放。新增检查覆盖单次任务内快速跨越五境、开场前已解码的实际图片，以及图片超时后继续显示。模拟后台事件和浏览器时钟不等同于真实系统挂起或浏览器 BFCache 恢复；触屏 WebKit 也不能替代 iPhone 真机的滚动、合成与帧率检查。触屏的 `maximum-scale=1, user-scalable=no` 和 Safari 手势拦截继续保留。
 
 ## 内容维护
 
 ### 管理层
 
-管理层标题、开头说明、职位、姓名与个人贡献，正常情况下只需编辑 [`dist/leaders-data.js`](dist/leaders-data.js)。`intro` 保存引导文字；`people` 按展示顺序保存每张卡片。常用字段包括 `number`（编号）、`role`（中文职位）、`roleEn`（英文职位）、`name`（姓名）和 `description`（贡献说明）。修改后运行 `npm run content`，自动同步 `dist/index.html`，再运行检查并在预览中确认卡片数量、顺序与换行。
+管理层文案集中在 [content/leaders.json](content/leaders.json)。可直接在 GitHub 文件页面点编辑按钮；保存提交后，GitHub Actions 会从此文件生成管理层 HTML，执行检查后发布。字段含义如下：
 
-`dist/leaders-data.js` 是管理层内容的唯一编辑来源，`npm run content` 将它生成到 `dist/index.html`。有无 JavaScript 都读取同一份生成内容，浏览器不再重新创建管理层卡片。检查会拒绝数据与 HTML 不同步的提交，不必手动维护两份文案。生态文案、成员名单和纪念文案目前仍分散在页面结构或相关脚本中，没有统一的内容管理系统，修改前请先定位对应来源。
+| 字段 | 修改的内容 |
+| --- | --- |
+| `intro.title` | 管理层章节标题 |
+| `intro.eyebrow` | 标题上方的英文小字 |
+| `intro.lines` | 开头说明，每个数组项显示一行 |
+| `people[].number` | 成员编号，使用字符串，例如 `"01"` |
+| `people[].role` / `roleEn` | 中文 / 英文职位 |
+| `people[].name` | 姓名 |
+| `people[].description` | 贡献说明 |
+
+`people` 数组的顺序就是卡片展示顺序。新增成员时复制一个完整条目并更改编号，删除成员时删除对应条目。保留 JSON 的双引号、逗号和括号；编号保持唯一。姓名、职位和贡献说明均作为文字显示，生成器会转义 HTML。
+
+本地 `npm run dev` 会先自动同步管理层 HTML。也可运行 `npm run content` 后执行 `npm run check` 和 `npm test`。网站读取生成后的静态内容，网络较慢或禁用 JavaScript 时也能阅读文案。生态与成员名单文案仍保留在各自来源中。
 
 ## 发布流程
 
 从最新 `main` 新建工作分支，完成修改后运行 `npm run check` 和 `npm test`，再创建到 `main` 的 PR。合并前应检查受影响章节，涉及触屏滚动、品牌遮挡、液滴或性能时还应进行真机检查；核心动画与性能架构的改动应在独立分支验证，不直接提交到 `main`。
 
-PR 会通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本。此外，桌面 Chromium、触屏 Chromium 和触屏 WebKit 会验证开场跳过、章节导航、无脚本回退、沙漠配色及触屏缩放限制，并与上一轮分支比较主要章节的计算样式；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。本轮优化说明见 [RELEASE-v1.0.3.md](RELEASE-v1.0.3.md)，最初发布记录见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
+PR 会先从管理层 JSON 自动生成页面，再通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本。此外，桌面 Chromium、触屏 Chromium 和触屏 WebKit 会验证开场跳过、章节导航、无脚本回退、沙漠配色及触屏缩放限制，并与上一轮分支比较主要章节的计算样式；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。本轮优化说明见 [RELEASE-v1.0.4.md](RELEASE-v1.0.4.md)，最初发布记录见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
 
 ### 优化预览
 
@@ -119,7 +134,7 @@ PR 会通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图�
 
 ## 项目状态
 
-当前稳定版本为 **v1.0.3**。项目重点关注 iPhone Safari、移动端 Chromium 以及桌面 Chromium / Safari 等使用场景；不同设备和浏览器的合成、滚动行为可能略有差异。后续修改以保持现有内容可访问、移动端原生滚动顺畅和各章节动画连续为优先。
+当前稳定版本为 **v1.0.4**。项目重点关注 iPhone Safari、移动端 Chromium 以及桌面 Chromium / Safari 等使用场景；不同设备和浏览器的合成、滚动行为可能略有差异。后续修改以保持现有内容可访问、移动端原生滚动顺畅和各章节动画连续为优先。
 
 ---
 

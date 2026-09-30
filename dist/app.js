@@ -46,13 +46,10 @@
   const imagePaths = ['garden', 'desert', 'ocean', 'jungle', 'hell'].map(name => 'assets/' + name + '.png');
   const tones = ['#239450', '#dfca91', '#4c8fb9', '#339a48', '#b53d3b'];
   // Content lives in HTML, so members and contributions survive script failure.
-  all('.biome').forEach(panel => {
-    const visual = document.createElement('div');
-    visual.className = 'biome-visual'; visual.setAttribute('aria-hidden', 'true');
-    panel.prepend(visual);
-  });
+  // Eager DOM images also remain available when initialization falls back.
+  const biomeImages = all('.biome-image');
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '1.0.3';
+  root.dataset.version = '1.0.4';
   root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
@@ -735,8 +732,8 @@
       header.inert=true;controls.inert=true;
       setMotionPreference();
       let loaded=0;
-      const images=await Promise.all(imagePaths.map(async path=>{
-        const image=await window.TwoNAssets.loadImage(path);
+      const images=await Promise.all(imagePaths.map(async (path,index)=>{
+        const image=await window.TwoNAssets.loadImage(path,biomeImages[index]);
         loaded++;one('.load-rule i').style.transform='scaleX('+(loaded/5)+')';
         loadStatus.textContent='准备场景 '+loaded+' / 5';
         return image;

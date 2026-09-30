@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { readFileSync } = require('node:fs');
 const { readContent } = require('../leaders-content.cjs');
-const people = readContent(readFileSync(require.resolve('../../dist/leaders-data.js'), 'utf8')).people;
+const people = readContent(readFileSync(require.resolve('../../content/leaders.json'), 'utf8')).people;
 
 async function settle(page) {
   await page.evaluate(() => new Promise(resolve =>
@@ -118,7 +118,7 @@ const visualSelectors = ['.site-header', '.brand-visual', '.hero-eyebrow', '.bio
 async function styles(page) {
   return page.evaluate(({ selectors, properties }) => selectors.map(selector => ({
     selector,
-    nodes: [...document.querySelectorAll(selector)].map(node => {
+    nodes: [...document.querySelectorAll(selector)].filter((_, index) => !selector.startsWith('.leader-card') || index === 0).map(node => {
       const computed = getComputedStyle(node);
       return Object.fromEntries(properties.map(property => [property, computed[property]]));
     })

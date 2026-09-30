@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { intro: leaderIntro, people: leaders } = require('../../content/leaders.json');
 const baseline = process.env.REGRESSION_BASELINE_URL || '';
 
 test.beforeEach(() => {
@@ -57,7 +58,7 @@ for (const action of ['Escape', 'skip-link']) {
       await expect(page.locator('html')).toHaveAttribute('data-state', 'fallback');
       await expect(page.locator('html')).not.toHaveClass(/is-enhanced|is-intro-locked/);
       await expect(page.locator('.native-chapter')).toHaveCount(0);
-      await expect(page.locator('.leader-list')).toContainText('awdc');
+      await expect(page.locator('.leader-list')).toContainText(leaders[0].name);
       expect(errors).toEqual([]);
     } finally { release(); await page.unrouteAll({ behavior: 'wait' }); }
   });
