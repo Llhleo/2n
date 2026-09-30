@@ -50,6 +50,9 @@ jobs:
   browser:
     needs: check
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --ipc=host
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -69,8 +72,6 @@ jobs:
           path: _site
       - name: Install browser test runner
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
-      - name: Install browsers
-        run: npx playwright install --with-deps chromium webkit
       - name: Check desktop and touch behavior
         run: npm run test:browser
         env:

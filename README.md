@@ -85,7 +85,7 @@ SITE_DIR=_site npm run check
 
 ### 浏览器回归检查
 
-CI 对优化后的发布副本执行浏览器测试。本地安装测试工具后也可以运行：
+CI 使用与测试包版本一致的 Playwright 预装镜像，对优化后的发布副本执行浏览器测试，避免每次重新安装浏览器系统依赖。本地安装测试工具后也可以运行：
 
 ```sh
 npm install --no-save --package-lock=false @playwright/test@1.56.1
