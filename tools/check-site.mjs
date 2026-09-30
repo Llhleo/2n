@@ -15,7 +15,7 @@ for(const ref of new Set(refs)) {
   assert.ok(!/^(?:https?:)?\/\//.test(ref),'No external asset dependency: '+ref);
   assert.ok((await stat(resolve(root,ref))).isFile(),ref);
 }
-for(const file of ['app.js','leaders-data.js','motion.js','liquid.js','assets.js','world-scene.js','profile.js','perf.js','mobile-story.js','touch-timeline.js','liquid-renderers.js']) execFileSync(process.execPath,['--check',resolve(root,file)]);
+for(const file of ['app.js','leaders-data.js','motion.js','liquid.js','assets.js','world-scene.js','profile.js','perf.js','navigation.js','mobile-story.js','touch-timeline.js','liquid-renderers.js']) execFileSync(process.execPath,['--check',resolve(root,file)]);
 assert.equal((html.match(/class="panel biome"/g)||[]).length,5);
 const leaderContext={window:{}};
 runInNewContext(await readFile(resolve(root,'leaders-data.js'),'utf8'),leaderContext);
@@ -33,7 +33,7 @@ const scripts=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(
 const styles=[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(match=>match[1]);
 assert.deepEqual(scripts.map(ref=>ref.split('?')[0]),[
   'profile.js','perf.js','motion.js','liquid.js',
-  'mobile-story.js','touch-timeline.js','assets.js','world-scene.js','app.js'
+  'navigation.js','mobile-story.js','touch-timeline.js','assets.js','world-scene.js','app.js'
 ],'Runtime script order');
 assert.deepEqual(styles.map(ref=>ref.split('?')[0]),[
   'style.css'

@@ -56,7 +56,7 @@ jobs:
       - name: Checkout previous implementation for comparison
         uses: actions/checkout@v4
         with:
-          ref: 77e20f471f645595b7d2a9bab11570ddf834e45d
+          ref: 0c2c68a6a9f3a2d839ee5cddfe2b8d3cae3bb205
           path: _baseline
       - name: Setup Node
         uses: actions/setup-node@v4

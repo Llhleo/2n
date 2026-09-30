@@ -4,7 +4,7 @@
   const M = window.TwoNMotion;
   const L = window.TwoNLiquid;
   const P=window.TwoNPerf;
-  if (!M || !L || !window.TwoNAssets || !window.TwoNWorldScene) { window.twoNFallback(); return; }
+  if (!M || !L || !window.TwoNAssets || !window.TwoNWorldScene || !window.TwoNNavigation) { window.twoNFallback(); return; }
   const { clamp, lerp, smooth, progress, easeOut } = M;
   const root = document.documentElement;
   const one = selector => document.querySelector(selector);
@@ -52,7 +52,7 @@
     panel.prepend(visual);
   });
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '1.0.1';
+  root.dataset.version = '1.0.2';
   root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
@@ -206,6 +206,7 @@
     shell.addEventListener('scroll',onStoryScroll,{passive:true});
   }
   function measureMobile(preserve,oldPosition) {
+    const anchor=preserve&&initialized?mobile.capturePosition(oldPosition):null;
     bridgeDuration=Math.round(Math.max(width*1.8,height*2.2));
     memberDuration=Math.round(Math.max(width*7.2,height*12));
     mobile.measure(width,height,bridgeDuration,memberDuration);
@@ -216,7 +217,7 @@
     logoTop=markAnchor.offsetTop;logoHeight=markAnchor.offsetHeight;
     measureBrand();
     if(scene) scene.resize();
-    if(preserve&&initialized) scrollStory(clamp(oldPosition,0,travel));
+    if(preserve&&initialized) scrollStory(clamp(mobile.restorePosition(anchor,oldPosition),0,travel));
     mobile.latest=shell.scrollLeft;mobile.publish();schedule();
   }
   function measureLiquid() {
@@ -342,6 +343,7 @@
     memberHeading.style.opacity=String(smooth(progress(arriving,.6,1)));
     fusion.style.opacity=String(smooth(progress(arriving,.6,1)));
     if(x < memberStart-width || x > memberStart+width) return;
+    if(P) P.values.liquidPhase=phase;
     if(lastLiquidPhase===phase && fusion.dataset.reduced===String(reduced)) return;
     lastLiquidPhase=phase;fusion.dataset.reduced=String(reduced);
     const mapped=phase<=.355?phase:phase<=.47?lerp(.355,.43,progress(phase,.355,.47)):lerp(.43,1,progress(phase,.47,1));
@@ -609,23 +611,14 @@
     memberCloud.style.visibility='';memberHeading.style.opacity='';viewport.style.backgroundColor='';
   }
 
-  function goTo(value) {
-    if (!active) {
-      if (typeof value === 'string') document.getElementById(value)?.scrollIntoView();
+  const { goTo, nextStop } = window.TwoNNavigation.create({
+    getState:()=>({active,ready,geometry,stops,max:lead+travel,reduced}),
+    storyPosition, scrollStory, scrollForX, schedule,
+    fallback(value) {
+      if(typeof value==='string') document.getElementById(value)?.scrollIntoView();
       else scrollTo({top:0,behavior:'auto'});
-      return;
     }
-    if (!ready) return;
-    const g = typeof value === 'string' ? geometry.find(g => g.panel.id===value) : null;
-    const destination = g ? scrollForX(g.x) : typeof value==='number' ? value : 0;
-    scrollStory(clamp(destination,0,lead+travel),reduced?'instant':'smooth');
-    schedule();
-  }
-  function nextStop(direction) {
-    const current = storyPosition();
-    const candidates = direction>0 ? stops.filter(x=>x>current+4) : stops.filter(x=>x<current-4).reverse();
-    if (candidates.length) goTo(candidates[0]);
-  }
+  });
   const isControl = target => target instanceof Element && !!target.closest('button,a,input,textarea,select,video,[contenteditable=true]');
 
   one('.skip-intro').addEventListener('click', () => {
@@ -750,6 +743,8 @@
       root.classList.add('is-enhanced');
       root.classList.remove('is-booting');
       measure(false); initialized=true;
+      // Boot succeeded. A background-paused intro must not trigger the boot watchdog.
+      clearTimeout(window.twoNBootTimer);
       loadStatus.textContent=images.every(Boolean)?'五境就绪':'部分背景暂不可用';
       root.dataset.assets=images.every(Boolean)?'complete':'partial';
       // Honor deep anchors without forcing users through an unrelated intro.
