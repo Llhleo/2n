@@ -4,11 +4,11 @@
 
 **在线网站：** https://llhleo.github.io/2n/
 
-**当前稳定版本：** v1.0.4
+**当前稳定版本：** v1.0.4（v1.0.5 维护修改待发布）
 
 **修改管理层文案：** 打开 [`content/leaders.json`](content/leaders.json)，修改后提交，GitHub Actions 会自动生成并发布页面。
 
-![2n Website 分享封面](dist/assets/og-2n.png)
+![2n Website 分享封面](dist/assets/og-2n.jpg)
 
 ## 项目概览
 
@@ -60,7 +60,7 @@
 └─ README.md
 ```
 
-生态背景图片位于 `dist/assets/`；半周年影片是 `dist/assets/half-year.mp4`，分享封面是 `dist/assets/og-2n.png`。`tools/` 只用于本地预览与验证，不参与线上页面的运行。
+生态背景图片位于 `dist/assets/`；半周年影片是 `dist/assets/half-year.mp4`，分享封面是 `dist/assets/og-2n.jpg`。`tools/` 只用于本地预览与验证，不参与线上页面的运行。
 
 ## 本地预览与检查
 
@@ -96,7 +96,7 @@ npx playwright install chromium webkit
 npm run test:browser
 ```
 
-默认预览 `dist/`；设置 `SITE_DIR=_site` 可验证发布副本。CI 还启动上一轮分支的对照站点，比较五个章节的计算样式。浏览器检查还覆盖成员动画回看、窄屏/横屏、旋转后的阅读位置、模拟的 visibilitychange/pageshow 事件，以及通过调试帧计数验证影片章节停止调度、开场继续播放。新增检查覆盖单次任务内快速跨越五境、开场前已解码的实际图片，以及图片超时后继续显示。模拟后台事件和浏览器时钟不等同于真实系统挂起或浏览器 BFCache 恢复；触屏 WebKit 也不能替代 iPhone 真机的滚动、合成与帧率检查。触屏的 `maximum-scale=1, user-scalable=no` 和 Safari 手势拦截继续保留。
+默认预览 `dist/`；设置 `SITE_DIR=_site` 可验证发布副本。CI 还启动 PR 基线提交的对照站点，比较五个章节的计算样式。浏览器检查还覆盖成员动画回看、窄屏/横屏、旋转后的阅读位置、模拟的 visibilitychange/pageshow 事件，以及通过调试帧计数验证影片章节停止调度、开场继续播放。新增检查覆盖单次任务内快速跨越五境、开场前已解码的实际图片，以及图片超时后继续显示。模拟后台事件和浏览器时钟不等同于真实系统挂起或浏览器 BFCache 恢复；触屏 WebKit 也不能替代 iPhone 真机的滚动、合成与帧率检查。触屏的 `maximum-scale=1, user-scalable=no` 和 Safari 手势拦截继续保留。
 
 ## 内容维护
 
@@ -122,11 +122,11 @@ npm run test:browser
 
 从最新 `main` 新建工作分支，完成修改后运行 `npm run check` 和 `npm test`，再创建到 `main` 的 PR。合并前应检查受影响章节，涉及触屏滚动、品牌遮挡、液滴或性能时还应进行真机检查；核心动画与性能架构的改动应在独立分支验证，不直接提交到 `main`。
 
-PR 会先从管理层 JSON 自动生成页面，再通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本。此外，桌面 Chromium、触屏 Chromium 和触屏 WebKit 会验证开场跳过、章节导航、无脚本回退、沙漠配色及触屏缩放限制，并与上一轮分支比较主要章节的计算样式；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。本轮优化说明见 [RELEASE-v1.0.4.md](RELEASE-v1.0.4.md)，最初发布记录见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
+PR 会先从管理层 JSON 自动生成页面，再通过 GitHub Actions 运行 `npm run check`、`npm test`，并检查图片优化后的部署副本。此外，桌面 Chromium、触屏 Chromium 和触屏 WebKit 会验证开场跳过、章节导航、无脚本回退、沙漠配色及触屏缩放限制，并与 PR 基线提交比较主要章节的计算样式；检查失败则不会部署。PR 合并进入 `main` 后，同一工作流会将经过检查的 `_site/` 部署到 GitHub Pages。发布时注意 HTML 中 CSS / JS 的缓存参数是否与目标版本一致，部署后再核对线上页面；不需要手动生成部署文件。本轮优化说明见 [RELEASE-v1.0.5.md](RELEASE-v1.0.5.md)，最初发布记录见 [RELEASE-v1.0.md](RELEASE-v1.0.md)。
 
 ### 优化预览
 
-当前维护分支的审阅入口为 https://llhleo.github.io/2n/preview/ 。仅指定的同仓库维护分支 PR 在静态、单元和浏览器检查通过后发布此路径。预览发布会从当前 `main` 重新生成正式发布副本，放在根路径；待审阅副本放在 `preview/`。两者均使用已校验的无损图片优化，避免预览发布使正式页面退回原始 PNG。发布前核对 `main` 未变化，发布后核对正式与预览的 HTML、CSS、所有脚本和五境图片内容。
+当前维护分支的审阅入口为 https://llhleo.github.io/2n/preview/ 。仅带 `preview` 标签的同仓库 PR 在静态、单元和浏览器检查通过后发布此路径。预览发布会从当前 `main` 重新生成正式发布副本，放在根路径；待审阅副本放在 `preview/`。两者均使用已校验的无损图片优化，避免预览发布使正式页面退回原始 PNG。发布前核对 `main` 未变化，发布后核对正式与预览的 HTML、CSS、所有脚本和五境图片内容。
 
 预览是临时入口；后续正常的 `main` 发布会替换整个 Pages 站点，可能移除 `preview/`。正式地址始终是 https://llhleo.github.io/2n/ 。
 
@@ -134,7 +134,7 @@ PR 会先从管理层 JSON 自动生成页面，再通过 GitHub Actions 运行 
 
 ## 项目状态
 
-当前稳定版本为 **v1.0.4**。项目重点关注 iPhone Safari、移动端 Chromium 以及桌面 Chromium / Safari 等使用场景；不同设备和浏览器的合成、滚动行为可能略有差异。后续修改以保持现有内容可访问、移动端原生滚动顺畅和各章节动画连续为优先。
+当前稳定版本为 **v1.0.4**；本分支包含待发布的 v1.0.5 维护修改。项目重点关注 iPhone Safari、移动端 Chromium 以及桌面 Chromium / Safari 等使用场景；不同设备和浏览器的合成、滚动行为可能略有差异。后续修改以保持现有内容可访问、移动端原生滚动顺畅和各章节动画连续为优先。
 
 ---
 
@@ -155,3 +155,5 @@ PR 会先从管理层 JSON 自动生成页面，再通过 GitHub Actions 运行 
 ChatGPT 数字来自开发者在 v1.0 收尾阶段提供的**账户统计页面**；累计 Token、最近轮次和任务时长都是账户口径，**不是 2n 单项目消耗或项目独立统计**。该页面另显示峰值令牌数 30,408,000，含义同样按原账户页面记录，不推断为单次或本项目用量。
 
 这里面有不少代码、很多次滚动测试、一堆液滴，以及比预想中更多的调试。
+
+代码许可和素材边界见 [ASSET-RIGHTS.md](ASSET-RIGHTS.md)。早期备份保留在 `archive/pre-v1.0.5` 分支及原 Git 历史中。

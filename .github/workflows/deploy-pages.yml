@@ -4,6 +4,7 @@ on:
   push:
     branches: ["main"]
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
     branches: ["main"]
   workflow_dispatch:
 
@@ -61,7 +62,7 @@ jobs:
       - name: Checkout previous implementation for comparison
         uses: actions/checkout@v4
         with:
-          ref: 253093c2e70c8a34eaa395d9129fd5ae9508417e
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           path: _baseline
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -74,12 +75,6 @@ jobs:
           path: _site
       - name: Install browser test runner
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
-      - name: Demonstrate rapid biome regressions on previous version
-        run: npm run test:browser -- tools/browser/biomes.spec.cjs --grep "touch biome text"
-        env:
-          SITE_DIR: _site
-          BASELINE_URL: http://127.0.0.1:4174
-          BIOME_BASELINE_URL: http://127.0.0.1:4174
       - name: Check desktop and touch behavior
         run: npm run test:browser
         env:
@@ -132,7 +127,7 @@ jobs:
 
   preview:
     timeout-minutes: 15
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'fix/biome-fast-scroll-and-content'
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'preview')
     needs: [check, browser]
     concurrency:
       group: pages-publish
