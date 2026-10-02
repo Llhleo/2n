@@ -1,6 +1,9 @@
 (() => {
   'use strict';
   const BRAND_MODE = 'wordmark'; // 'image' keeps the supplied candidate emblem available.
+  if (BRAND_MODE === 'image') {
+    document.querySelectorAll('[data-src]').forEach(image => { image.src = image.dataset.src; });
+  }
   const M = window.TwoNMotion;
   const L = window.TwoNLiquid;
   const P=window.TwoNPerf;
@@ -49,7 +52,7 @@
   // Eager DOM images also remain available when initialization falls back.
   const biomeImages = all('.biome-image');
   root.dataset.brand = BRAND_MODE;
-  root.dataset.version = '1.0.4';
+  root.dataset.version = '1.0.5';
   root.dataset.input = touchFirst ? 'touch' : 'desktop';
 
   let reduced = mediaQuery.matches;
@@ -312,20 +315,18 @@
       const atMark=nativePosition+width*.10;
       let markChapter=0;
       for(let i=0;i<geometry.length;i++) if(geometry[i].x<=atMark) markChapter=i+1;
-      const markTheme=markChapter>=1&&markChapter<=5
-        ? (markChapter===2?'light':'dark')
-        : (markChapter===6||markChapter===8?'dark':'light');
+      const markPanel=markChapter===0?hero:panels[markChapter-1];
+      const markTheme=(markPanel.dataset.theme || 'light').endsWith('dark')?'dark':'light';
       if(root.dataset.brandTheme!==markTheme) root.dataset.brandTheme=markTheme;
     }
     if (index === activeChapter) return;
     activeChapter = index;
     counter.textContent = String(index + 1).padStart(2, '0');
     chapterName.textContent = index === 0 ? '序章' : panels[index-1].dataset.chapter;
-    root.classList.toggle('is-light-chrome', index > 0 && index <= 6 || index === 8);
-    root.classList.toggle('is-ink-footer', index === 7 || index === 9 || index === 10);
-    root.dataset.theme = index > 0 && index <= 5
-      ? (index === 2 ? 'biome-light' : 'biome-dark')
-      : (index === 6 || index === 8 ? 'dark' : 'light');
+    const chapter=index===0?hero:panels[index-1];
+    root.classList.toggle('is-light-chrome',chapter.dataset.chrome==='light');
+    root.classList.toggle('is-ink-footer',chapter.dataset.chrome==='ink');
+    root.dataset.theme=chapter.dataset.theme || 'light';
     const surface = index === 0 ? '#F7F7F3' : geometry[index-1].surface;
     root.style.setProperty('--surface-color',surface);
     themeMeta.content=surface;

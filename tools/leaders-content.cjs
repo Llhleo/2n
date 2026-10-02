@@ -27,7 +27,7 @@ function renderSection(data) {
     '</span><h3>' + text(person.name) + '</h3><p>' + text(person.description) +
     '</p></div></article>'
   ).join('\n');
-  return '<section class="panel leaders" id="leaders" data-chapter="' + text(data.intro.title) + '">\n' +
+  return '<section class="panel leaders" id="leaders" data-chapter="' + text(data.intro.title) + '" data-theme="light" data-chrome="ink">\n' +
     '          <div class="section-intro">\n' +
     '            <p>' + text(data.intro.eyebrow) + '</p>\n' +
     '            <h2>' + text(data.intro.title) + '</h2>\n' +

@@ -14,7 +14,8 @@ for(const ref of new Set(refs)) {
   assert.ok(!/^(?:https?:)?\/\//.test(ref),'No external asset dependency: '+ref);
   assert.ok((await stat(resolve(root,ref))).isFile(),ref);
 }
-for(const file of ['app.js','motion.js','liquid.js','assets.js','world-scene.js','profile.js','perf.js','navigation.js','mobile-story.js','touch-timeline.js','liquid-renderers.js']) execFileSync(process.execPath,['--check',resolve(root,file)]);
+for(const file of ['app.js','motion.js','liquid.js','assets.js','world-scene.js','profile.js','perf.js','navigation.js','mobile-story.js','touch-timeline.js']) execFileSync(process.execPath,['--check',resolve(root,file)]);
+execFileSync(process.execPath,['--check',resolve('tools/liquid-renderers.js')]);
 assert.equal((html.match(/class="panel biome"/g)||[]).length,5);
 assert.equal((html.match(/class="biome-image"/g)||[]).length,5, 'Five eager biome images');
 const leaderData=content.readContent(await readFile(resolve('content/leaders.json'),'utf8'));
